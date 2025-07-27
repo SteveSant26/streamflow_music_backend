@@ -1,5 +1,7 @@
 from django.db import models
+
 from .usuario import Usuario
+
 
 class Suscripcion(models.Model):
     suscripcion_id = models.AutoField(primary_key=True)

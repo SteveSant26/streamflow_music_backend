@@ -1,6 +1,8 @@
 from django.db import models
+
 from .album import Album
 from .genero import Genero
+
 
 class Cancion(models.Model):
     cancion_id = models.AutoField(primary_key=True)

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Genero(models.Model):
     genero_id = models.AutoField(primary_key=True)
     nombre_genero = models.CharField(max_length=50)

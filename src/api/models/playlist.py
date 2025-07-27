@@ -1,6 +1,8 @@
 from django.db import models
-from .usuario import Usuario
+
 from .cancion import Cancion
+from .usuario import Usuario
+
 
 class Playlist(models.Model):
     playlist_id = models.AutoField(primary_key=True)

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Artista(models.Model):
     artista_id = models.AutoField(primary_key=True)
     nombre_artista = models.CharField(max_length=100)

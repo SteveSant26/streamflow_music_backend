@@ -1,5 +1,7 @@
 from django.db import models
+
 from .artista import Artista
+
 
 class Album(models.Model):
     album_id = models.AutoField(primary_key=True)
