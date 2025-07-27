@@ -1,20 +1,8 @@
 import os
-from pathlib import Path
-
-from environ import Env
 
 from src.common.utils import LoggingConfig
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
-
-
-env = Env()
-env_file = BASE_DIR / f".env.{ENVIRONMENT}"
-env.read_env(env_file)
-
+from .utils.env import BASE_DIR, ENVIRONMENT, env
 
 SECRET_KEY = env("SECRET_KEY")
 

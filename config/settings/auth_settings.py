@@ -1,7 +1,3 @@
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -17,4 +13,3 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-# Modifico esto para que funcione con mi modelo de usuario

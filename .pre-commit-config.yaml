@@ -64,6 +64,14 @@ repos:
       - id: commitizen
         stages: [commit-msg]
 
+
+  # Commit message formatting
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
   # Hooks generales
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -75,11 +83,3 @@ repos:
       - id: check-json
       - id: check-merge-conflict
       - id: debug-statements
-      - id: requirements-txt-fixer
-
-  # Commit message formatting
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.13.0
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]

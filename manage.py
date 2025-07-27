@@ -6,7 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     # Ensure the 'src' directory is in the Python path
     sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
