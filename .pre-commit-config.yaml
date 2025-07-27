@@ -50,8 +50,10 @@ repos:
     rev: 1.7.5
     hooks:
       - id: bandit
-        args: ["-r", "."]
-        exclude: tests/
+        exclude: |
+          (^tests/)|(^\.venv/)
+
+
   # Revisa commit message
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
