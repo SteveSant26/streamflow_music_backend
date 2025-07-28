@@ -12,8 +12,10 @@ import sys
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 
 application = get_asgi_application()
