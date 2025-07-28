@@ -1,4 +1,4 @@
-from apps.user_profile.domain.repository.Iuser_repository import IUserRepository
+from apps.user_profile.domain.repository import IUserRepository
 
 from ...domain.entities import UserEntity
 from ...infrastructure.models import UserProfile
