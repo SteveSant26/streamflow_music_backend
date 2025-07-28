@@ -18,8 +18,9 @@ from .utils.env import BASE_DIR, ENVIRONMENT, env
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env("DEBUG")
+DEBUG = env.bool("DEBUG")
 print(f"DEBUG: {DEBUG}")
+print(f"DEBUG: {type(DEBUG)}")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
