@@ -9,7 +9,7 @@ from apps.user_profile.api.serializers import (
     UploadProfilePictureSerializer,
 )
 from apps.user_profile.infrastructure.models.user_profile import UserProfile
-from common.utils.image_utils import ImageUtils
+from common.utils.storage_utils import StorageUtils
 from src.common.utils import get_logger
 
 from ..infrastructure.repository import UserRepository
@@ -18,7 +18,7 @@ from ..use_cases import GetUserProfile, UploadProfilePicture
 logger = get_logger(__name__)
 
 user_repository = UserRepository()
-image_utils = ImageUtils("profile-pictures")
+image_utils = StorageUtils("profile-pictures")
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):

@@ -1,13 +1,13 @@
-from common.utils.image_utils import ImageUtils
+from common.utils.storage_utils import StorageUtils
 
 from ..domain.entities import UserEntity
 from ..infrastructure.repository import UserRepository
 
 
 class UploadProfilePicture:
-    def __init__(self, user_repository: UserRepository, image_utils: ImageUtils):
+    def __init__(self, user_repository: UserRepository, image_utils: StorageUtils):
         self.user_repository = user_repository
-        self.image_utils = image_utils
+        self.storage_utils = image_utils
 
     def execute(self, data: dict) -> UserEntity | None:
         user_id = data.get("id")
@@ -18,7 +18,7 @@ class UploadProfilePicture:
             return None
 
         file_path = f"profile-pictures/user_{user_id}.jpg"
-        uploaded_image_url = self.image_utils.upload_image(file_path, profile_picture)
+        uploaded_image_url = self.storage_utils.upload_item(file_path, profile_picture)
 
         if not uploaded_image_url:
             return None
