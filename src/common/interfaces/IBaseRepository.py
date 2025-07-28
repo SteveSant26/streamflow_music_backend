@@ -12,6 +12,10 @@ class IReadOnlyRepository(ABC, Generic[EntityType, ModelType]):
         """Obtiene una entidad por ID."""
 
     @abstractmethod
+    def get_all(self) -> list[EntityType]:
+        """Obtiene todas las entidades, opcionalmente filtradas."""
+
+    @abstractmethod
     def _model_to_entity(self, model: ModelType) -> EntityType:
         """Convierte un modelo a su entidad correspondiente."""
 
