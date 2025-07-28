@@ -18,10 +18,19 @@ THIRD_PARTY_APPS = [
     "django_filters",
 ]
 LOCAL_APPS = [
-    "api",
+    "apps.user_profile",
 ]
 INSTALLED_APPS = THEME_APPLICATION + DEFAULT_DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 SWAGGER_SETTINGS = {
     "DOC_EXPANSION": "none",
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer <token>'",
+        },
+    },
+    "USE_SESSION_AUTH": False,
 }

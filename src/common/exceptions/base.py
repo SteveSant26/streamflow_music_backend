@@ -30,4 +30,11 @@ class DomainException(Exception):
         return {self.identifier: [str(errors)]}
 
 
-__all__ = ["DomainException"]
+class NotFoundException(DomainException):
+    """Excepción para recursos no encontrados - equivalente a NotFoundError de Django"""
+
+    def __init__(self, message: str = "Recurso no encontrado", code: int = 404):
+        super().__init__(message, code=code, identifier="not_found_error")
+
+
+__all__ = ["DomainException", "NotFoundException"]

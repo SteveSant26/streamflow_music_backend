@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.serializers import ValidationError
 
-from src.domain.exceptions import DomainException
+from src.common.exceptions import DomainException
 
 
 class ErrorHandlerMiddleware:

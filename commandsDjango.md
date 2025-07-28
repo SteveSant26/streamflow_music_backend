@@ -7,6 +7,8 @@ django-admin startproject projectname . # . is the current directory
 // Create a new Django app
 python manage.py startapp appname
 
+python manage.py startapp src.api.user_profile
+
 // Run the server
 python manage.py runserver
 

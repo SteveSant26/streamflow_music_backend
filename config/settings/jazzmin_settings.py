@@ -1,7 +1,7 @@
 JAZZMIN_SETTINGS = {
     "site_logo_classes": "img-circle",
     "search_model": [
-        "users.CustomUser",
+        "auth.User",
     ],
     "user_avatar": None,
     "order_with_respect_to": [
@@ -14,21 +14,7 @@ JAZZMIN_SETTINGS = {
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.Group": "fas fa-users",
-        "users.customuser": "fas fa-user",
-        "users.PasswordResetCode": "fas fa-unlock-alt",
-        "business_configuration.BusinessConfiguration": "fas fa-cogs",
-        "contingencies.Contingency": "fas fa-exclamation-triangle",
-        "event_rentals.EventRental": "fas fa-calendar-check",
-        "event_rentals.RentalStatusHistory": "fas fa-history",
-        "event_rentals.ServicesEventRental": "fas fa-concierge-bell",
-        "events.EventCategory": "fas fa-folder-open",
-        "events.Event": "fas fa-calendar-day",
-        "photos.Photo": "fas fa-camera",
-        "promotions.PromotionCategory": "fas fa-tags",
-        "promotions.Promotion": "fas fa-bullhorn",
-        "reviews.Review": "fas fa-star-half-alt",
-        "services.ServiceCategory": "fas fa-th-list",
-        "services.Service": "fas fa-concierge-bell",
+        "auth.User": "fas fa-user",
     },
     "use_google_fonts_cdn": True,
     # "show_ui_builder": True,

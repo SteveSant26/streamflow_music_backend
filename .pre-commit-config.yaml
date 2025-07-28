@@ -31,7 +31,7 @@ repos:
     hooks:
       - id: flake8
         args: [--max-line-length=120, --extend-ignore=E203]
-        exclude: '(__init__\.py$|^src/api/)'
+        exclude: '(__init__\.py$|^src/apps/.*/migrations/)|(^src/apii/)'
 
 
   # Linting de código Python
@@ -46,7 +46,7 @@ repos:
         args:
           - --ignore-missing-imports
           - --explicit-package-bases
-        exclude: (^src/api/migrations/)
+        exclude: (^src/apps/.*/migrations/)|(^src/apii/)
 
   # Seguridad
   # TODO: Remove exclude when security issues are fixed
@@ -55,14 +55,7 @@ repos:
     hooks:
       - id: bandit
         exclude: |
-          (^tests/)|(^migrations/)|(^\.venv/)|(^src/api/)
-
-  # Revisa commit message
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.13.0
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]
+          (^tests/)|(^migrations/)|(^\.venv/)|(^src/apps/.*/migrations/)
 
 
   # Commit message formatting
