@@ -9,7 +9,7 @@ class GetUserProfile:
         self.user_repository = user_repository
 
     def execute(self, user_id: str) -> UserEntity:
-        user = self.user_repository.get_user_by_id(user_id)
+        user = self.user_repository.get_by_id(user_id)
         if not user:
             raise UserNotFoundException(user_id)
         return user

@@ -4,6 +4,11 @@ from django.db import models
 class UserProfile(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
     email = models.EmailField(editable=False, unique=True)
+    profile_picture = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,  # NOSONAR
+    )
 
     @property
     def is_authenticated(self):

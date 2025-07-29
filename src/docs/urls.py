@@ -3,8 +3,10 @@ from django.urls import path
 
 from .schema import schema_view
 
+urlpatterns = []
+
 if settings.DEBUG:
-    urlpatterns = [
+    urlpatterns += [
         path(
             "swagger<format>/",
             schema_view.without_ui(cache_timeout=0),
