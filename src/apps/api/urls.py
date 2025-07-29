@@ -2,6 +2,7 @@ from django.urls import include, path
 from django.http import JsonResponse
 from apps.user_profile.infrastructure.models.user_profile import UserProfile
 from .auth_views import register_view, login_view, logout_view
+from .profile_views import get_profile_view, update_profile_view, upload_profile_image_view
 
 # Vista simple para probar la conexión
 def test_connection(request):
@@ -16,6 +17,9 @@ def test_connection(request):
             'POST /api/auth/register/',
             'POST /api/auth/login/',
             'POST /api/auth/logout/',
+            'GET /api/auth/profile/',
+            'PUT /api/auth/profile/',
+            'POST /api/auth/profile-image/',
         ]
     })
 
@@ -54,4 +58,12 @@ urlpatterns = [
     path("auth/login/", login_view, name="auth_login_slash"),
     path("auth/logout", logout_view, name="auth_logout"),
     path("auth/logout/", logout_view, name="auth_logout_slash"),
+    
+    # Endpoints de perfil
+    path("auth/me", get_profile_view, name="auth_profile"),
+    path("auth/me/", get_profile_view, name="auth_profile_slash"),
+    path("auth/profile", update_profile_view, name="auth_update_profile"),
+    path("auth/profile/", update_profile_view, name="auth_update_profile_slash"),
+    path("auth/profile-image", upload_profile_image_view, name="auth_upload_image"),
+    path("auth/profile-image/", upload_profile_image_view, name="auth_upload_image_slash"),
 ]

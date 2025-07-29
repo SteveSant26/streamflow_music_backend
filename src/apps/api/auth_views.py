@@ -161,6 +161,7 @@ def login_view(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])  # Permitir logout sin autenticación
 def logout_view(request):
     """
     Endpoint para cerrar sesión (invalidar token)
