@@ -1,1 +1,2 @@
 from .retrieve_user_profile_serializer import RetrieveUserProfileSerializer
+from .upload_profile_picture_serializer import UploadProfilePictureSerializer

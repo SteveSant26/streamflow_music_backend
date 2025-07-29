@@ -2,11 +2,26 @@ import os
 
 from src.common.utils import LoggingConfig
 
+from .apps_settings import INSTALLED_APPS, SWAGGER_SETTINGS  # noqa: F401
+from .auth_settings import AUTH_PASSWORD_VALIDATORS  # noqa: F401
+from .database_settings import DATABASES  # noqa: F401
+from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: F401
+from .middleware_settings import MIDDLEWARE  # noqa: F401
+from .rest_framework_settings import REST_FRAMEWORK  # noqa: F401
+from .supabase_settings import (  # noqa: F401
+    SUPABASE_ANON_KEY,
+    SUPABASE_JWT_ALGORITHM,
+    SUPABASE_JWT_SECRET,
+    SUPABASE_PROJECT_ID,
+    SUPABASE_SERVICE_KEY,
+    SUPABASE_URL,
+)
+from .templates_settings import TEMPLATES  # noqa: F401
 from .utils.env import BASE_DIR, ENVIRONMENT, env
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env("DEBUG")
+DEBUG = env.bool("DEBUG")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
