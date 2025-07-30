@@ -28,12 +28,12 @@ def test_users(request):
     try:
         # Contar usuarios
         user_count = UserProfile.objects.count()
-        
+
         # Obtener algunos usuarios (sin datos sensibles)
         users = UserProfile.objects.all()[:5].values(
             'id', 'email', 'profile_picture'
         )
-        
+
         return JsonResponse({
             'status': 'success',
             'user_count': user_count,
@@ -50,7 +50,7 @@ urlpatterns = [
     path("test/", test_connection, name="test_connection"),
     path("test-users/", test_users, name="test_users"),
     path("user/", include("apps.user_profile.api.urls")),
-    
+
     # Endpoints de autenticación (con y sin slash final para mayor compatibilidad)
     path("auth/register", register_view, name="auth_register"),
     path("auth/register/", register_view, name="auth_register_slash"),
@@ -58,7 +58,7 @@ urlpatterns = [
     path("auth/login/", login_view, name="auth_login_slash"),
     path("auth/logout", logout_view, name="auth_logout"),
     path("auth/logout/", logout_view, name="auth_logout_slash"),
-    
+
     # Endpoints de perfil
     path("auth/me", get_profile_view, name="auth_profile"),
     path("auth/me/", get_profile_view, name="auth_profile_slash"),

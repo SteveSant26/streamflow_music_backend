@@ -12,7 +12,6 @@ DEFAULT_DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
-    "rest_framework_simplejwt",
     "import_export",
     "corsheaders",
     "drf_yasg",

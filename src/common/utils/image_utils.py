@@ -3,7 +3,7 @@ from typing import Optional
 from django.conf import settings
 from supabase import Client, create_client
 
-from src.common.utils.logging_config import get_logger
+from .logging_config import get_logger
 
 logger = get_logger(__name__)
 

@@ -26,6 +26,7 @@ def register_view(request):
     """
     try:
         data = request.data
+        print(f"Datos de registro recibidos: {data}")
         
         # Validar datos requeridos
         email = data.get('email', '').strip().lower()
@@ -53,49 +54,45 @@ def register_view(request):
                 'message': 'La contraseña debe tener al menos 6 caracteres'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Generar username si no se proporciona
-        if not username:
-            username = email.split('@')[0]
-        
-        # Verificar si el usuario ya existe
+        # Verificar si el email ya existe
         if UserProfile.objects.filter(email=email).exists():
             return Response({
                 'error': True,
-                'message': 'Ya existe un usuario con este email'
+                'message': 'El email ya está registrado'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Crear el usuario con UUID
-        user_id = uuid.uuid4()
+        # Crear usuario
         user = UserProfile.objects.create(
-            id=user_id,
+            id=uuid.uuid4(),
             email=email,
-            password=make_password(password)  # Hashear la contraseña
+            password=make_password(password)
         )
         
-        # Generar token simple
+        # Generar token
         token = generate_simple_token(str(user.id))
         
+        print(f"Usuario registrado exitosamente: {email}")
+        
         return Response({
+            'message': 'Registro exitoso',
+            'token': token,
             'user': {
                 'id': str(user.id),
                 'email': user.email,
-                'username': username,
+                'username': user.email.split('@')[0],
                 'profileImage': user.profile_picture,
                 'createdAt': '',
                 'updatedAt': ''
-            },
-            'token': token,
-            'refreshToken': token,  # Por simplicidad, usar el mismo token
-            'message': 'Usuario registrado exitosamente'
+            }
         }, status=status.HTTP_201_CREATED)
         
     except IntegrityError:
         return Response({
             'error': True,
-            'message': 'Error al crear el usuario. El email puede estar en uso.'
+            'message': 'El email ya está registrado'
         }, status=status.HTTP_400_BAD_REQUEST)
-        
     except Exception as e:
+        print(f"Error en registro: {str(e)}")
         return Response({
             'error': True,
             'message': f'Error interno del servidor: {str(e)}'
@@ -110,6 +107,7 @@ def login_view(request):
     """
     try:
         data = request.data
+        print(f"Datos de login recibidos: {data}")
         
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
@@ -120,7 +118,7 @@ def login_view(request):
                 'message': 'Email y contraseña son requeridos'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Buscar usuario por email
+        # Buscar usuario
         try:
             user = UserProfile.objects.get(email=email)
         except UserProfile.DoesNotExist:
@@ -139,7 +137,11 @@ def login_view(request):
         # Generar token
         token = generate_simple_token(str(user.id))
         
+        print(f"Login exitoso para: {email}")
+        
         return Response({
+            'message': 'Login exitoso',
+            'token': token,
             'user': {
                 'id': str(user.id),
                 'email': user.email,
@@ -147,13 +149,11 @@ def login_view(request):
                 'profileImage': user.profile_picture,
                 'createdAt': '',
                 'updatedAt': ''
-            },
-            'token': token,
-            'refreshToken': token,
-            'message': 'Inicio de sesión exitoso'
+            }
         }, status=status.HTTP_200_OK)
         
     except Exception as e:
+        print(f"Error en login: {str(e)}")
         return Response({
             'error': True,
             'message': f'Error interno del servidor: {str(e)}'
@@ -161,18 +161,20 @@ def login_view(request):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])  # Permitir logout sin autenticación
+@permission_classes([AllowAny])  # No requerir autenticación para logout
 def logout_view(request):
     """
-    Endpoint para cerrar sesión (invalidar token)
+    Endpoint para cerrar sesión
     """
     try:
+        print("Logout solicitado")
         return Response({
-            'message': 'Sesión cerrada exitosamente'
+            'message': 'Logout exitoso'
         }, status=status.HTTP_200_OK)
         
     except Exception as e:
+        print(f"Error en logout: {str(e)}")
         return Response({
             'error': True,
-            'message': 'Error al cerrar sesión'
-        }, status=status.HTTP_400_BAD_REQUEST)
+            'message': f'Error interno del servidor: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
