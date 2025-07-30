@@ -25,7 +25,27 @@ DEBUG = env.bool("DEBUG")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
+# CORS Settings
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
+
+# Configuraciones adicionales de CORS para desarrollo
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOWED_HEADERS = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with',
+    ]
+
+# Deshabilitar APPEND_SLASH para APIs
+APPEND_SLASH = False
 
 ROOT_URLCONF = "config.urls"
 
