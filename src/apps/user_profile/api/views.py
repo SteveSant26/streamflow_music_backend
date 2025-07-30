@@ -9,26 +9,32 @@ from apps.user_profile.api.serializers import (
     UploadProfilePictureSerializer,
 )
 from apps.user_profile.infrastructure.models.user_profile import UserProfile
-from common.utils.storage_utils import StorageUtils
-from src.common.utils import get_logger
+from common.factories import StorageServiceFactory
+from common.mixins.logging_mixin import LoggingMixin
 
 from ..infrastructure.repository import UserRepository
-from ..use_cases import GetUserProfile, UploadProfilePicture
+from ..use_cases import GetUserProfileUseCase, UploadProfilePicture
 
-logger = get_logger(__name__)
-
+# Instancias globales (idealmente esto debería ser inyección de dependencias)
 user_repository = UserRepository()
-image_utils = StorageUtils("profile-pictures")
+storage_service = StorageServiceFactory.create_profile_pictures_service()
 
 
-class UserProfileViewSet(viewsets.ModelViewSet):
+class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
     queryset = UserProfile.objects.all()
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    http_method_names = ["get", "post", "put", "delete"]
+    http_method_names = ["get", "post", "delete"]
 
-    def get_permission(self):
-        if self.action in ["me", "upload_profile_picture"]:
+    def get_permissions(self):
+        self.logger.debug(f"Checking permissions for action: {self.action}")
+        if self.action in [
+            "me",
+            "upload_profile_picture",
+            "update",
+            "partial_update",
+            "destroy",
+        ]:
             return [IsAuthenticated()]
         return [AllowAny()]
 
@@ -39,40 +45,53 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         }
         return action_to_serializer.get(self.action, RetrieveUserProfileSerializer)
 
+    def create(self, request, *args, **kwargs):
+        """
+        Bloquea la creación de perfiles ya que se crean automáticamente.
+        """
+        return Response(
+            {
+                "detail": "Profile creation is not allowed. Profiles are created automatically."
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
-        logger.info(f"User {request.user.id} is requesting their profile.")
+        self.logger.info(f"User {request.user.id} is requesting their profile.")
 
-        get_user_profile = GetUserProfile(user_repository)
+        # Usar caso de uso
+        get_user_profile = GetUserProfileUseCase(user_repository)
+        user_entity = get_user_profile.execute(str(request.user.id))
 
-        user_entity = get_user_profile.execute(request.user.id)
-        serializer = RetrieveUserProfileSerializer(user_entity)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # El serializer maneja la conversión automáticamente
+        return Response(
+            self.get_serializer(user_entity).data, status=status.HTTP_200_OK
+        )
 
     @action(detail=False, methods=["post"], url_path="upload-profile-picture")
     def upload_profile_picture(self, request):
-        logger.info(f"User {request.user.id} is uploading a profile picture.")
+        self.logger.info(f"User {request.user.id} is uploading a profile picture.")
+
+        # Validar datos de entrada
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         profile_picture_file = serializer.validated_data["profile_picture"]
 
-        upload_profile_picture = UploadProfilePicture(user_repository, image_utils)
+        # Usar caso de uso con parámetros limpios
+        upload_profile_picture = UploadProfilePicture(user_repository, storage_service)
 
         user_entity = upload_profile_picture.execute(
-            {
-                "id": request.user.id,
-                "profile_picture": profile_picture_file,
-                "email": request.user.email,
-            }
+            user_id=str(request.user.id), profile_picture_file=profile_picture_file
         )
-        if not user_entity:
-            return Response(
-                {"detail": "Failed to upload profile picture."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        self.logger.info(
+            f"Profile picture uploaded successfully for user {request.user.id}."
+        )
 
+        # El serializer maneja la conversión automáticamente
         return Response(
-            RetrieveUserProfileSerializer(user_entity).data, status=status.HTTP_200_OK
+            RetrieveUserProfileSerializer(user_entity).data,
+            status=status.HTTP_200_OK,
         )

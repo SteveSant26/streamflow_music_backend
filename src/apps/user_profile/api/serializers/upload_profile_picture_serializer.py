@@ -1,11 +1,9 @@
 from rest_framework import serializers
 
-from ...infrastructure.models import UserProfile
 
-
-class UploadProfilePictureSerializer(serializers.ModelSerializer):
+class UploadProfilePictureSerializer(serializers.Serializer):
     """
-    Serializer for uploading a profile picture.
+    Serializer para subir una foto de perfil usando DTOs independientes.
     """
 
     profile_picture = serializers.ImageField(required=True, allow_empty_file=False)
@@ -17,7 +15,3 @@ class UploadProfilePictureSerializer(serializers.ModelSerializer):
         if value.size > 5 * 1024 * 1024:  # 5 MB limit
             raise serializers.ValidationError("Image size must be less than 5 MB.")
         return value
-
-    class Meta:
-        model = UserProfile
-        fields = ["profile_picture"]

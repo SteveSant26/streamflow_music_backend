@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Optional
 
-from .types import EntityType, ModelType
+from ..types import EntityType, ModelType
 
 
 class IReadOnlyRepository(ABC, Generic[EntityType, ModelType]):
