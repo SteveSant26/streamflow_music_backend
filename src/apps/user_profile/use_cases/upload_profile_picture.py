@@ -1,35 +1,71 @@
-from common.utils.storage_utils import StorageUtils
+from apps.user_profile.domain.exceptions import (
+    UserNotFoundException,
+    UserProfilePictureUploadException,
+)
+from common.interfaces import IStorageService
+from common.interfaces.ibase_use_case import BaseUseCase
+from common.utils.logging_decorators import log_execution
 
-from ..domain.entities import UserEntity
-from ..infrastructure.repository import UserRepository
+from ..domain.entities import UserProfileEntity
+from ..domain.repository import IUserRepository
 
 
-class UploadProfilePicture:
-    def __init__(self, user_repository: UserRepository, image_utils: StorageUtils):
+class UploadProfilePicture(BaseUseCase):
+    def __init__(
+        self, user_repository: IUserRepository, storage_service: IStorageService
+    ):
+        super().__init__()
         self.user_repository = user_repository
-        self.storage_utils = image_utils
+        self.storage_service = storage_service
 
-    def execute(self, data: dict) -> UserEntity | None:
-        user_id = data.get("id")
-        profile_picture = data.get("profile_picture")
-        email = data.get("email") or ""
+    @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    def execute(self, user_id: str, profile_picture_file) -> UserProfileEntity:
+        """
+        Ejecuta el caso de uso de subir foto de perfil.
 
-        if not user_id or not profile_picture:
-            return None
+        Args:
+            user_id: ID del usuario
+            profile_picture_file: Archivo de imagen
 
-        file_path = f"profile-pictures/user_{user_id}.jpg"
-        uploaded_image_url = self.storage_utils.upload_item(file_path, profile_picture)
+        Returns:
+            UserEntity: Entidad actualizada del usuario
 
-        if not uploaded_image_url:
-            return None
+        Raises:
+            UserNotFoundException: Si el usuario no existe
+            UserProfilePictureUploadException: Si falla la subida
+        """
+        self.logger.info(f"Uploading profile picture for user {user_id}")
 
-        # Puedes obtener datos actuales con el repo si quieres, o pasar email en data
-        user_entity = UserEntity(
-            id=user_id,
-            email=email,
-            profile_picture=uploaded_image_url,
+        if not user_id or not profile_picture_file:
+            self.logger.warning(f"Invalid data for user {user_id}")
+            raise UserProfilePictureUploadException(
+                "Error al subir la imagen del perfil."
+            )
+
+        user = self.user_repository.get_by_id(user_id)
+        if not user:
+            self.logger.error(f"User with ID {user_id} not found.")
+            raise UserNotFoundException(user_id)
+
+        # Eliminar imagen anterior si existe
+        if user.profile_picture:
+            self.logger.info(f"Deleting old profile picture for user {user_id}")
+            self.storage_service.delete_item(user.profile_picture)
+
+        # Subir nueva imagen
+        file_path = f"user_{user_id}.jpg"
+        upload_success = self.storage_service.upload_item(
+            file_path, profile_picture_file
         )
 
-        print(f"User {user_id} uploaded profile picture: {uploaded_image_url}")
+        if not upload_success:
+            self.logger.error(f"Failed to upload profile picture for user {user_id}.")
+            raise UserProfilePictureUploadException(
+                "Error al subir la imagen del perfil."
+            )
 
-        return self.user_repository.update(user_id, user_entity)
+        # Actualizar entidad (solo guardamos la ruta, no la URL completa)
+        user.profile_picture = file_path
+        self.logger.info(f"Profile picture uploaded successfully for user {user_id}")
+
+        return self.user_repository.update(user_id, user)

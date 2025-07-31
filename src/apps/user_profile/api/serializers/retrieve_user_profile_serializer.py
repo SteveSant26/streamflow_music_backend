@@ -1,25 +1,25 @@
 from rest_framework import serializers
 
-from apps.user_profile.infrastructure.models.user_profile import UserProfile
-from src.common.utils import StorageUtils
+from apps.user_profile.api.dtos import UserProfileResponseDTO
+from apps.user_profile.api.mappers import UserProfileMapper
+from apps.user_profile.domain.entities import UserProfileEntity
+from common.serializers import BaseEntitySerializer
 
 
-class RetrieveUserProfileSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.SerializerMethodField()
+class RetrieveUserProfileSerializer(BaseEntitySerializer):
+    """
+    Serializer inteligente que hereda funcionalidad automática de conversión.
+    Solo necesita definir las clases correspondientes.
+    """
 
-    class Meta:
-        model = UserProfile
-        fields = [
-            "id",
-            "email",
-            "profile_picture",
-        ]
-        read_only_fields = fields
+    # Configuración para el serializer base
+    mapper_class = UserProfileMapper()
+    entity_class = UserProfileEntity
+    dto_class = UserProfileResponseDTO
 
-    def get_profile_picture(self, obj):
-        """
-        Returns the URL of the profile picture if it exists, otherwise returns None.
-        """
-        if obj.profile_picture:
-            return StorageUtils("profile-pictures").get_item_url(obj.profile_picture)
-        return None
+    # Definición de campos (opcional, solo para documentación/validación)
+    id = serializers.CharField(read_only=True)
+    email = serializers.EmailField(read_only=True)
+    profile_picture = serializers.CharField(
+        read_only=True, required=False, allow_null=True
+    )

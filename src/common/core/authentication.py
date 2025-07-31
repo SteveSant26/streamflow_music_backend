@@ -3,7 +3,6 @@ from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-from apps.user_profile.infrastructure.models import UserProfile
 from apps.user_profile.infrastructure.repository import UserRepository
 from apps.user_profile.use_cases import SyncUserFromSupabase
 from src.common.utils import get_logger
@@ -12,6 +11,9 @@ logger = get_logger(__name__)
 
 
 class SupabaseAuthentication(BaseAuthentication):
+    target_class = "common.core.authentication.SupabaseAuthentication"  # Ruta exacta
+    name = "BearerAuth"
+
     def authenticate(self, request):
         auth_header = request.headers.get("Authorization")
         logger.debug(f"Authorization header: {auth_header}")
@@ -32,10 +34,14 @@ class SupabaseAuthentication(BaseAuthentication):
             )
 
             logger.debug(f"Decoded token: {decoded}")
+            user_repository = UserRepository()
 
-            sync_user = SyncUserFromSupabase(UserRepository())
+            sync_user = SyncUserFromSupabase(user_repository)
             user_entity = sync_user.execute(decoded)
-            user = UserProfile.objects.get(email=user_entity.email)
+            user = user_repository.get_by_id(user_entity.id)
+            if not user:
+                logger.error("User not found after syncing from Supabase.")
+                raise AuthenticationFailed("User not found.")
 
             logger.info(f"Authenticated user: {user.email}")
 
