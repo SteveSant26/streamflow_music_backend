@@ -1,3 +1,4 @@
+from common.exceptions.base import DomainException
 from src.common.exceptions import NotFoundException
 
 
@@ -6,6 +7,6 @@ class UserNotFoundException(NotFoundException):
         super().__init__(f"User con ID {user_id} no encontrado.")
 
 
-class UserProfilePictureUploadException(Exception):
+class UserProfilePictureUploadException(DomainException):
     def __init__(self, message: str):
         super().__init__(message)

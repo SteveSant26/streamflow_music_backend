@@ -3,6 +3,7 @@ from typing import Generic, Type
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from common.exceptions.base import NotFoundException
 from common.mixins.logging_mixin import LoggingMixin
 
 from ...interfaces import IWriteOnlyRepository
@@ -71,7 +72,7 @@ class BaseWriteOnlyDjangoRepository(
                 self.logger.warning(
                     f"{self.model_class.__name__} with id {entity_id} not found for update"
                 )
-                raise ObjectDoesNotExist(
+                raise NotFoundException(
                     f"{self.model_class.__name__} with id {entity_id} does not exist"
                 )
 
@@ -81,7 +82,9 @@ class BaseWriteOnlyDjangoRepository(
             )
             return self._model_to_entity(updated_model)
         except ObjectDoesNotExist:
-            raise
+            raise NotFoundException(
+                f"{self.model_class.__name__} with id {entity_id} does not exist"
+            )
         except Exception as e:
             self.logger.error(
                 f"Error updating {self.model_class.__name__} with id {entity_id}: {str(e)}"

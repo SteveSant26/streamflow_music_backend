@@ -19,7 +19,11 @@ THIRD_PARTY_APPS = [
 ]
 LOCAL_APPS = [
     "apps.user_profile",
-    "apps.music_catalog",
+    "apps.artists",
+    "apps.albums",
+    "apps.songs",
+    "apps.genres",
+    "apps.music_search",
 ]
 INSTALLED_APPS = THEME_APPLICATION + DEFAULT_DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

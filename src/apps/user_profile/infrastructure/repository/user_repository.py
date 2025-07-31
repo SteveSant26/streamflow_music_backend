@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from apps.user_profile.domain.repository import IUserRepository
 from src.common.core import BaseDjangoRepository
@@ -36,7 +36,7 @@ class UserRepository(
             profile_picture=model.profile_picture,
         )
 
-    def _entity_to_model_data(self, entity: UserProfileEntity) -> dict:
+    def _entity_to_model_data(self, entity: UserProfileEntity) -> dict[str, Any]:
         """Convierte una entidad UserProfileEntity a datos del modelo"""
         return {
             "email": entity.email,

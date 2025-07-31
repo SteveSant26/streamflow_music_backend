@@ -1,13 +1,10 @@
 from abc import ABC
 from typing import Type
 
-from common.core.repositories import (
-    BaseReadOnlyDjangoRepository,
-    BaseWriteOnlyDjangoRepository,
-)
-
 from ...interfaces import IBaseRepository
 from ...types import EntityType, ModelType
+from .base_read_only_repository import BaseReadOnlyDjangoRepository
+from .base_write_only_repository import BaseWriteOnlyDjangoRepository
 
 
 class BaseDjangoRepository(

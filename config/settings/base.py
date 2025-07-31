@@ -18,6 +18,14 @@ from .supabase_settings import (  # noqa: F401
 )
 from .templates_settings import TEMPLATES  # noqa: F401
 from .utils.env import BASE_DIR, ENVIRONMENT, env
+from .youtube_settings import (  # noqa: F401
+    RANDOM_MUSIC_QUERIES,
+    YOUTUBE_API_KEY,
+    YOUTUBE_API_SERVICE_NAME,
+    YOUTUBE_API_VERSION,
+    YOUTUBE_CATEGORIES,
+    YT_DLP_AUDIO_OPTS,
+)
 
 SECRET_KEY = env("SECRET_KEY")
 
