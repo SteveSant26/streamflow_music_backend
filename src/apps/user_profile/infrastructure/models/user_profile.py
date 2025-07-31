@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class UserProfile(models.Model):
+class UserProfileModel(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
     email = models.EmailField(editable=False, unique=True)
     profile_picture = models.CharField(

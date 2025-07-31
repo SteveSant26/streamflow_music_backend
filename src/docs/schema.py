@@ -1,16 +1,15 @@
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework import permissions
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="Streamflow Music API",
-        default_version="v0.1",
-        description="Esta es la documentacion de la API de Streamflow Music",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="tinocoloco265@gmail.com"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+
+class SupabaseAuthenticationScheme(OpenApiAuthenticationExtension):
+    target_class = (
+        "common.core.authentication.SupabaseAuthentication"  # ← RUTA EXACTA DE TU CLASE
+    )
+    name = "BearerAuth"  # ← DEBE COINCIDIR con el nombre en SPECTACULAR_SETTINGS
+
+    def get_security_definition(self, auto_schema):
+        return {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }

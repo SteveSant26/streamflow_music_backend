@@ -4,6 +4,7 @@ from apps.user_profile.domain.exceptions import (
 )
 from common.interfaces import IStorageService
 from common.interfaces.ibase_use_case import BaseUseCase
+from common.utils.logging_decorators import log_execution
 
 from ..domain.entities import UserProfileEntity
 from ..domain.repository import IUserRepository
@@ -17,6 +18,7 @@ class UploadProfilePicture(BaseUseCase):
         self.user_repository = user_repository
         self.storage_service = storage_service
 
+    @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     def execute(self, user_id: str, profile_picture_file) -> UserProfileEntity:
         """
         Ejecuta el caso de uso de subir foto de perfil.

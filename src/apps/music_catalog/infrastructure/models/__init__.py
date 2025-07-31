@@ -1,6 +1,6 @@
-from .genre import Genre
-from .artist import Artist
-from .album import Album
-from .song import Song
+from .genre import GenreModel
+from .artist import ArtistModel
+from .album import AlbumModel
+from .song import SongModel
 
-__all__ = ['Genre', 'Artist', 'Album', 'Song']
+__all__ = ["GenreModel", "ArtistModel", "AlbumModel", "SongModel"]

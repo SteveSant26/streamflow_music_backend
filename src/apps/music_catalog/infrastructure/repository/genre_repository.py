@@ -1,82 +1,72 @@
-from typing import List, Optional
+from typing import List, cast
+
 from django.db.models import Q
 
-from apps.music_catalog.domain.repository.Imusic_repository import IGenreRepository
 from apps.music_catalog.domain.entities import GenreEntity
-from ..models import Genre
-from src.common.utils import get_logger
+from apps.music_catalog.domain.repository.Igenre_repository import IGenreRepository
+from src.common.core import BaseDjangoRepository
 
-logger = get_logger(__name__)
+from ..models import GenreModel
 
 
-class GenreRepository(IGenreRepository):
-    """Implementación del repositorio de géneros"""
-    
-    def get_by_id(self, entity_id: str) -> Optional[GenreEntity]:
-        try:
-            genre = Genre.objects.get(id=entity_id, is_active=True)
-            return self._model_to_entity(genre)
-        except Genre.DoesNotExist:
-            return None
-    
-    def get_all(self) -> List[GenreEntity]:
-        genres = Genre.objects.filter(is_active=True).order_by('name')
-        return [self._model_to_entity(genre) for genre in genres]
-    
+class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepository):
+    """
+    Implementación del repositorio de géneros que combina funcionalidades
+    de solo lectura y solo escritura, implementando la interfaz IGenreRepository.
+    """
+
+    def __init__(self):
+        super().__init__(GenreModel)
+
+    # Métodos específicos del repositorio de géneros (implementación de IGenreRepository)
+
     def get_active_genres(self) -> List[GenreEntity]:
         """Obtiene géneros activos"""
         return self.get_all()
-    
+
     def search_by_name(self, name: str) -> List[GenreEntity]:
-        genres = Genre.objects.filter(
+        """Busca géneros por nombre"""
+        genres = GenreModel.objects.filter(
             Q(name__icontains=name) & Q(is_active=True)
-        ).order_by('name')[:50]
+        ).order_by("name")[:50]
         return [self._model_to_entity(genre) for genre in genres]
-    
-    def get_popular_genres(self, limit: int = 50) -> List[GenreEntity]:
-        genres = Genre.objects.filter(is_active=True).order_by(
-            '-song_count', 'name'
-        )[:limit]
-        return [self._model_to_entity(genre) for genre in genres]
-    
-    def save(self, entity: GenreEntity) -> GenreEntity:
-        genre_data = self._entity_to_model_data(entity)
-        genre, created = Genre.objects.update_or_create(
-            id=entity.id,
-            defaults=genre_data
-        )
-        return self._model_to_entity(genre)
-    
-    def delete(self, entity_id: str) -> None:
-        Genre.objects.filter(id=entity_id).update(is_active=False)
-    
-    def update(self, entity_id: str, entity: GenreEntity) -> GenreEntity:
-        genre_data = self._entity_to_model_data(entity)
-        Genre.objects.filter(id=entity_id).update(**genre_data)
-        updated_genre = Genre.objects.get(id=entity_id)
-        return self._model_to_entity(updated_genre)
-    
-    def _model_to_entity(self, model: Genre) -> GenreEntity:
+
+    # Implementación de métodos abstractos del repositorio base
+
+    def _model_to_entity(self, model: GenreModel) -> GenreEntity:
+        """Convierte un modelo Genre a entidad GenreEntity"""
+        # Cast para que el type checker entienda que model es de tipo Genre
+        genre_model = cast(GenreModel, model)
         return GenreEntity(
-            id=str(model.id),
-            name=model.name,
-            description=model.description,
-            image_url=model.image_url,
-            song_count=model.song_count,
-            is_active=model.is_active,
-            created_at=model.created_at,
-            updated_at=model.updated_at
+            id=str(genre_model.id),
+            name=genre_model.name,
+            description=genre_model.description,
+            image_url=None,  # Campo no disponible en el modelo
+            song_count=0,  # Este campo podría calcularse dinámicamente si es necesario
+            is_active=genre_model.is_active,
+            created_at=genre_model.created_at,
+            updated_at=genre_model.updated_at,
         )
-    
+
     def _entity_to_model_data(self, entity: GenreEntity) -> dict:
+        """Convierte una entidad GenreEntity a datos del modelo"""
         return {
-            'name': entity.name,
-            'description': entity.description,
-            'image_url': entity.image_url,
-            'song_count': entity.song_count,
-            'is_active': entity.is_active
+            "name": entity.name,
+            "description": entity.description,
+            "is_active": entity.is_active,
         }
-    
-    def _entity_to_model(self, entity: GenreEntity) -> Genre:
-        # Para compatibilidad con IBaseRepository
-        pass
+
+    def _entity_to_model(self, entity: GenreEntity) -> GenreModel:
+        """Para compatibilidad con IBaseRepository - implementación no requerida en la práctica"""
+        # Este método existe para cumplir con la interfaz pero no se usa directamente
+        # Las operaciones usan _entity_to_model_data() en su lugar
+        return GenreModel(
+            id=entity.id,
+            name=entity.name,
+            description=entity.description,
+            is_active=entity.is_active,
+        )
+
+    def _apply_default_ordering(self, queryset):
+        """Aplica ordenamiento específico para géneros"""
+        return queryset.order_by("name")

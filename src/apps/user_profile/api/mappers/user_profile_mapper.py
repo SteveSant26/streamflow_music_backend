@@ -1,5 +1,5 @@
 from apps.user_profile.domain.entities import UserProfileEntity
-from apps.user_profile.infrastructure.models.user_profile import UserProfile
+from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 from common.factories.storage_service_factory import StorageServiceFactory
 from common.interfaces.imapper.abstract_mapper import AbstractMapper
 from common.mixins.logging_mixin import LoggingMixin
@@ -13,7 +13,7 @@ class UserProfileMapper(AbstractMapper, LoggingMixin):
     def __init__(self):
         super().__init__()
 
-    def model_to_entity(self, model: UserProfile) -> UserProfileEntity:
+    def model_to_entity(self, model: UserProfileModel) -> UserProfileEntity:
         """
         Convierte un modelo de Django a entidad del dominio.
         """

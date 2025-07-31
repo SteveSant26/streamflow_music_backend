@@ -1,80 +1,64 @@
+from typing import Optional
+
 from apps.user_profile.domain.repository import IUserRepository
-from src.common.utils import get_logger
+from src.common.core import BaseDjangoRepository
 
 from ...domain.entities import UserProfileEntity
-from ...infrastructure.models import UserProfile
-
-logger = get_logger(__name__)
+from ...infrastructure.models import UserProfileModel
 
 
-class UserRepository(IUserRepository[UserProfile]):
+class UserRepository(
+    BaseDjangoRepository[UserProfileEntity, UserProfileModel], IUserRepository
+):
     def __init__(self):
-        self.model = UserProfile
+        super().__init__(UserProfileModel)
 
-    def get_by_id(self, entity_id: str) -> UserProfileEntity | None:
+    # Métodos específicos del repositorio de usuarios (implementación de IUserRepository)
+
+    def get_by_email(self, email: str) -> Optional[UserProfileEntity]:
+        """Obtiene un usuario por email"""
         try:
-            user = self.model.objects.get(pk=entity_id)
+            user = self.model_class.objects.get(email=email)
             return self._model_to_entity(user)
-        except self.model.DoesNotExist:
+        except self.model_class.DoesNotExist:
             return None
+        except Exception as e:
+            self.logger.error(f"Error getting user by email {email}: {str(e)}")
+            raise
 
-    def get_all(self) -> list[UserProfileEntity]:
-        query = self.model.objects.all()
-        return [self._model_to_entity(user) for user in query]
+    # Implementación de métodos abstractos del repositorio base
 
-    def get_by_email(self, email: str) -> UserProfileEntity | None:
-        try:
-            user = self.model.objects.get(email=email)
-            return self._model_to_entity(user)
-        except self.model.DoesNotExist:
-            return None
-
-    def save(self, entity: UserProfileEntity) -> UserProfileEntity:
-        user, _ = self.model.objects.update_or_create(
-            id=entity.id,
-            defaults={
-                "email": entity.email,
-                "profile_picture": entity.profile_picture,
-            },
-        )
-        return self._model_to_entity(user)
-
-    def delete(self, entity_id: str) -> None:
-        self.model.objects.filter(pk=entity_id).delete()
-
-    def update(self, entity_id: str, entity: UserProfileEntity) -> UserProfileEntity:
-        logger.info(
-            f"Updating user {entity_id} with profile_picture: {entity.profile_picture}"
-        )
-        user = self.model.objects.get(pk=entity_id)
-
-        old_profile_picture = user.profile_picture
-        logger.debug(f"Old profile_picture: {old_profile_picture}")
-
-        user.email = entity.email
-        user.profile_picture = entity.profile_picture
-
-        logger.debug(f"New profile_picture: {user.profile_picture}")
-        user.save()
-
-        # Verificar que se guardó correctamente
-        updated_user = self.model.objects.get(pk=entity_id)
-        logger.info(
-            f"User {entity_id} updated. Current profile_picture in DB: {updated_user.profile_picture}"
-        )
-
-        return self._model_to_entity(updated_user)
-
-    def _entity_to_model(self, entity: UserProfileEntity) -> UserProfile:
-        return UserProfile(
-            id=entity.id,
-            email=entity.email,
-            profile_picture=entity.profile_picture,
-        )
-
-    def _model_to_entity(self, model: UserProfile) -> UserProfileEntity:
+    def _model_to_entity(self, model: UserProfileModel) -> UserProfileEntity:
+        """Convierte un modelo UserProfileModel a entidad UserProfileEntity"""
         return UserProfileEntity(
             id=str(model.id),
             email=model.email,
             profile_picture=model.profile_picture,
         )
+
+    def _entity_to_model_data(self, entity: UserProfileEntity) -> dict:
+        """Convierte una entidad UserProfileEntity a datos del modelo"""
+        return {
+            "email": entity.email,
+            "profile_picture": entity.profile_picture,
+        }
+
+    def _entity_to_model(self, entity: UserProfileEntity) -> UserProfileModel:
+        """Convierte una entidad UserProfileEntity a un modelo Django UserProfileModel"""
+        try:
+            user_data = {
+                "email": entity.email,
+                "profile_picture": entity.profile_picture,
+            }
+
+            # Si la entidad tiene un id (usuario existente), incluirlo
+            if hasattr(entity, "id") and entity.id is not None:
+                user_data["id"] = entity.id
+
+            self.logger.debug(f"Convirtiendo entidad usuario a modelo: {user_data}")
+            user = UserProfileModel(**user_data)
+            return user
+
+        except Exception as e:
+            self.logger.error(f"Error al convertir entidad usuario a modelo: {str(e)}")
+            raise

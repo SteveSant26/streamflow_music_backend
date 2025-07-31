@@ -1,11 +1,12 @@
 from dataclasses import dataclass
-from typing import Optional, List
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import List, Optional
 
 
 @dataclass
 class GenreEntity:
     """Entidad que representa un género musical"""
+
     id: str
     name: str
     description: Optional[str] = None
@@ -19,6 +20,7 @@ class GenreEntity:
 @dataclass
 class ArtistEntity:
     """Entidad que representa un artista"""
+
     id: str
     name: str
     biography: Optional[str] = None
@@ -34,6 +36,7 @@ class ArtistEntity:
 @dataclass
 class AlbumEntity:
     """Entidad que representa un álbum"""
+
     id: str
     title: str
     artist_id: str
@@ -51,6 +54,7 @@ class AlbumEntity:
 @dataclass
 class SongEntity:
     """Entidad que representa una canción"""
+
     id: str
     title: str
     artist_id: str
@@ -72,6 +76,7 @@ class SongEntity:
 @dataclass
 class SearchResultEntity:
     """Entidad que representa resultados de búsqueda"""
+
     query: str
     songs: List[dict]
     artists: List[dict]
@@ -83,6 +88,7 @@ class SearchResultEntity:
 @dataclass
 class PaginatedResultEntity:
     """Entidad para resultados paginados"""
+
     results: List[dict]  # Puede ser songs, artists, albums
     page: int
     page_size: int

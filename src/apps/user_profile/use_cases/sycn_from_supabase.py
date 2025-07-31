@@ -1,4 +1,5 @@
 from common.interfaces.ibase_use_case import BaseUseCase
+from common.utils.logging_decorators import log_execution
 
 from ..domain.entities import UserProfileEntity
 from ..infrastructure.repository import UserRepository
@@ -8,6 +9,7 @@ class SyncUserFromSupabase(BaseUseCase):
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
+    @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     def execute(self, supabase_data: dict) -> UserProfileEntity:
         self.logger.info("Syncing user from Supabase data")
         metadata = supabase_data.get("user_metadata", {})

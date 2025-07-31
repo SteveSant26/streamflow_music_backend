@@ -2,7 +2,7 @@ import os
 
 from src.common.utils import LoggingConfig
 
-from .apps_settings import INSTALLED_APPS, SWAGGER_SETTINGS  # noqa: F401
+from .apps_settings import INSTALLED_APPS, SPECTACULAR_SETTINGS  # noqa: F401
 from .auth_settings import AUTH_PASSWORD_VALIDATORS  # noqa: F401
 from .database_settings import DATABASES  # noqa: F401
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: F401

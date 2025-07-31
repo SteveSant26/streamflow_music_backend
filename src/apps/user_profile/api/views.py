@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -8,7 +9,7 @@ from apps.user_profile.api.serializers import (
     RetrieveUserProfileSerializer,
     UploadProfilePictureSerializer,
 )
-from apps.user_profile.infrastructure.models.user_profile import UserProfile
+from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 from common.factories import StorageServiceFactory
 from common.mixins.logging_mixin import LoggingMixin
 
@@ -20,23 +21,33 @@ user_repository = UserRepository()
 storage_service = StorageServiceFactory.create_profile_pictures_service()
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["User Profile"]),
+    retrieve=extend_schema(tags=["User Profile"]),
+    create=extend_schema(tags=["User Profile"]),
+    update=extend_schema(tags=["User Profile"]),
+    destroy=extend_schema(tags=["User Profile"]),
+    me=extend_schema(tags=["User Profile"], description="Get current user's profile"),
+    upload_profile_picture=extend_schema(
+        tags=["User Profile"], description="Upload a new profile picture"
+    ),
+)
 class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
-    queryset = UserProfile.objects.all()
+    queryset = UserProfileModel.objects.all()
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     http_method_names = ["get", "post", "delete"]
 
     def get_permissions(self):
-        self.logger.debug(f"Checking permissions for action: {self.action}")
-        if self.action in [
-            "me",
-            "upload_profile_picture",
-            "update",
-            "partial_update",
-            "destroy",
-        ]:
-            return [IsAuthenticated()]
-        return [AllowAny()]
+        action_permissions = {
+            "me": IsAuthenticated,
+            "upload_profile_picture": IsAuthenticated,
+            "update": IsAuthenticated,
+            "partial_update": IsAuthenticated,
+            "destroy": IsAuthenticated,
+        }
+        permission_class = action_permissions.get(self.action, AllowAny)
+        return [permission_class()]
 
     def get_serializer_class(self):
         action_to_serializer = {

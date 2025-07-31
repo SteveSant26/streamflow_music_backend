@@ -1,10 +1,12 @@
 from typing import TypeVar
 
+from django.db import models
+
 # Entity type - Representa el tipo de entidad del dominio
 EntityType = TypeVar("EntityType")
 
 # Model type - Representa el tipo de modelo de la base de datos
-ModelType = TypeVar("ModelType")
+ModelType = TypeVar("ModelType", bound=models.Model)
 
 
 # InputType - Representa el tipo de entrada para los casos de uso
