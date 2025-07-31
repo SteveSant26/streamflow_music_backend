@@ -24,7 +24,7 @@ repos:
     hooks:
       - id: isort
         args: [--profile=black]
-        exclude: '^src/apii'
+        exclude: "^src/apii"
 
   # Linting
   - repo: https://github.com/pycqa/flake8
@@ -33,7 +33,6 @@ repos:
       - id: flake8
         args: [--max-line-length=120, --extend-ignore=E203]
         exclude: '(__init__\.py$|^src/apps/.*/migrations/)|(^src/apii/)'
-
 
   # Linting de código Python
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -57,7 +56,6 @@ repos:
       - id: bandit
         exclude: |
           (^tests/)|(^migrations/)|(^\.venv/)|(^src/apps/.*/migrations/)
-
 
   # Commit message formatting
   - repo: https://github.com/commitizen-tools/commitizen
