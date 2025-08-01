@@ -1,0 +1,100 @@
+[tool.black]
+# Configuración de Black para formateo consistente
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312', 'py313']
+include = '\.pyi?$'
+extend-exclude = '''
+# Archivos y directorios a excluir del formateo
+/(
+  (
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | migrations
+    | __pycache__
+  )/
+)
+'''
+
+[tool.isort]
+# Configuración de isort para imports consistentes
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88
+skip_glob = ["*/migrations/*"]
+
+[tool.pytest.ini_options]
+# Configuración de pytest
+python_files = ["test_*.py", "*_test.py", "*_tests.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["test/"]
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=xml:test-reports/coverage.xml",
+    "--cov-report=html:test-reports/htmlcov",
+    "--cov-branch",
+    "--cov-fail-under=80",
+    "--junitxml=test-reports/pytest-results.xml"
+]
+markers = [
+    "unit: marca tests unitarios",
+    "integration: marca tests de integración",
+    "api: marca tests de API",
+    "domain: marca tests de dominio",
+    "infrastructure: marca tests de infraestructura",
+    "use_cases: marca tests de casos de uso",
+    "slow: marca tests que tardan mucho"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::FutureWarning"
+]
+
+[tool.coverage.run]
+source = ["src/"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/test_*",
+    "*/venv/*",
+    "*/env/*",
+    "manage.py",
+    "*/settings/*",
+    "*/config/*",
+    "*/docs/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "class .*\\(Protocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+
+[tool.coverage.xml]
+output = "test-reports/coverage.xml"
+
+[tool.coverage.html]
+directory = "test-reports/htmlcov"

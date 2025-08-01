@@ -5,14 +5,14 @@ import sys
 from .database_settings import DATABASES
 
 # Si estamos ejecutando tests, usar SQLite en memoria
-if 'test' in sys.argv or 'pytest' in sys.modules:
+if "test" in sys.argv or "pytest" in sys.modules:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
-            'OPTIONS': {
-                'timeout': 20,
-            }
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+            "OPTIONS": {
+                "timeout": 20,
+            },
         }
     }
     print("🧪 Usando SQLite en memoria para tests")

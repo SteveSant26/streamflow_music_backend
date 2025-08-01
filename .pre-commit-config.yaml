@@ -1,5 +1,20 @@
 # Pre-commit hooks para mantener calidad del código
 repos:
+  # Python code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88, --target-version=py38]
+  
+  # Import sorting with isort
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile, black, --multi-line, "3", --line-length, "88"]
+  
   # Elimina imports no usados AUTOMÁTICAMENTE
   - repo: https://github.com/PyCQA/autoflake
     rev: v2.2.1
