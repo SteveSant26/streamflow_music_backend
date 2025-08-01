@@ -16,7 +16,6 @@ from .supabase_settings import (  # noqa: F401
     SUPABASE_URL,
 )
 from .templates_settings import TEMPLATES  # noqa: F401
-from .test_database_settings import DATABASES  # noqa: F401
 from .utils.env import BASE_DIR, ENVIRONMENT, env
 from .youtube_settings import (  # noqa: F401
     RANDOM_MUSIC_QUERIES,
