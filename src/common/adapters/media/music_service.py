@@ -1,25 +1,178 @@
 import asyncio
-import re
 import uuid
 from io import BytesIO
 from typing import List, Optional, Sequence
 
 import aiohttp
 
-from ...factories import StorageServiceFactory
 from ...interfaces.imedia_service import (
     IAudioDownloadService,
     IMusicService,
     IYouTubeService,
 )
+from ...interfaces.istorage_service import IStorageService
 from ...mixins.logging_mixin import LoggingMixin
 from ...types.media_types import (
     AudioTrackData,
+    MusicServiceConfig,
     MusicTrackData,
     SearchOptions,
     VideoInfo,
     YouTubeVideoInfo,
 )
+from ...utils.retry_manager import RetryManager
+from ...utils.validators import MediaDataValidator, TextCleaner
+
+
+class ThumbnailProcessor(LoggingMixin):
+    """Procesador de thumbnails independiente"""
+
+    def __init__(self, image_storage, retry_manager: RetryManager):
+        super().__init__()
+        self.image_storage = image_storage
+        self.retry_manager = retry_manager
+
+    async def process_thumbnail(self, video_info: VideoInfo) -> Optional[str]:
+        """Descarga y sube el thumbnail al almacenamiento"""
+        try:
+            return await self.retry_manager.execute_with_retry(
+                self._download_and_upload_thumbnail, video_info
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Error processing thumbnail for {video_info.video_id}: {str(e)}"
+            )
+            return None
+
+    async def _download_and_upload_thumbnail(
+        self, video_info: VideoInfo
+    ) -> Optional[str]:
+        """Descarga y sube el thumbnail"""
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                video_info.thumbnail_url, timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    image_data = await response.read()
+
+                    # Validar tamaño de imagen
+                    if len(image_data) > 10 * 1024 * 1024:  # 10MB max
+                        self.logger.warning(
+                            f"Thumbnail too large: {len(image_data)} bytes"
+                        )
+                        return None
+
+                    # Generar nombre único para la imagen
+                    image_filename = (
+                        f"thumbnails/{video_info.video_id}_{uuid.uuid4().hex[:8]}.jpg"
+                    )
+
+                    # Subir imagen al almacenamiento
+                    image_file_obj = BytesIO(image_data)
+                    uploaded = self.image_storage.upload_item(
+                        image_filename, image_file_obj
+                    )
+
+                    if uploaded:
+                        return self.image_storage.get_item_url(image_filename)
+
+        return None
+
+
+class AudioProcessor(LoggingMixin):
+    """Procesador de audio independiente"""
+
+    def __init__(
+        self,
+        audio_service: Optional[IAudioDownloadService],
+        music_storage,
+        retry_manager: RetryManager,
+    ):
+        super().__init__()
+        self.audio_service = audio_service
+        self.music_storage = music_storage
+        self.retry_manager = retry_manager
+        self.media_validator = MediaDataValidator()
+
+    async def process_audio(
+        self, video_info: VideoInfo
+    ) -> tuple[Optional[bytes], Optional[str]]:
+        """Procesa el audio de un video"""
+        if not self.audio_service:
+            return None, None
+
+        try:
+            return await self.retry_manager.execute_with_retry(
+                self._download_and_upload_audio, video_info
+            ) or (None, None)
+        except Exception as e:
+            self.logger.error(
+                f"Error processing audio for {video_info.video_id}: {str(e)}"
+            )
+            return None, None
+
+    async def _download_and_upload_audio(
+        self, video_info: VideoInfo
+    ) -> tuple[Optional[bytes], Optional[str]]:
+        """Descarga y sube el audio"""
+        if not self.audio_service:
+            return None, None
+
+        audio_data = await self.audio_service.download_audio(video_info.url)
+
+        if audio_data:
+            # Validar tamaño del archivo
+            if not self.media_validator.validate_filesize(len(audio_data)):
+                self.logger.warning(f"Audio file too large: {len(audio_data)} bytes")
+                return None, None
+
+            # Generar nombre único para el archivo de audio
+            audio_filename = f"audio/{video_info.video_id}_{uuid.uuid4().hex[:8]}.mp3"
+
+            # Subir audio a storage
+            if await self._upload_audio_to_storage(audio_data, audio_filename):
+                return audio_data, audio_filename
+
+        return None, None
+
+    async def _upload_audio_to_storage(self, audio_data: bytes, filename: str) -> bool:
+        """Sube el archivo de audio al almacenamiento"""
+        try:
+            audio_file_obj = BytesIO(audio_data)
+            return self.music_storage.upload_item(filename, audio_file_obj)
+        except Exception as e:
+            self.logger.error(f"Error uploading audio to storage: {str(e)}")
+            return False
+
+
+class MetadataExtractor(LoggingMixin):
+    """Extractor de metadatos independiente"""
+
+    def __init__(self):
+        super().__init__()
+        self.text_cleaner = TextCleaner()
+
+    def extract_track_metadata(
+        self, video_info: VideoInfo
+    ) -> tuple[str, str, Optional[str]]:
+        """Extrae metadatos de la pista"""
+        # Limpiar título
+        clean_title = self.text_cleaner.clean_title(video_info.title)
+
+        # Extraer información del artista
+        artist_from_title = self.text_cleaner.extract_artist_from_title(
+            video_info.title
+        )
+
+        if artist_from_title:
+            artist_name = artist_from_title
+        else:
+            artist_name = self.text_cleaner.clean_channel_name(video_info.channel_title)
+
+        # Por ahora no extraemos álbum, pero se puede implementar
+        album_title = None
+
+        return clean_title, artist_name, album_title
 
 
 class MusicService(IMusicService, LoggingMixin):
@@ -27,18 +180,41 @@ class MusicService(IMusicService, LoggingMixin):
 
     def __init__(
         self,
+        config: Optional[MusicServiceConfig] = None,
         youtube_service: Optional[IYouTubeService] = None,
         audio_service: Optional[IAudioDownloadService] = None,
-        max_concurrent_downloads: int = 3,
+        music_storage: Optional[IStorageService] = None,
+        image_storage: Optional[IStorageService] = None,
     ):
         super().__init__()
+        self.config = config or MusicServiceConfig()
         self.youtube_service = youtube_service
         self.audio_service = audio_service
-        self.max_concurrent_downloads = max_concurrent_downloads
 
-        # Inicializar servicios de almacenamiento
-        self.music_storage = StorageServiceFactory.create_music_files_service()
-        self.image_storage = StorageServiceFactory.create_album_covers_service()
+        # Inyección de dependencias para servicios de almacenamiento
+        # Si no se proporcionan, se pueden crear lazy loading en el factory
+        self.music_storage = music_storage
+        self.image_storage = image_storage
+
+        # Inicializar componentes auxiliares
+        self.retry_manager = RetryManager(
+            max_retries=self.config.max_retries, base_delay=self.config.retry_delay
+        )
+
+        # Inicializar procesadores especializados solo si los servicios están disponibles
+        self.thumbnail_processor = (
+            ThumbnailProcessor(self.image_storage, self.retry_manager)
+            if self.image_storage
+            else None
+        )
+
+        self.audio_processor = AudioProcessor(
+            self.audio_service if self.config.enable_audio_download else None,
+            self.music_storage,
+            self.retry_manager,
+        )
+
+        self.metadata_extractor = MetadataExtractor()
 
     async def search_and_process_audio(
         self, query: str, options: Optional[SearchOptions] = None
@@ -77,45 +253,37 @@ class MusicService(IMusicService, LoggingMixin):
     ) -> Optional[AudioTrackData]:
         """Convierte información de video a datos de pista de audio"""
         try:
-            # Descargar audio si el servicio está disponible
-            audio_data = None
-            audio_filename = None
+            # Extraer metadatos
+            (
+                title,
+                artist_name,
+                album_title,
+            ) = self.metadata_extractor.extract_track_metadata(video_info)
 
-            if self.audio_service:
-                audio_data = await self.audio_service.download_audio(video_info.url)
+            # Procesar thumbnail si está habilitado y el procesador está disponible
+            thumbnail_url = video_info.thumbnail_url
+            if self.config.enable_thumbnail_processing and self.thumbnail_processor:
+                processed_thumbnail = await self.thumbnail_processor.process_thumbnail(
+                    video_info
+                )
+                if processed_thumbnail:
+                    thumbnail_url = processed_thumbnail
 
-                if audio_data:
-                    # Generar nombre único para el archivo de audio
-                    audio_filename = (
-                        f"audio/{video_info.video_id}_{uuid.uuid4().hex[:8]}.mp3"
-                    )
+            # Procesar audio si está habilitado
+            audio_data, audio_filename = None, None
+            if self.config.enable_audio_download:
+                audio_data, audio_filename = await self.audio_processor.process_audio(
+                    video_info
+                )
 
-                    # Subir audio a storage
-                    if not await self._upload_audio_to_storage(
-                        audio_data, audio_filename
-                    ):
-                        self.logger.warning(
-                            f"Failed to upload audio for video {video_info.video_id}"
-                        )
-                        audio_data = None
-                        audio_filename = None
-
-            # Procesar thumbnail
-            thumbnail_url = await self._process_thumbnail(video_info)
-
-            # Extraer información del artista y álbum
-            artist_name, album_title = self._extract_artist_album_info(
-                video_info.title, video_info.channel_title
-            )
-
-            # Crear datos de la pista como MusicTrackData (hereda de AudioTrackData)
+            # Crear datos de la pista como MusicTrackData
             return MusicTrackData(
                 video_id=video_info.video_id,
-                title=self._clean_title(video_info.title),
+                title=title,
                 artist_name=artist_name,
                 album_title=album_title,
                 duration_seconds=video_info.duration_seconds,
-                thumbnail_url=thumbnail_url or video_info.thumbnail_url,
+                thumbnail_url=thumbnail_url,
                 genre=video_info.genre,
                 tags=video_info.tags,
                 url=video_info.url,
@@ -135,7 +303,7 @@ class MusicService(IMusicService, LoggingMixin):
             return []
 
         # Procesar videos en paralelo con semáforo para limitar concurrencia
-        semaphore = asyncio.Semaphore(self.max_concurrent_downloads)
+        semaphore = asyncio.Semaphore(self.config.max_concurrent_operations)
 
         async def process_with_semaphore(video):
             async with semaphore:
@@ -157,101 +325,7 @@ class MusicService(IMusicService, LoggingMixin):
         )
         return processed_tracks
 
-    async def _upload_audio_to_storage(self, audio_data: bytes, filename: str) -> bool:
-        """Sube el archivo de audio al almacenamiento"""
-        try:
-            audio_file_obj = BytesIO(audio_data)
-            return self.music_storage.upload_item(filename, audio_file_obj)
-        except Exception as e:
-            self.logger.error(f"Error uploading audio to storage: {str(e)}")
-            return False
-
-    async def _process_thumbnail(self, video_info: VideoInfo) -> Optional[str]:
-        """Descarga y sube el thumbnail al almacenamiento"""
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(video_info.thumbnail_url) as response:
-                    if response.status == 200:
-                        image_data = await response.read()
-
-                        # Generar nombre único para la imagen
-                        image_filename = f"thumbnails/{video_info.video_id}_{uuid.uuid4().hex[:8]}.jpg"
-
-                        # Subir imagen al almacenamiento
-                        image_file_obj = BytesIO(image_data)
-                        uploaded = self.image_storage.upload_item(
-                            image_filename, image_file_obj
-                        )
-
-                        if uploaded:
-                            return self.image_storage.get_item_url(image_filename)
-
-            return None
-
-        except Exception as e:
-            self.logger.error(
-                f"Error processing thumbnail for {video_info.video_id}: {str(e)}"
-            )
-            return None
-
-    def _extract_artist_album_info(
-        self, title: str, channel_title: str
-    ) -> tuple[str, Optional[str]]:
-        """Extrae información del artista y álbum del título y canal"""
-        # Patrones comunes para extraer artista y título
-        dash_pattern = r"^([^-]+)\s*-\s*(.+)$"
-        match = re.match(dash_pattern, title)
-
-        if match:
-            artist_part = match.group(1).strip()
-            # Limpiar patrones comunes
-            artist_part = re.sub(
-                r"\s*\(.*?\)\s*", "", artist_part
-            )  # Remover paréntesis
-            artist_part = re.sub(r"\s*\[.*?\]\s*", "", artist_part)  # Remover corchetes
-            return artist_part, None
-
-        # Si no hay patrón, usar el canal como artista
-        artist_name = self._clean_channel_name(channel_title)
-        return artist_name, None
-
-    def _clean_channel_name(self, channel_name: str) -> str:
-        """Limpia el nombre del canal para usar como artista"""
-        # Limpiar sufijos comunes de canales
-        cleaned = re.sub(r"VEVO$", "", channel_name, flags=re.IGNORECASE)
-        cleaned = re.sub(r"Official$", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(r"Records$", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(r"Music$", "", cleaned, flags=re.IGNORECASE)
-        return cleaned.strip()
-
-    def _clean_title(self, title: str) -> str:
-        """Limpia el título de la canción"""
-        # Remover patrones comunes
-        patterns_to_remove = [
-            r"\(Official[^\)]*\)",
-            r"\[Official[^\]]*\]",
-            r"Official Video",
-            r"Official Audio",
-            r"Music Video",
-            r"Lyric Video",
-            r"HD",
-            r"\(HD\)",
-            r"\[HD\]",
-        ]
-
-        cleaned = title
-        for pattern in patterns_to_remove:
-            cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
-
-        # Extraer solo la parte del título si hay " - "
-        if " - " in cleaned:
-            parts = cleaned.split(" - ")
-            if len(parts) >= 2:
-                cleaned = parts[1]
-
-        return cleaned.strip()
-
-    # Mantener compatibilidad con la interfaz existente
+    # Métodos para mantener compatibilidad con la interfaz existente
     async def search_and_process_music(
         self, query: str, max_results: int = 6
     ) -> List[AudioTrackData]:

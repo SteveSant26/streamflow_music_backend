@@ -1,7 +1,9 @@
 from typing import Any, List
 
+from asgiref.sync import sync_to_async
+
 from apps.genres.domain.repository import IGenreRepository
-from src.common.core import BaseDjangoRepository
+from common.core import BaseDjangoRepository
 
 from ...domain.entities import GenreEntity
 from ..models import GenreModel
@@ -52,31 +54,41 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         except GenreModel.DoesNotExist:
             return GenreModel(**genre_data)
 
-    def search_by_name(self, name: str, limit: int = 10) -> List[GenreEntity]:
+    async def search_by_name(self, name: str, limit: int = 10) -> List[GenreEntity]:
         """Busca géneros por nombre"""
         self.logger.debug(f"Searching genres by name: {name} with limit: {limit}")
-        models = self.model_class.objects.filter(
-            name__icontains=name, is_active=True
-        ).order_by("name")[:limit]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.filter(
+                    name__icontains=name, is_active=True
+                ).order_by("name")[:limit]
+            )
+        )()
         return [self._model_to_entity(model) for model in models]
 
-    def get_popular_genres(self, limit: int = 10) -> List[GenreEntity]:
+    async def get_popular_genres(self, limit: int = 10) -> List[GenreEntity]:
         """Obtiene géneros populares"""
         self.logger.debug(f"Getting popular genres with limit: {limit}")
-        models = self.model_class.objects.filter(is_active=True).order_by(
-            "-popularity_score", "name"
-        )[:limit]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.filter(is_active=True).order_by(
+                    "-popularity_score", "name"
+                )[:limit]
+            )
+        )()
         return [self._model_to_entity(model) for model in models]
 
-    def get_active_genres(self, limit: int = 10) -> List[GenreEntity]:
+    async def get_active_genres(self, limit: int = 10) -> List[GenreEntity]:
         """Obtiene géneros activos"""
         self.logger.debug(f"Getting active genres with limit: {limit}")
-        models = self.model_class.objects.filter(is_active=True).order_by("name")[
-            :limit
-        ]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.filter(is_active=True).order_by("name")[:limit]
+            )
+        )()
         return [self._model_to_entity(model) for model in models]
 
-    def get_genres_by_popularity_range(
+    async def get_genres_by_popularity_range(
         self, min_score: int, max_score: int
     ) -> List[GenreEntity]:
         """Busca géneros por rango de popularidad"""
@@ -90,10 +102,14 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         ).order_by("-popularity_score", "name")
         return [self._model_to_entity(model) for model in models]
 
-    def get_recent_genres(self, limit: int = 10) -> List[GenreEntity]:
+    async def get_recent_genres(self, limit: int = 10) -> List[GenreEntity]:
         """Obtiene géneros recientes"""
         self.logger.debug(f"Getting recent genres with limit: {limit}")
-        models = self.model_class.objects.filter(is_active=True).order_by(
-            "-created_at", "name"
-        )[:limit]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.filter(is_active=True).order_by(
+                    "-created_at", "name"
+                )[:limit]
+            )
+        )()
         return [self._model_to_entity(model) for model in models]

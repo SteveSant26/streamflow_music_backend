@@ -1,4 +1,4 @@
-from src.common.utils import get_logger
+from ..utils.logging_config import get_logger
 
 
 class LoggingMixin:

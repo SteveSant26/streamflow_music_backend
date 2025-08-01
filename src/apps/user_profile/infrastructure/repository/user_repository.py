@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 from apps.user_profile.domain.repository import IUserRepository
-from src.common.core import BaseDjangoRepository
+from common.core import BaseDjangoRepository
 
 from ...domain.entities import UserProfileEntity
 from ...infrastructure.models import UserProfileModel

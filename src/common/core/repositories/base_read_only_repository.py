@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Generic, List, Optional, Type, cast
 
+from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 
-from common.mixins.logging_mixin import LoggingMixin
-
 from ...interfaces import IReadOnlyRepository
+from ...mixins.logging_mixin import LoggingMixin
 from ...types import EntityType, ModelType
 
 
@@ -44,7 +44,7 @@ class BaseReadOnlyDjangoRepository(
     async def get_all(self) -> List[EntityType]:
         """Obtiene todas las entidades activas"""
         try:
-            queryset = await self.model_class.objects.afilter(
+            queryset = await sync_to_async(self.model_class.objects.filter)(
                 **self._get_active_filter()
             )
             queryset = self._apply_default_ordering(queryset)

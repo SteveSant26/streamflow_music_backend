@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from apps.albums.domain.repository import IAlbumRepository
-from src.common.core import BaseDjangoRepository
+from common.core import BaseDjangoRepository
 
 from ...domain.entities import AlbumEntity
 from ..models import AlbumModel

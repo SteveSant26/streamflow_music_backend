@@ -4,10 +4,9 @@ from typing import Generic, Type
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 
-from common.exceptions.base import NotFoundException
-from common.mixins.logging_mixin import LoggingMixin
-
+from ...exceptions import NotFoundException
 from ...interfaces import IWriteOnlyRepository
+from ...mixins.logging_mixin import LoggingMixin
 from ...types import EntityType, ModelType
 
 

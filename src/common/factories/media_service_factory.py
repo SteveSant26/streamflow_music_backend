@@ -9,30 +9,46 @@ from ..interfaces.imedia_service import (
     IMusicService,
     IYouTubeService,
 )
-from ..types.media_types import DownloadOptions
+from ..interfaces.istorage_service import IStorageService
+from ..types.media_types import (
+    AudioServiceConfig,
+    DownloadOptions,
+    MusicServiceConfig,
+    YouTubeServiceConfig,
+)
 
 
 class MediaServiceFactory:
-    """Factory para crear servicios de medios con configuración por defecto"""
+    """Factory para crear servicios de medios con configuración avanzada"""
 
     _youtube_service_instance: Optional[IYouTubeService] = None
     _audio_download_service_instance: Optional[IAudioDownloadService] = None
     _music_service_instance: Optional[IMusicService] = None
 
     @classmethod
-    def create_youtube_service(cls, api_key: Optional[str] = None) -> IYouTubeService:
+    def create_youtube_service(
+        cls,
+        api_key: Optional[str] = None,
+        config: Optional[YouTubeServiceConfig] = None,
+    ) -> IYouTubeService:
         """Crea o retorna la instancia singleton del servicio de YouTube"""
         if cls._youtube_service_instance is None:
-            cls._youtube_service_instance = YouTubeAPIService(api_key)
+            cls._youtube_service_instance = YouTubeAPIService(
+                config=config, api_key=api_key
+            )
         return cls._youtube_service_instance
 
     @classmethod
     def create_audio_download_service(
-        cls, default_options: Optional[DownloadOptions] = None
+        cls,
+        default_options: Optional[DownloadOptions] = None,
+        config: Optional[AudioServiceConfig] = None,
     ) -> IAudioDownloadService:
         """Crea o retorna la instancia singleton del servicio de descarga de audio"""
         if cls._audio_download_service_instance is None:
-            cls._audio_download_service_instance = AudioDownloadService(default_options)
+            cls._audio_download_service_instance = AudioDownloadService(
+                config=config, default_options=default_options
+            )
         return cls._audio_download_service_instance
 
     @classmethod
@@ -40,19 +56,124 @@ class MediaServiceFactory:
         cls,
         youtube_service: Optional[IYouTubeService] = None,
         audio_service: Optional[IAudioDownloadService] = None,
-        max_concurrent_downloads: int = 3,
+        config: Optional[MusicServiceConfig] = None,
+        music_storage: Optional[IStorageService] = None,
+        image_storage: Optional[IStorageService] = None,
     ) -> IMusicService:
         """Crea o retorna la instancia singleton del servicio de música"""
         if cls._music_service_instance is None:
             youtube_svc = youtube_service or cls.create_youtube_service()
             audio_svc = audio_service or cls.create_audio_download_service()
 
+            # Lazy import para evitar dependencia circular
+            if music_storage is None or image_storage is None:
+                from .storage_service_factory import StorageServiceFactory
+
+                music_storage = (
+                    music_storage or StorageServiceFactory.create_music_files_service()
+                )
+                image_storage = (
+                    image_storage or StorageServiceFactory.create_album_covers_service()
+                )
+
             cls._music_service_instance = MusicService(
+                config=config,
                 youtube_service=youtube_svc,
                 audio_service=audio_svc,
-                max_concurrent_downloads=max_concurrent_downloads,
+                music_storage=music_storage,
+                image_storage=image_storage,
             )
         return cls._music_service_instance
+
+    @classmethod
+    def create_complete_music_service(
+        cls,
+        music_config: Optional[MusicServiceConfig] = None,
+        youtube_config: Optional[YouTubeServiceConfig] = None,
+        audio_config: Optional[AudioServiceConfig] = None,
+        youtube_api_key: Optional[str] = None,
+        audio_options: Optional[DownloadOptions] = None,
+    ) -> IMusicService:
+        """Crea un servicio de música completo con todos los componentes"""
+
+        # Crear servicio de YouTube
+        youtube_service = cls.create_youtube_service(
+            api_key=youtube_api_key, config=youtube_config
+        )
+
+        # Crear servicio de descarga de audio
+        audio_service = cls.create_audio_download_service(
+            default_options=audio_options, config=audio_config
+        )
+
+        # Crear servicio de música principal
+        return cls.create_music_service(
+            config=music_config,
+            youtube_service=youtube_service,
+            audio_service=audio_service,
+        )
+
+    @classmethod
+    def create_development_music_service(cls) -> IMusicService:
+        """Crea un servicio de música para desarrollo con configuraciones optimizadas"""
+
+        # Usar el builder para crear la versión mejorada
+        from ..adapters.media.music_service_builder import MusicServiceBuilder
+
+        return MusicServiceBuilder().for_development().build()
+
+    @classmethod
+    def create_enhanced_music_service(
+        cls,
+        config: Optional[MusicServiceConfig] = None,
+        youtube_service: Optional[IYouTubeService] = None,
+        audio_service: Optional[IAudioDownloadService] = None,
+    ) -> IMusicService:
+        """Crea un servicio de música mejorado con pipeline"""
+        from ..adapters.media.music_service_builder import MusicServiceBuilder
+
+        builder = MusicServiceBuilder()
+
+        if config:
+            builder.with_music_config(config)
+
+        # Si se proporcionan servicios específicos, úsalos
+        if youtube_service or audio_service:
+            # Para servicios específicos, usar la implementación original
+            youtube_svc = youtube_service or cls.create_youtube_service()
+            audio_svc = audio_service or cls.create_audio_download_service()
+
+            cls._music_service_instance = MusicService(
+                config=config,
+                youtube_service=youtube_svc,
+                audio_service=audio_svc,
+            )
+        else:
+            # Usar el builder para crear la versión mejorada
+            cls._music_service_instance = builder.build()
+
+        return cls._music_service_instance
+
+    @classmethod
+    def create_development_enhanced_service(cls) -> IMusicService:
+        """Crea un servicio mejorado para desarrollo"""
+        from ..adapters.media.music_service_builder import MusicServiceBuilder
+
+        return MusicServiceBuilder().for_development().build()
+
+    @classmethod
+    def create_production_enhanced_service(cls) -> IMusicService:
+        """Crea un servicio mejorado para producción"""
+        from ..adapters.media.music_service_builder import MusicServiceBuilder
+
+        return MusicServiceBuilder().for_production().build()
+
+    @classmethod
+    def create_podcast_service(cls) -> IMusicService:
+        """Crea un servicio optimizado para podcasts"""
+        from ..adapters.media.music_service_builder import MusicServiceBuilder
+
+        return MusicServiceBuilder().for_podcasts().build()
 
     @classmethod
     def reset_instances(cls):

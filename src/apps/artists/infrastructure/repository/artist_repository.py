@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 
 from apps.artists.domain.repository import IArtistRepository
-from src.common.core import BaseDjangoRepository
+from common.core import BaseDjangoRepository
 
 from ...domain.entities import ArtistEntity
 from ..models import ArtistModel

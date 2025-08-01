@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
-from common.interfaces.ibase_repository import IReadOnlyRepository
-from src.common.mixins import LoggingMixin
-from src.common.utils import log_execution, log_performance
-
+from ..mixins.logging_mixin import LoggingMixin
 from ..types import EntityType, InputType, ModelType, ReturnType
+from ..utils.logging_decorators import log_execution, log_performance
+from .ibase_repository import IReadOnlyRepository
 
 
 class BaseUseCase(ABC, Generic[InputType, ReturnType], LoggingMixin):
