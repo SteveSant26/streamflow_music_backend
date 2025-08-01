@@ -9,9 +9,16 @@ from rest_framework.views import APIView
 
 from common.mixins.logging_mixin import LoggingMixin
 
-from ..domain.entities import SongEntity
 from ..infrastructure.repository.song_repository import SongRepository
-from ..use_cases.song_use_cases import SongUseCases
+from ..use_cases import (
+    GetRandomSongsUseCase,
+    GetSongByIdUseCase,
+    IncrementPlayCountUseCase,
+    SaveTrackAsSongUseCase,
+    SearchSongsUseCase,
+)
+from .dtos import RandomSongsRequestDTO, SongSearchRequestDTO
+from .mappers import SongMapper
 from .serializers.song_serializers import (
     ProcessVideoRequestSerializer,
     SongListSerializer,
@@ -19,36 +26,20 @@ from .serializers.song_serializers import (
 )
 
 
-def entity_to_dict(entity: SongEntity) -> dict:
-    """Convierte una entidad a diccionario para el serializer"""
-    return {
-        "id": entity.id,
-        "title": entity.title,
-        # "youtube_video_id": entity.youtube_video_id,
-        "artist_name": entity.artist_name,
-        "album_title": entity.album_title,
-        "genre_name": entity.genre_name,
-        "duration_seconds": entity.duration_seconds,
-        "file_url": entity.file_url,
-        "thumbnail_url": entity.thumbnail_url,
-        # "youtube_url": entity.youtube_url,
-        "tags": entity.tags or [],
-        "play_count": entity.play_count,
-        # "youtube_view_count": entity.youtube_view_count,
-        # "youtube_like_count": entity.youtube_like_count,
-        "is_explicit": entity.is_explicit,
-        # "audio_downloaded": entity.audio_downloaded,
-        "created_at": entity.created_at,
-        # "published_at": entity.published_at,
-    }
-
-
 class RandomSongsView(APIView, LoggingMixin):
     """Vista para obtener canciones aleatorias"""
 
     def __init__(self):
         super().__init__()
-        self.song_use_cases = SongUseCases(SongRepository())
+        self.repository = SongRepository()
+        # Import MusicService at class level to avoid circular imports
+        from ...music_search.infrastructure.music_service import MusicService
+
+        self.music_service = MusicService()
+        self.get_random_songs_use_case = GetRandomSongsUseCase(
+            self.repository, self.music_service
+        )
+        self.mapper = SongMapper()
 
     @extend_schema(
         responses={200: SongListSerializer(many=True)},
@@ -69,13 +60,15 @@ class RandomSongsView(APIView, LoggingMixin):
             count = int(request.GET.get("count", 6))
             force_refresh = request.GET.get("force_refresh", "false").lower() == "true"
 
-            # Ejecutar función async en el evento loop
-            songs = asyncio.run(
-                self.song_use_cases.get_random_songs(count, force_refresh)
+            request_dto = RandomSongsRequestDTO(
+                count=count, force_refresh=force_refresh
             )
 
-            songs_data = [entity_to_dict(song) for song in songs]
-            serializer = SongListSerializer(songs_data, many=True)
+            # Ejecutar función async en el evento loop
+            songs = asyncio.run(self.get_random_songs_use_case.execute(request_dto))
+
+            songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
+            serializer = SongListSerializer(songs_dtos, many=True)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -92,7 +85,15 @@ class SearchSongsView(APIView, LoggingMixin):
 
     def __init__(self):
         super().__init__()
-        self.song_use_cases = SongUseCases(SongRepository())
+        self.repository = SongRepository()
+        # Import MusicService at class level to avoid circular imports
+        from ...music_search.infrastructure.music_service import MusicService
+
+        self.music_service = MusicService()
+        self.search_songs_use_case = SearchSongsUseCase(
+            self.repository, self.music_service
+        )
+        self.mapper = SongMapper()
 
     @extend_schema(
         responses={200: SongListSerializer(many=True)},
@@ -125,13 +126,15 @@ class SearchSongsView(APIView, LoggingMixin):
                 request.GET.get("include_youtube", "true").lower() == "true"
             )
 
-            # Ejecutar función async en el evento loop
-            songs = asyncio.run(
-                self.song_use_cases.search_songs(query, limit, include_youtube)
+            request_dto = SongSearchRequestDTO(
+                query=query, limit=limit, include_youtube=include_youtube
             )
 
-            songs_data = [entity_to_dict(song) for song in songs]
-            serializer = SongListSerializer(songs_data, many=True)
+            # Ejecutar función async en el evento loop
+            songs = asyncio.run(self.search_songs_use_case.execute(request_dto))
+
+            songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
+            serializer = SongListSerializer(songs_dtos, many=True)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -148,21 +151,23 @@ class SongDetailView(APIView, LoggingMixin):
 
     def __init__(self):
         super().__init__()
-        self.song_use_cases = SongUseCases(SongRepository())
+        self.repository = SongRepository()
+        self.get_song_by_id_use_case = GetSongByIdUseCase(self.repository)
+        self.mapper = SongMapper()
 
     @extend_schema(responses={200: SongSerializer})
     def get(self, request, song_id):
         """Obtiene detalles de una canción"""
         try:
-            song = asyncio.run(self.song_use_cases.get_song_by_id(song_id))
+            song = self.get_song_by_id_use_case.execute(song_id)
 
             if not song:
                 return Response(
                     {"error": "Song not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
-            song_data = entity_to_dict(song)
-            serializer = SongSerializer(song_data)
+            song_dto = self.mapper.entity_to_response_dto(song)
+            serializer = SongSerializer(song_dto)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -179,7 +184,15 @@ class ProcessYouTubeVideoView(APIView, LoggingMixin):
 
     def __init__(self):
         super().__init__()
-        self.song_use_cases = SongUseCases(SongRepository())
+        self.repository = SongRepository()
+        # Import MusicService at class level to avoid circular imports
+        from ...music_search.infrastructure.music_service import MusicService
+
+        self.music_service = MusicService()
+        self.save_track_use_case = SaveTrackAsSongUseCase(
+            self.repository, self.music_service
+        )
+        self.mapper = SongMapper()
 
     @extend_schema(
         request=ProcessVideoRequestSerializer,
@@ -194,7 +207,7 @@ class ProcessYouTubeVideoView(APIView, LoggingMixin):
 
             video_id = serializer.validated_data["video_id"]
 
-            song = asyncio.run(self.song_use_cases.process_youtube_video(video_id))
+            song = asyncio.run(self.save_track_use_case.execute({"video_id": video_id}))
 
             if not song:
                 return Response(
@@ -202,8 +215,8 @@ class ProcessYouTubeVideoView(APIView, LoggingMixin):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            song_data = entity_to_dict(song)
-            response_serializer = SongSerializer(song_data)
+            song_dto = self.mapper.entity_to_response_dto(song)
+            response_serializer = SongSerializer(song_dto)
 
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -219,8 +232,10 @@ class ProcessYouTubeVideoView(APIView, LoggingMixin):
 def increment_play_count(request, song_id):
     """Incrementa el contador de reproducciones"""
     try:
-        song_use_cases = SongUseCases(SongRepository())
-        song = asyncio.run(song_use_cases.increment_play_count(song_id))
+        repository = SongRepository()
+        increment_use_case = IncrementPlayCountUseCase(repository)
+
+        song = increment_use_case.execute(song_id)
 
         if not song:
             return Response(
