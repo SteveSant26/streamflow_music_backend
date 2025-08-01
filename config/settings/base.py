@@ -8,14 +8,15 @@ from .test_database_settings import DATABASES  # noqa: F401
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: F401
 from .middleware_settings import MIDDLEWARE  # noqa: F401
 from .rest_framework_settings import REST_FRAMEWORK  # noqa: F401
-from .stripe_settings import (  # noqa: F401
-    STRIPE_BASIC_PRICE_ID,
-    STRIPE_FAMILY_PRICE_ID,
-    STRIPE_PREMIUM_PRICE_ID,
-    STRIPE_PUBLISHABLE_KEY,
-    STRIPE_SECRET_KEY,
-    STRIPE_WEBHOOK_SECRET,
-)
+# Temporarily disabled Stripe settings for migrations
+# from .stripe_settings import (  # noqa: F401
+#     STRIPE_BASIC_PRICE_ID,
+#     STRIPE_FAMILY_PRICE_ID,
+#     STRIPE_PREMIUM_PRICE_ID,
+#     STRIPE_PUBLISHABLE_KEY,
+#     STRIPE_SECRET_KEY,
+#     STRIPE_WEBHOOK_SECRET,
+# )
 from .supabase_settings import (  # noqa: F401
     SUPABASE_ANON_KEY,
     SUPABASE_JWT_ALGORITHM,
