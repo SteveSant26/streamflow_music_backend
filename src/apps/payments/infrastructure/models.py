@@ -7,13 +7,16 @@ import uuid
 
 User = get_user_model()
 
+# Constants
+AMOUNT_HELP_TEXT = "Monto en centavos"
+
 
 class SubscriptionPlan(models.Model):
     """Modelo para planes de suscripción"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField()
-    price = models.IntegerField(help_text="Precio en centavos")
+    price = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
     currency = models.CharField(max_length=3, default="EUR")
     interval = models.CharField(
         max_length=10,
@@ -86,8 +89,8 @@ class PaymentMethod(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payment_methods")
     stripe_payment_method_id = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=20)
-    card_brand = models.CharField(max_length=20, null=True, blank=True)
-    card_last4 = models.CharField(max_length=4, null=True, blank=True)
+    card_brand = models.CharField(max_length=20, blank=True, default="")
+    card_last4 = models.CharField(max_length=4, blank=True, default="")
     card_exp_month = models.IntegerField(null=True, blank=True)
     card_exp_year = models.IntegerField(null=True, blank=True)
     is_default = models.BooleanField(default=False)
@@ -123,7 +126,7 @@ class Invoice(models.Model):
         blank=True
     )
     stripe_invoice_id = models.CharField(max_length=100, unique=True)
-    amount = models.IntegerField(help_text="Monto en centavos")
+    amount = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
     currency = models.CharField(max_length=3, default="EUR")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     due_date = models.DateTimeField(null=True, blank=True)
@@ -164,7 +167,7 @@ class Payment(models.Model):
         null=True,
         blank=True
     )
-    amount = models.IntegerField(help_text="Monto en centavos")
+    amount = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
     currency = models.CharField(max_length=3, default="EUR")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     metadata = models.JSONField(default=dict)
@@ -203,7 +206,7 @@ class CheckoutSession(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="checkout_sessions")
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
     stripe_session_id = models.CharField(max_length=100, unique=True)
-    amount = models.IntegerField(help_text="Monto en centavos")
+    amount = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
     currency = models.CharField(max_length=3, default="EUR")
     success_url = models.URLField()
     cancel_url = models.URLField()
