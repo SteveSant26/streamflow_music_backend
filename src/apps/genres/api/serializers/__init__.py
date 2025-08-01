@@ -3,3 +3,9 @@ from .genre_serializer import (
     GenreSearchSerializer,
     GenreSerializer,
 )
+
+__all__ = [
+    "GenreSerializer",
+    "GenreSearchSerializer",
+    "GenreSearchResponseSerializer",
+]

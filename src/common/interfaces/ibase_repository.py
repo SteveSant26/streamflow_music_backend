@@ -8,11 +8,11 @@ class IReadOnlyRepository(ABC, Generic[EntityType, ModelType]):
     """Repositorio de solo lectura para operaciones de consulta."""
 
     @abstractmethod
-    def get_by_id(self, entity_id: str) -> Optional[EntityType]:
+    async def get_by_id(self, entity_id: str) -> Optional[EntityType]:
         """Obtiene una entidad por ID."""
 
     @abstractmethod
-    def get_all(self) -> list[EntityType]:
+    async def get_all(self) -> list[EntityType]:
         """Obtiene todas las entidades, opcionalmente filtradas."""
 
     @abstractmethod
@@ -24,15 +24,15 @@ class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
     """Repositorio de escritura para operaciones de modificación."""
 
     @abstractmethod
-    def save(self, entity: EntityType) -> EntityType:
+    async def save(self, entity: EntityType) -> EntityType:
         """Guarda una entidad."""
 
     @abstractmethod
-    def delete(self, entity_id: str) -> None:
+    async def delete(self, entity_id: str) -> None:
         """Elimina una entidad por ID."""
 
     @abstractmethod
-    def update(self, entity_id: str, entity: EntityType) -> EntityType:
+    async def update(self, entity_id: str, entity: EntityType) -> EntityType:
         """Actualiza una entidad."""
 
     @abstractmethod

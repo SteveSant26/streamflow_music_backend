@@ -4,13 +4,16 @@ from apps.user_profile.domain.exceptions import (
 )
 from common.interfaces import IStorageService
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
+from ..api.dtos import UploadProfilePictureRequestDTO
 from ..domain.entities import UserProfileEntity
 from ..domain.repository import IUserRepository
 
 
-class UploadProfilePicture(BaseUseCase):
+class UploadProfilePicture(
+    BaseUseCase[UploadProfilePictureRequestDTO, UserProfileEntity]
+):
     def __init__(
         self, user_repository: IUserRepository, storage_service: IStorageService
     ):
@@ -19,13 +22,15 @@ class UploadProfilePicture(BaseUseCase):
         self.storage_service = storage_service
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, user_id: str, profile_picture_file) -> UserProfileEntity:
+    @log_performance(threshold_seconds=5.0)  # Subida de archivos puede tomar tiempo
+    async def execute(
+        self, request_dto: UploadProfilePictureRequestDTO
+    ) -> UserProfileEntity:
         """
         Ejecuta el caso de uso de subir foto de perfil.
 
         Args:
-            user_id: ID del usuario
-            profile_picture_file: Archivo de imagen
+            request_dto: DTO con user_id, email y profile_picture_file
 
         Returns:
             UserEntity: Entidad actualizada del usuario
@@ -34,38 +39,37 @@ class UploadProfilePicture(BaseUseCase):
             UserNotFoundException: Si el usuario no existe
             UserProfilePictureUploadException: Si falla la subida
         """
-        self.logger.info(f"Uploading profile picture for user {user_id}")
+        self.logger.info(f"Uploading profile picture for user {request_dto.user_id}")
 
-        if not user_id or not profile_picture_file:
-            self.logger.warning(f"Invalid data for user {user_id}")
+        if not request_dto.user_id or not request_dto.profile_picture_file:
+            self.logger.warning(f"Invalid data for user {request_dto.user_id}")
             raise UserProfilePictureUploadException(
                 "Error al subir la imagen del perfil."
             )
 
-        user = self.user_repository.get_by_id(user_id)
+        user = await self.user_repository.get_by_id(request_dto.user_id)
         if not user:
-            self.logger.error(f"User with ID {user_id} not found.")
-            raise UserNotFoundException(user_id)
-
-        # Eliminar imagen anterior si existe
-        if user.profile_picture:
-            self.logger.info(f"Deleting old profile picture for user {user_id}")
-            self.storage_service.delete_item(user.profile_picture)
+            self.logger.error(f"User with ID {request_dto.user_id} not found.")
+            raise UserNotFoundException(request_dto.user_id)
 
         # Subir nueva imagen
-        file_path = f"user_{user_id}.jpg"
+        file_path = f"user_{request_dto.user_id}.jpg"
         upload_success = self.storage_service.upload_item(
-            file_path, profile_picture_file
+            file_path, request_dto.profile_picture_file
         )
 
         if not upload_success:
-            self.logger.error(f"Failed to upload profile picture for user {user_id}.")
+            self.logger.error(
+                f"Failed to upload profile picture for user {request_dto.user_id}."
+            )
             raise UserProfilePictureUploadException(
                 "Error al subir la imagen del perfil."
             )
 
         # Actualizar entidad (solo guardamos la ruta, no la URL completa)
         user.profile_picture = file_path
-        self.logger.info(f"Profile picture uploaded successfully for user {user_id}")
+        self.logger.info(
+            f"Profile picture uploaded successfully for user {request_dto.user_id}"
+        )
 
-        return self.user_repository.update(user_id, user)
+        return await self.user_repository.update(request_dto.user_id, user)

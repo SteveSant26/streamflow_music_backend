@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from apps.albums.domain.repository import IAlbumRepository
-from src.common.core import BaseDjangoRepository
+from common.core import BaseDjangoRepository
 
 from ...domain.entities import AlbumEntity
 from ..models import AlbumModel
@@ -60,37 +60,41 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
             self.logger.error(f"Error al convertir entidad álbum a modelo: {str(e)}")
             raise
 
-    def find_by_artist_id(self, artist_id: str, limit: int = 10) -> List[AlbumEntity]:
+    async def find_by_artist_id(
+        self, artist_id: str, limit: int = 10
+    ) -> List[AlbumEntity]:
         """Busca álbumes por ID del artista"""
         models = self.model_class.objects.filter(
             artist_id=artist_id, is_active=True
         ).order_by("-release_date")[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]
 
-    def search_by_title(self, title: str, limit: int = 10) -> List[AlbumEntity]:
+    async def search_by_title(self, title: str, limit: int = 10) -> List[AlbumEntity]:
         """Busca álbumes por título"""
         models = self.model_class.objects.filter(
             title__icontains=title, is_active=True
         ).order_by("-play_count")[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]
 
-    def get_recent_albums(self, limit: int = 10) -> List[AlbumEntity]:
+    async def get_recent_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes recientes"""
         models = self.model_class.objects.filter(is_active=True).order_by(
             "-created_at"
         )[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]
 
-    def get_popular_albums(self, limit: int = 10) -> List[AlbumEntity]:
+    async def get_popular_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes populares"""
         models = self.model_class.objects.filter(is_active=True).order_by(
             "-play_count"
         )[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]
 
-    def find_by_release_year(self, year: int, limit: int = 10) -> List[AlbumEntity]:
+    async def find_by_release_year(
+        self, year: int, limit: int = 10
+    ) -> List[AlbumEntity]:
         """Busca álbumes por año de lanzamiento"""
         models = self.model_class.objects.filter(
             release_date__year=year, is_active=True
         ).order_by("-play_count")[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]

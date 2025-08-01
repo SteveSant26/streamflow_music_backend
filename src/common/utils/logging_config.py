@@ -81,6 +81,12 @@ class LoggingConfig:
                     "handlers": ["console", "file_info", "file_error"],
                     "propagate": False,
                 },
+                # Logger específico para detectar problemas de middleware async
+                "django.request": {
+                    "level": "DEBUG",
+                    "handlers": ["console", "file_info"],
+                    "propagate": False,
+                },
                 # Puedes agregar loggers para librerías específicas si quieres
             },
             "root": {

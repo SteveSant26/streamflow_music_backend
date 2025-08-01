@@ -39,3 +39,33 @@ class UpdateArtistRequestDTO:
     image_url: Optional[str] = None
     followers_count: Optional[int] = None
     is_verified: Optional[bool] = None
+
+
+@dataclass
+class SearchArtistsByNameRequestDTO:
+    """DTO para búsqueda de artistas por nombre"""
+
+    name: str
+    limit: int = 10
+
+
+@dataclass
+class GetArtistsByCountryRequestDTO:
+    """DTO para obtener artistas por país"""
+
+    country: str
+    limit: int = 10
+
+
+@dataclass
+class GetPopularArtistsRequestDTO:
+    """DTO para obtener artistas populares"""
+
+    limit: int = 10
+
+
+@dataclass
+class GetVerifiedArtistsRequestDTO:
+    """DTO para obtener artistas verificados"""
+
+    limit: int = 10

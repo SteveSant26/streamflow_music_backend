@@ -1,3 +1,3 @@
-from .song_model import Song
+from .song_model import SongModel
 
-__all__ = ["Song"]
+__all__ = ["SongModel"]

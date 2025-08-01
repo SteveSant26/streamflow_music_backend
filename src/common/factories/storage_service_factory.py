@@ -16,8 +16,6 @@ class StorageServiceFactory:
         Returns:
             IStorageService: Implementación del servicio de storage
         """
-        # Por ahora solo tenemos Supabase, pero aquí podrías agregar lógica
-        # para elegir entre diferentes proveedores (AWS S3, Google Cloud, etc.)
         return SupabaseStorageAdapter(bucket_name)
 
     @staticmethod

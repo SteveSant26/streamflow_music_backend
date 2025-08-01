@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
-from common.interfaces.ibase_repository import IReadOnlyRepository
-from src.common.mixins import LoggingMixin
-from src.common.utils import log_execution, log_performance
-
+from ..mixins.logging_mixin import LoggingMixin
 from ..types import EntityType, InputType, ModelType, ReturnType
+from ..utils.logging_decorators import log_execution, log_performance
+from .ibase_repository import IReadOnlyRepository
 
 
 class BaseUseCase(ABC, Generic[InputType, ReturnType], LoggingMixin):
@@ -15,7 +14,7 @@ class BaseUseCase(ABC, Generic[InputType, ReturnType], LoggingMixin):
         super().__init__()
 
     @abstractmethod
-    def execute(self, *args, **kwargs) -> ReturnType:
+    async def execute(self, *args, **kwargs) -> ReturnType:
         """Ejecuta el caso de uso."""
 
 
@@ -28,10 +27,10 @@ class BaseGetByIdUseCase(BaseUseCase[str, EntityType], Generic[EntityType]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=1.0)
-    def execute(self, entity_id: str) -> EntityType:
+    async def execute(self, entity_id: str) -> EntityType:
         """Obtiene una entidad por ID."""
         self.logger.debug(f"Getting entity with ID: {entity_id}")
-        entity = self.repository.get_by_id(entity_id)
+        entity = await self.repository.get_by_id(entity_id)
 
         if not entity:
             self.logger.warning(f"Entity not found with ID: {entity_id}")
@@ -53,11 +52,11 @@ class BaseGetAllUseCase(BaseUseCase[None, list[EntityType]], Generic[EntityType]
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    @log_performance(threshold_seconds=1.0)
-    def execute(self) -> list[EntityType]:
+    @log_performance(threshold_seconds=3.0)
+    async def execute(self) -> list[EntityType]:
         """Obtiene todas las entidades."""
         self.logger.debug("Getting all entities")
-        entities = self.repository.get_all()
+        entities = await self.repository.get_all()
 
         if not entities:
             self.logger.warning("No entities found")

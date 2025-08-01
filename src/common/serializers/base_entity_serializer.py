@@ -3,7 +3,8 @@ from typing import Any, Optional, Type
 from rest_framework import serializers
 
 from common.interfaces.imapper.abstract_mapper import AbstractMapper
-from src.common.utils import get_logger
+
+from ..utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
