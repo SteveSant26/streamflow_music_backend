@@ -8,7 +8,7 @@ from common.mixins.logging_mixin import LoggingMixin
 
 from ...domain.entities import SongEntity
 from ...domain.repository.Isong_repository import ISongRepository
-from ..models.song_model import Song
+from ..models.song_model import SongModel
 
 
 class SongRepository(ISongRepository, LoggingMixin):
@@ -50,13 +50,13 @@ class SongRepository(ISongRepository, LoggingMixin):
 
             if song.id:
                 # Update existing song
-                song_obj = await sync_to_async(Song.objects.get)(id=song.id)
+                song_obj = await sync_to_async(SongModel.objects.get)(id=song.id)
                 for key, value in song_data.items():
                     setattr(song_obj, key, value)
                 await sync_to_async(song_obj.save)()
             else:
                 # Create new song
-                song_obj = await sync_to_async(Song.objects.create)(**song_data)
+                song_obj = await sync_to_async(SongModel.objects.create)(**song_data)
 
             return self._to_entity(song_obj)
 
@@ -67,9 +67,11 @@ class SongRepository(ISongRepository, LoggingMixin):
     async def get_by_id(self, song_id: str) -> Optional[SongEntity]:
         """Obtiene una canción por ID"""
         try:
-            song = await sync_to_async(Song.objects.get)(id=song_id, is_active=True)
+            song = await sync_to_async(SongModel.objects.get)(
+                id=song_id, is_active=True
+            )
             return self._to_entity(song)
-        except Song.DoesNotExist:
+        except SongModel.DoesNotExist:
             return None
         except Exception as e:
             self.logger.error(f"Error getting song by id {song_id}: {str(e)}")
@@ -80,11 +82,11 @@ class SongRepository(ISongRepository, LoggingMixin):
     ) -> Optional[SongEntity]:
         """Obtiene una canción por fuente y ID de fuente"""
         try:
-            song = await sync_to_async(Song.objects.get)(
+            song = await sync_to_async(SongModel.objects.get)(
                 source_type=source_type, source_id=source_id, is_active=True
             )
             return self._to_entity(song)
-        except Song.DoesNotExist:
+        except SongModel.DoesNotExist:
             return None
         except Exception as e:
             self.logger.error(
@@ -96,7 +98,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene todas las canciones activas"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(is_active=True).order_by("-created_at")[
+                SongModel.objects.filter(is_active=True).order_by("-created_at")[
                     offset : offset + limit
                 ]
             )
@@ -109,7 +111,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene canciones aleatorias"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(is_active=True).order_by("?")[:limit]
+                SongModel.objects.filter(is_active=True).order_by("?")[:limit]
             )
             return [self._to_entity(song) for song in songs]
         except Exception as e:
@@ -120,7 +122,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Busca canciones por título o artista"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(
+                SongModel.objects.filter(
                     Q(title__icontains=query)
                     | Q(artist_name__icontains=query)
                     | Q(album_title__icontains=query),
@@ -138,7 +140,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene canciones por artista"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(
+                SongModel.objects.filter(
                     artist_name__iexact=artist_name, is_active=True
                 ).order_by("-play_count", "album_title", "track_number")[:limit]
             )
@@ -153,7 +155,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene canciones por álbum"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(
+                SongModel.objects.filter(
                     album_title__iexact=album_title, is_active=True
                 ).order_by("track_number", "title")[:limit]
             )
@@ -166,7 +168,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene las canciones más reproducidas"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(is_active=True).order_by(
+                SongModel.objects.filter(is_active=True).order_by(
                     "-play_count", "-created_at"
                 )[:limit]
             )
@@ -179,7 +181,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene las canciones más agregadas a favoritos"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(is_active=True).order_by(
+                SongModel.objects.filter(is_active=True).order_by(
                     "-favorite_count", "-created_at"
                 )[:limit]
             )
@@ -192,7 +194,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene las canciones reproducidas recientemente"""
         try:
             songs = await sync_to_async(list)(
-                Song.objects.filter(
+                SongModel.objects.filter(
                     is_active=True, last_played_at__isnull=False
                 ).order_by("-last_played_at")[:limit]
             )
@@ -205,7 +207,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene los artistas más populares basado en reproducciones"""
         try:
             result = await sync_to_async(list)(
-                Song.objects.filter(is_active=True, artist_name__isnull=False)
+                SongModel.objects.filter(is_active=True, artist_name__isnull=False)
                 .values("artist_name")
                 .annotate(
                     total_plays=Sum("play_count"),
@@ -223,7 +225,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Obtiene los álbumes más populares basado en reproducciones"""
         try:
             result = await sync_to_async(list)(
-                Song.objects.filter(is_active=True, album_title__isnull=False)
+                SongModel.objects.filter(is_active=True, album_title__isnull=False)
                 .values("album_title", "artist_name")
                 .annotate(
                     total_plays=Sum("play_count"),
@@ -243,7 +245,7 @@ class SongRepository(ISongRepository, LoggingMixin):
             from django.utils import timezone
 
             rows_updated = await sync_to_async(
-                Song.objects.filter(id=song_id, is_active=True).update
+                SongModel.objects.filter(id=song_id, is_active=True).update
             )(play_count=models.F("play_count") + 1, last_played_at=timezone.now())
             return rows_updated > 0
         except Exception as e:
@@ -256,7 +258,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Incrementa el contador de favoritos"""
         try:
             rows_updated = await sync_to_async(
-                Song.objects.filter(id=song_id, is_active=True).update
+                SongModel.objects.filter(id=song_id, is_active=True).update
             )(favorite_count=models.F("favorite_count") + 1)
             return rows_updated > 0
         except Exception as e:
@@ -269,7 +271,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Incrementa el contador de descargas"""
         try:
             rows_updated = await sync_to_async(
-                Song.objects.filter(id=song_id, is_active=True).update
+                SongModel.objects.filter(id=song_id, is_active=True).update
             )(download_count=models.F("download_count") + 1)
             return rows_updated > 0
         except Exception as e:
@@ -281,9 +283,9 @@ class SongRepository(ISongRepository, LoggingMixin):
     async def delete(self, song_id: str) -> bool:
         """Elimina una canción (soft delete)"""
         try:
-            rows_updated = await sync_to_async(Song.objects.filter(id=song_id).update)(
-                is_active=False
-            )
+            rows_updated = await sync_to_async(
+                SongModel.objects.filter(id=song_id).update
+            )(is_active=False)
             return rows_updated > 0
         except Exception as e:
             self.logger.error(f"Error deleting song {song_id}: {str(e)}")
@@ -293,7 +295,7 @@ class SongRepository(ISongRepository, LoggingMixin):
         """Verifica si existe una canción con la fuente específica"""
         try:
             return await sync_to_async(
-                Song.objects.filter(
+                SongModel.objects.filter(
                     source_type=source_type, source_id=source_id, is_active=True
                 ).exists
             )()
@@ -303,7 +305,7 @@ class SongRepository(ISongRepository, LoggingMixin):
             )
             return False
 
-    def _to_entity(self, song_model: Song) -> SongEntity:
+    def _to_entity(self, song_model: SongModel) -> SongEntity:
         """Convierte un modelo de Django a una entidad"""
         return SongEntity(
             id=str(song_model.id),

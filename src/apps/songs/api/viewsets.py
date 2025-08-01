@@ -9,7 +9,7 @@ from apps.songs.api.serializers import (
     SongListSerializer,
     SongSerializer,
 )
-from apps.songs.infrastructure.models.song_model import Song
+from apps.songs.infrastructure.models.song_model import SongModel
 from common.mixins.logging_mixin import LoggingMixin
 
 
@@ -30,7 +30,7 @@ from common.mixins.logging_mixin import LoggingMixin
 class SongViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
     """ViewSet para gestión de canciones (integración con YouTube)"""
 
-    queryset = Song.objects.all()
+    queryset = SongModel.objects.all()
     serializer_class = SongSerializer
 
     def get_permissions(self):
