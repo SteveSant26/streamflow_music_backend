@@ -4,11 +4,12 @@ from common.factories import MediaServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
 
+from ..api.dtos import SongSearchRequestDTO
 from ..domain.entities import SongEntity
 from ..domain.repository.Isong_repository import ISongRepository
 
 
-class SearchSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
+class SearchSongsUseCase(BaseUseCase[SongSearchRequestDTO, List[SongEntity]]):
     """Caso de uso para buscar canciones"""
 
     def __init__(self, song_repository: ISongRepository, music_service=None):
@@ -18,38 +19,38 @@ class SearchSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=3.0)  # Búsqueda puede incluir consultas externas
-    async def execute(
-        self, query: str, limit: int = 20, include_youtube: bool = True
-    ) -> List[SongEntity]:
+    async def execute(self, request_dto: SongSearchRequestDTO) -> List[SongEntity]:
         """
         Busca canciones. Primero en la BD local, luego opcionalmente en YouTube.
 
         Args:
-            query: Texto de búsqueda
-            limit: Límite de resultados
-            include_youtube: Si debe buscar en YouTube si no hay suficientes resultados
+            request_dto: DTO con query, limit e include_youtube
 
         Returns:
             Lista de canciones encontradas
         """
         try:
             # Buscar en la base de datos local
-            self.logger.debug(f"Searching songs locally for: '{query}'")
-            local_songs = await self.song_repository.search(query, limit)
+            self.logger.debug(f"Searching songs locally for: '{request_dto.query}'")
+            local_songs = await self.song_repository.search(
+                request_dto.query, request_dto.limit
+            )
 
-            if len(local_songs) >= limit or not include_youtube:
+            if len(local_songs) >= request_dto.limit or not request_dto.include_youtube:
                 self.logger.info(
-                    f"Found {len(local_songs)} songs locally for query: '{query}'"
+                    f"Found {len(local_songs)} songs locally for query: '{request_dto.query}'"
                 )
                 return local_songs
 
             # Buscar en YouTube para completar los resultados
-            self.logger.info(f"Searching YouTube for additional results: '{query}'")
+            self.logger.info(
+                f"Searching YouTube for additional results: '{request_dto.query}'"
+            )
             from common.types.media_types import SearchOptions
 
-            options = SearchOptions(max_results=limit - len(local_songs))
+            options = SearchOptions(max_results=request_dto.limit - len(local_songs))
             youtube_tracks = await self.music_service.search_and_process_audio(
-                query, options
+                request_dto.query, options
             )
 
             # Guardar nuevas canciones encontradas
@@ -67,14 +68,18 @@ class SearchSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
                         local_songs.append(new_song)
 
             self.logger.info(
-                f"Total songs found for query '{query}': {len(local_songs[:limit])}"
+                f"Total songs found for query '{request_dto.query}': {len(local_songs[:request_dto.limit])}"
             )
-            return local_songs[:limit]
+            return local_songs[: request_dto.limit]
 
         except Exception as e:
-            self.logger.error(f"Error searching songs with query '{query}': {str(e)}")
+            self.logger.error(
+                f"Error searching songs with query '{request_dto.query}': {str(e)}"
+            )
             # Return existing local results if any, otherwise empty list
             try:
-                return await self.song_repository.search(query, limit)
+                return await self.song_repository.search(
+                    request_dto.query, request_dto.limit
+                )
             except Exception:
                 return []

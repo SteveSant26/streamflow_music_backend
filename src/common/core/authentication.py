@@ -1,8 +1,8 @@
 import jwt
+from asgiref.sync import async_to_sync
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from asgiref.sync import async_to_sync
 
 from common.mixins.logging_mixin import LoggingMixin
 
@@ -56,7 +56,7 @@ class SupabaseAuthentication(BaseAuthentication, LoggingMixin):
             self.logger.debug(f"Decoded token: {decoded}")
 
             sync_user = self._get_sync_user_use_case()
-            user_entity = sync_user.execute(decoded)
+            user_entity = async_to_sync(sync_user.execute)(decoded)
 
             # Llamar la función async desde sync
             user_repository = self._get_user_repository()

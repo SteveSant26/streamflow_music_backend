@@ -31,3 +31,11 @@ class PopularGenresRequestDTO:
     """DTO para solicitud de géneros populares"""
 
     limit: int = 10
+
+
+@dataclass
+class SearchGenresRequestDTO:
+    """DTO para búsqueda de géneros"""
+
+    query: str
+    limit: int = 10

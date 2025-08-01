@@ -2,13 +2,16 @@ from typing import List
 
 from common.factories import MediaServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
+from common.types.media_types import SearchOptions
 from common.utils.logging_decorators import log_execution, log_performance
 
+from ..api.dtos.song_dtos import RandomSongsRequestDTO
 from ..domain.entities import SongEntity
 from ..domain.repository.Isong_repository import ISongRepository
+from .save_track_as_song_use_case import SaveTrackAsSongUseCase
 
 
-class GetRandomSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
+class GetRandomSongsUseCase(BaseUseCase[RandomSongsRequestDTO, List[SongEntity]]):
     """Caso de uso para obtener canciones aleatorias"""
 
     def __init__(self, song_repository: ISongRepository, music_service=None):
@@ -20,20 +23,19 @@ class GetRandomSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
     @log_performance(
         threshold_seconds=4.0
     )  # Puede incluir búsquedas externas y procesamiento
-    async def execute(
-        self, count: int = 6, force_refresh: bool = False
-    ) -> List[SongEntity]:
+    async def execute(self, request_dto: RandomSongsRequestDTO) -> List[SongEntity]:
         """
         Obtiene canciones aleatorias. Si no hay suficientes en la BD o force_refresh=True,
         busca nuevas canciones desde YouTube.
 
         Args:
-            count: Número de canciones a obtener
-            force_refresh: Si debe buscar nuevas canciones aunque existan suficientes
+            request_dto: DTO con count y force_refresh
 
         Returns:
             Lista de canciones aleatorias
         """
+        count = request_dto.count
+        force_refresh = request_dto.force_refresh
         try:
             # Primero intentar obtener canciones de la base de datos
             if not force_refresh:
@@ -46,7 +48,6 @@ class GetRandomSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
 
             # Si no hay suficientes canciones, buscar nuevas desde YouTube
             self.logger.info("Fetching new random songs from YouTube")
-            from common.types.media_types import SearchOptions
 
             options = SearchOptions(max_results=count)
             new_tracks = await self.music_service.get_random_audio_tracks(options)
@@ -61,9 +62,6 @@ class GetRandomSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
                 if existing_song:
                     saved_songs.append(existing_song)
                 else:
-                    # Usar otro caso de uso para guardar la canción
-                    from .save_track_as_song_use_case import SaveTrackAsSongUseCase
-
                     save_track_use_case = SaveTrackAsSongUseCase(self.song_repository)
                     new_song = await save_track_use_case.execute(track)
                     if new_song:
@@ -80,5 +78,6 @@ class GetRandomSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
 
         except Exception as e:
             self.logger.error(f"Error getting random songs: {str(e)}")
-            # En caso de error, intentar devolver canciones existentes
-            return await self.song_repository.get_random(count)
+            return await self.song_repository.get_random(
+                count,
+            )

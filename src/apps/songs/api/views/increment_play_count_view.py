@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import IncrementPlayCountUseCase
+from ..dtos import IncrementCountRequestDTO
 
 
 @extend_schema(
@@ -36,7 +37,10 @@ async def increment_play_count_view(request, song_id):
         repository = SongRepository()
         increment_use_case = IncrementPlayCountUseCase(repository)
 
-        song = await increment_use_case.execute(song_id)
+        # Crear DTO con el song_id
+        request_dto = IncrementCountRequestDTO(song_id=song_id)
+
+        song = await increment_use_case.execute(request_dto)
 
         if not song:
             return Response(

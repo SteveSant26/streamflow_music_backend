@@ -38,3 +38,26 @@ class AlbumSearchResponseDTO:
     source: str  # "local_cache", "youtube_api", "not_found"
     results: list
     message: Optional[str] = None
+
+
+@dataclass
+class SearchAlbumsByTitleRequestDTO:
+    """DTO para búsqueda de álbumes por título"""
+
+    title: str
+    limit: int = 10
+
+
+@dataclass
+class GetAlbumsByArtistRequestDTO:
+    """DTO para obtener álbumes por artista"""
+
+    artist_id: str
+    limit: int = 10
+
+
+@dataclass
+class GetPopularAlbumsRequestDTO:
+    """DTO para obtener álbumes populares"""
+
+    limit: int = 10

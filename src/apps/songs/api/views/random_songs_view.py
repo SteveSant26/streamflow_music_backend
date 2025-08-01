@@ -1,6 +1,8 @@
+from asgiref.sync import async_to_sync
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -23,11 +25,11 @@ from ..serializers.song_serializers import SongListSerializer
 class RandomSongsView(APIView, LoggingMixin):
     """Vista para obtener canciones aleatorias"""
 
+    permission_classes = [AllowAny]
+
     def __init__(self):
         super().__init__()
         self.repository = SongRepository()
-        # Usar la factory para obtener el servicio de música
-
         self.music_service = MediaServiceFactory.create_music_service()
         self.get_random_songs_use_case = GetRandomSongsUseCase(
             self.repository, self.music_service
@@ -47,7 +49,7 @@ class RandomSongsView(APIView, LoggingMixin):
             ),
         ],
     )
-    async def get(self, request):
+    def get(self, request):
         """Obtiene canciones aleatorias"""
         try:
             count = int(request.GET.get("count", 6))
@@ -58,7 +60,7 @@ class RandomSongsView(APIView, LoggingMixin):
             )
 
             # Ejecutar función async directamente sin asyncio.run()
-            songs = await self.get_random_songs_use_case.execute(request_dto)
+            songs = async_to_sync(self.get_random_songs_use_case.execute)(request_dto)
 
             songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
             serializer = SongListSerializer(songs_dtos, many=True)

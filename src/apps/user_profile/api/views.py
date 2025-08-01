@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -13,6 +14,8 @@ from apps.user_profile.infrastructure.models.user_profile import UserProfileMode
 from common.factories import StorageServiceFactory
 from common.mixins.logging_mixin import LoggingMixin
 
+from ..api.dtos import UploadProfilePictureRequestDTO
+from ..api.mappers import UserProfileMapper
 from ..infrastructure.repository import UserRepository
 from ..use_cases import GetUserProfileUseCase, UploadProfilePicture
 
@@ -37,6 +40,10 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     http_method_names = ["get", "post", "delete"]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.mapper = UserProfileMapper()
 
     def get_permissions(self):
         action_permissions = {
@@ -68,20 +75,21 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
         )
 
     @action(detail=False, methods=["get"], url_path="me")
-    async def me(self, request):
+    def me(self, request):
         self.logger.info(f"User {request.user.id} is requesting their profile.")
 
         # Usar caso de uso
         get_user_profile = GetUserProfileUseCase(user_repository)
-        user_entity = await get_user_profile.execute(str(request.user.id))
+        user_entity = async_to_sync(get_user_profile.execute)(str(request.user.id))
 
-        # El serializer maneja la conversión automáticamente
-        return Response(
-            self.get_serializer(user_entity).data, status=status.HTTP_200_OK
-        )
+        # Convertir entidad a DTO usando el mapper
+        user_dto = self.mapper.entity_to_response_dto(user_entity)
+        serializer = self.get_serializer(user_dto)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="upload-profile-picture")
-    async def upload_profile_picture(self, request):
+    def upload_profile_picture(self, request):
         self.logger.info(f"User {request.user.id} is uploading a profile picture.")
 
         # Validar datos de entrada
@@ -91,18 +99,28 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
 
         profile_picture_file = serializer.validated_data["profile_picture"]
 
-        # Usar caso de uso con parámetros limpios
-        upload_profile_picture = UploadProfilePicture(user_repository, storage_service)
-
-        user_entity = await upload_profile_picture.execute(
-            user_id=str(request.user.id), profile_picture_file=profile_picture_file
+        # Crear DTO para el caso de uso
+        request_dto = UploadProfilePictureRequestDTO(
+            user_id=str(request.user.id),
+            email=request.user.email,
+            profile_picture_file=profile_picture_file,
         )
+
+        # Usar caso de uso
+        upload_profile_picture_use_case = UploadProfilePicture(
+            user_repository, storage_service
+        )
+        user_entity = async_to_sync(upload_profile_picture_use_case.execute)(
+            request_dto
+        )
+
         self.logger.info(
             f"Profile picture uploaded successfully for user {request.user.id}."
         )
 
-        # El serializer maneja la conversión automáticamente
+        # Convertir entidad a DTO usando el mapper
+        user_dto = self.mapper.entity_to_response_dto(user_entity)
         return Response(
-            RetrieveUserProfileSerializer(user_entity).data,
+            RetrieveUserProfileSerializer(user_dto).data,
             status=status.HTTP_200_OK,
         )
