@@ -17,7 +17,8 @@ from ...domain.exceptions import (
     SubscriptionError,
     PaymentMethodError,
     WebhookError,
-    InvoiceError
+    InvoiceError,
+    StripeServiceError
 )
 
 
@@ -38,7 +39,7 @@ class StripeService(IStripeService):
             )
             return customer.id
         except stripe.error.StripeError as e:
-            raise Exception(f"Error creando cliente: {e}")
+            raise CustomerCreationError(f"Error creando cliente: {e}")
 
     async def create_checkout_session(
         self,
@@ -87,7 +88,7 @@ class StripeService(IStripeService):
             }
 
         except stripe.error.StripeError as e:
-            raise Exception(f"Error creando sesión de checkout: {e}")
+            raise CheckoutSessionError(f"Error creando sesión de checkout: {e}")
 
     async def create_billing_portal_session(
         self,
@@ -104,7 +105,7 @@ class StripeService(IStripeService):
                 "url": session.url
             }
         except stripe.error.StripeError as e:
-            raise Exception(f"Error creando portal de facturación: {e}")
+            raise BillingPortalError(f"Error creando portal de facturación: {e}")
 
     async def get_subscription(self, subscription_id: str) -> Dict[str, Any]:
         """Obtiene una suscripción de Stripe"""
@@ -129,7 +130,7 @@ class StripeService(IStripeService):
                 ]
             }
         except stripe.error.StripeError as e:
-            raise Exception(f"Error obteniendo suscripción: {e}")
+            raise SubscriptionError(f"Error obteniendo suscripción: {e}")
 
     async def cancel_subscription(self, subscription_id: str) -> Dict[str, Any]:
         """Cancela una suscripción en Stripe"""
@@ -146,7 +147,7 @@ class StripeService(IStripeService):
                 "cancel_at_period_end": subscription.cancel_at_period_end
             }
         except stripe.error.StripeError as e:
-            raise Exception(f"Error cancelando suscripción: {e}")
+            raise SubscriptionError(f"Error cancelando suscripción: {e}")
 
     async def get_upcoming_invoice(self, customer_id: str) -> Dict[str, Any]:
         """Obtiene la próxima factura de un cliente"""
@@ -161,7 +162,7 @@ class StripeService(IStripeService):
                 "due_date": invoice.due_date,
                 "status": invoice.status
             }
-        except stripe.error.StripeError as e:
+        except stripe.error.StripeError:
             # Es normal que no haya próxima factura
             return None
 
@@ -188,7 +189,7 @@ class StripeService(IStripeService):
                 for pm in payment_methods.data
             ]
         except stripe.error.StripeError as e:
-            raise Exception(f"Error obteniendo métodos de pago: {e}")
+            raise PaymentMethodError(f"Error obteniendo métodos de pago: {e}")
 
     def construct_webhook_event(self, payload: bytes, signature: str) -> Dict[str, Any]:
         """Construye un evento de webhook desde el payload"""
@@ -199,10 +200,10 @@ class StripeService(IStripeService):
                 settings.STRIPE_WEBHOOK_SECRET
             )
             return event
-        except ValueError:
-            raise Exception("Payload inválido")
-        except stripe.error.SignatureVerificationError:
-            raise Exception("Firma de webhook inválida")
+        except ValueError as e:
+            raise WebhookError(f"Payload inválido: {e}")
+        except stripe.error.SignatureVerificationError as e:
+            raise WebhookError(f"Firma de webhook inválida: {e}")
 
     async def get_customer(self, customer_id: str) -> Dict[str, Any]:
         """Obtiene información de un cliente"""
@@ -216,7 +217,7 @@ class StripeService(IStripeService):
                 "metadata": customer.metadata
             }
         except stripe.error.StripeError as e:
-            raise Exception(f"Error obteniendo cliente: {e}")
+            raise CustomerCreationError(f"Error obteniendo cliente: {e}")
 
     async def create_payment_intent(
         self,
@@ -240,7 +241,7 @@ class StripeService(IStripeService):
                 "status": intent.status
             }
         except stripe.error.StripeError as e:
-            raise Exception(f"Error creando Payment Intent: {e}")
+            raise PaymentMethodError(f"Error creando Payment Intent: {e}")
 
     async def get_invoice_history(
         self,
@@ -269,7 +270,7 @@ class StripeService(IStripeService):
                 for invoice in invoices.data
             ]
         except stripe.error.StripeError as e:
-            raise Exception(f"Error obteniendo historial de facturas: {e}")
+            raise InvoiceError(f"Error obteniendo historial de facturas: {e}")
 
     async def get_price(self, price_id: str) -> Dict[str, Any]:
         """Obtiene información de un precio"""
@@ -287,7 +288,7 @@ class StripeService(IStripeService):
                 "active": price.active
             }
         except stripe.error.StripeError as e:
-            raise Exception(f"Error obteniendo precio: {e}")
+            raise StripeServiceError(f"Error obteniendo precio: {e}")
 
     async def get_product(self, product_id: str) -> Dict[str, Any]:
         """Obtiene información de un producto"""
@@ -301,4 +302,4 @@ class StripeService(IStripeService):
                 "metadata": product.metadata
             }
         except stripe.error.StripeError as e:
-            raise Exception(f"Error obteniendo producto: {e}")
+            raise StripeServiceError(f"Error obteniendo producto: {e}")
