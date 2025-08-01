@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,6 +11,12 @@ from ..mappers import SongMapper
 from ..serializers.song_serializers import ProcessVideoRequestSerializer, SongSerializer
 
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=["Songs"],
+        description="Process a YouTube video and save it as a song in the database",
+    )
+)
 class ProcessYouTubeVideoView(APIView, LoggingMixin):
     """Vista para procesar un video específico de YouTube"""
 

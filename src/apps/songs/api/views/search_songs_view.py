@@ -1,7 +1,7 @@
 import asyncio
 
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,6 +15,12 @@ from ..mappers import SongMapper
 from ..serializers.song_serializers import SongListSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Songs"],
+        description="Search for songs in the database and optionally from YouTube",
+    )
+)
 class SearchSongsView(APIView, LoggingMixin):
     """Vista para buscar canciones"""
 

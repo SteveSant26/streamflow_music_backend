@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -6,6 +7,28 @@ from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import IncrementPlayCountUseCase
 
 
+@extend_schema(
+    tags=["Songs"],
+    description="Increment the play count of a specific song",
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "play_count": {"type": "integer", "description": "Updated play count"}
+            },
+        },
+        404: {
+            "type": "object",
+            "properties": {"error": {"type": "string", "example": "Song not found"}},
+        },
+        500: {
+            "type": "object",
+            "properties": {
+                "error": {"type": "string", "example": "Failed to increment play count"}
+            },
+        },
+    },
+)
 @api_view(["POST"])
 def increment_play_count_view(request, song_id):
     """Incrementa el contador de reproducciones"""

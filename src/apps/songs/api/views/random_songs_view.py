@@ -1,7 +1,7 @@
 import asyncio
 
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,6 +15,12 @@ from ..mappers import SongMapper
 from ..serializers.song_serializers import SongListSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Songs"],
+        description="Get random songs from the database with optional refresh from YouTube",
+    )
+)
 class RandomSongsView(APIView, LoggingMixin):
     """Vista para obtener canciones aleatorias"""
 

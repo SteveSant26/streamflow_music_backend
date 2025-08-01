@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,6 +11,11 @@ from ..mappers import SongMapper
 from ..serializers.song_serializers import SongSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Songs"], description="Get detailed information of a specific song by ID"
+    )
+)
 class SongDetailView(APIView, LoggingMixin):
     """Vista para detalles de una canción específica"""
 

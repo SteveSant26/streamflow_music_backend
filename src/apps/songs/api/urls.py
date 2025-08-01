@@ -1,10 +1,30 @@
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
-from .viewsets import SongViewSet
+from apps.songs.api.views import (
+    ProcessYouTubeVideoView,
+    RandomSongsView,
+    SearchSongsView,
+    SongDetailView,
+    increment_play_count_view,
+)
 
-# Router para ViewSets
-router = DefaultRouter()
-router.register(r"", SongViewSet)
-
-
-urlpatterns = router.urls
+urlpatterns = [
+    # Búsqueda de canciones
+    path("search/", SearchSongsView.as_view(), name="search-songs"),
+    # Canciones aleatorias
+    path("random/", RandomSongsView.as_view(), name="random-songs"),
+    # Detalles de una canción específica
+    path("<int:song_id>/", SongDetailView.as_view(), name="song-detail"),
+    # Procesar video de YouTube
+    path(
+        "process-youtube/",
+        ProcessYouTubeVideoView.as_view(),
+        name="process-youtube-video",
+    ),
+    # Incrementar contador de reproducciones
+    path(
+        "<int:song_id>/increment-play-count/",
+        increment_play_count_view,
+        name="increment-play-count",
+    ),
+]
