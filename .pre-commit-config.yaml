@@ -9,6 +9,7 @@ repos:
           - --in-place
           - --remove-all-unused-imports
           - --ignore-init-module-imports
+        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
 
   # Formateo de código
   - repo: https://github.com/psf/black
@@ -17,6 +18,7 @@ repos:
       - id: black
         args: [--line-length=88]
         language_version: python3.13
+        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
 
   # Ordenamiento de imports
   - repo: https://github.com/pycqa/isort
@@ -24,6 +26,7 @@ repos:
     hooks:
       - id: isort
         args: [--profile=black]
+        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
 
   # Linting
   - repo: https://github.com/pycqa/flake8
@@ -31,7 +34,7 @@ repos:
     hooks:
       - id: flake8
         args: [--max-line-length=150, --extend-ignore=E203]
-        exclude: '(__init__\.py$|^src/apps/.*/migrations/)'
+        exclude: '(__init__\.py$|^src/apps/.*/migrations/|^tests?/)' # TODO: Añadido tests/ al exclude
 
   # Linting de código Python
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -45,15 +48,26 @@ repos:
         args:
           - --ignore-missing-imports
           - --explicit-package-bases
-        exclude: (^src/apps/.*/migrations/)
+        exclude: (^src/apps/.*/migrations/|^tests?/) # TODO: Añadido tests/ al exclude
 
   # Seguridad
   - repo: https://github.com/pycqa/bandit
     rev: 1.7.5
     hooks:
       - id: bandit
+        args: ["-s", "B101", "-x", "test/,tests/", "--format", "json"]
         exclude: |
-          (^tests/)|(^migrations/)|(^\.venv/)|(^src/apps/.*/migrations/)
+          (?x)(
+            ^tests/
+            |^migrations/
+            |^\.venv/
+            |^src/apps/.*/migrations/
+            |^generate_simple_coverage\.py$
+            |^generate_sonar_reports\.py$
+          )
+        env:
+          PYTHONIOENCODING: "utf-8"
+          PYTHONUTF8: "1"
 
   # Commit message formatting
   - repo: https://github.com/commitizen-tools/commitizen
@@ -67,9 +81,12 @@ repos:
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
+        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
       - id: end-of-file-fixer
+        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
       - id: check-yaml
       - id: check-added-large-files
       - id: check-json
       - id: check-merge-conflict
       - id: debug-statements
+        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test

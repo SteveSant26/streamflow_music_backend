@@ -4,7 +4,6 @@ from src.common.utils import LoggingConfig
 
 from .apps_settings import INSTALLED_APPS, SPECTACULAR_SETTINGS  # noqa: F401
 from .auth_settings import AUTH_PASSWORD_VALIDATORS  # noqa: F401
-from .test_database_settings import DATABASES  # noqa: F401
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: F401
 from .middleware_settings import MIDDLEWARE  # noqa: F401
 from .rest_framework_settings import REST_FRAMEWORK  # noqa: F401
@@ -17,6 +16,7 @@ from .supabase_settings import (  # noqa: F401
     SUPABASE_URL,
 )
 from .templates_settings import TEMPLATES  # noqa: F401
+from .test_database_settings import DATABASES  # noqa: F401
 from .utils.env import BASE_DIR, ENVIRONMENT, env
 from .youtube_settings import (  # noqa: F401
     RANDOM_MUSIC_QUERIES,

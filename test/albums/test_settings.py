@@ -2,21 +2,20 @@
 Configuración temporal para tests de modelos
 """
 
-import os
 
 # Configuración temporal de Django solo para testing
-SECRET_KEY = 'test-secret-key-for-album-tests'
+SECRET_KEY = "test-secret-key-for-album-tests"
 DEBUG = True
 
 INSTALLED_APPS = [
-    'django.contrib.contenttypes',
-    'django.contrib.auth',
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
 ]
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
     }
 }
 

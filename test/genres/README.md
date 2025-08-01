@@ -44,7 +44,7 @@ python run_all_tests.py
 - Validación de propiedades
 - Representación string y igualdad
 
-### Use Cases Layer  
+### Use Cases Layer
 - Obtener género por ID
 - Obtener todos los géneros
 - Obtener géneros populares
