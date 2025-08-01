@@ -1,3 +1,3 @@
-from .get_user_profile import GetUserProfile
+from .get_user_profile import GetUserProfileUseCase
 from .sycn_from_supabase import SyncUserFromSupabase
 from .upload_profile_picture import UploadProfilePicture

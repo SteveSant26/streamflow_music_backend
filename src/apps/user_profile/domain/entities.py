@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class UserEntity:
+class UserProfileEntity:
     id: str
     email: str
-    profile_picture: str | None = None
+    profile_picture: str | None

@@ -1,23 +1,25 @@
 from django.conf import settings
 from django.urls import path
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
-from .schema import schema_view
+from .schema import SupabaseAuthenticationScheme  # noqa: F401
 
 urlpatterns = []
 
 if settings.DEBUG:
     urlpatterns += [
-        path(
-            "swagger<format>/",
-            schema_view.without_ui(cache_timeout=0),
-            name="schema-json",
-        ),
+        # Esquema en formato OpenAPI JSON
+        path("schema/", SpectacularAPIView.as_view(), name="schema"),
+        # Swagger UI
         path(
             "swagger/",
-            schema_view.with_ui("swagger", cache_timeout=0),
-            name="schema-swagger-ui",
+            SpectacularSwaggerView.as_view(url_name="schema"),
+            name="swagger-ui",
         ),
-        path(
-            "redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
-        ),
+        # Redoc UI
+        path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     ]
