@@ -81,3 +81,13 @@ whitenoise==6.9.0
 zipp==3.23.0
 google-api-python-client==2.147.0
 yt-dlp==2024.8.6
+
+# Testing & Code Quality Dependencies
+pytest==8.3.4
+pytest-django==4.9.0
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+coverage==7.6.9
+bandit==1.7.10
+factory-boy==3.3.1
+mixer==7.3.0
