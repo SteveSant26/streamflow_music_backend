@@ -1,0 +1,29 @@
+{
+  "project": "StreamFlow Music Backend",
+  "timestamp": "2025-08-01T10:41:38.503888",
+  "test_execution": {
+    "total_modules": 6,
+    "modules_tested": [
+      "user_profile",
+      "songs",
+      "artists",
+      "albums",
+      "genres",
+      "music_search"
+    ]
+  },
+  "coverage": {
+    "format": "XML",
+    "file": "test-reports/coverage.xml"
+  },
+  "security": {
+    "format": "JSON",
+    "file": "test-reports/bandit-report.json"
+  },
+  "notes": [
+    "Tests ejecutados con arquitectura hexagonal",
+    "Vulnerabilidades de seguridad excluidas en directorio test/",
+    "Coverage calculado solo para c\u00f3digo fuente (src/)",
+    "Tests de integraci\u00f3n incluidos"
+  ]
+}

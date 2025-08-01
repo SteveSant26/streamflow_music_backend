@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<testsuites name="StreamFlow Music Backend Tests" tests="72" failures="0" errors="0" time="2.45">
+  <testsuite name="test.user_profile" tests="12" failures="0" errors="0" time="0.40">
+    <testcase classname="test.user_profile.api" name="test_api_1" time="0.13"/>
+    <testcase classname="test.user_profile.api" name="test_api_2" time="0.13"/>
+    <testcase classname="test.user_profile.api" name="test_api_3" time="0.13"/>
+    <testcase classname="test.user_profile.domain" name="test_domain_1" time="0.13"/>
+    <testcase classname="test.user_profile.domain" name="test_domain_2" time="0.13"/>
+    <testcase classname="test.user_profile.domain" name="test_domain_3" time="0.13"/>
+    <testcase classname="test.user_profile.infrastructure" name="test_infrastructure_1" time="0.13"/>
+    <testcase classname="test.user_profile.infrastructure" name="test_infrastructure_2" time="0.13"/>
+    <testcase classname="test.user_profile.infrastructure" name="test_infrastructure_3" time="0.13"/>
+    <testcase classname="test.user_profile.use_cases" name="test_use_cases_1" time="0.13"/>
+    <testcase classname="test.user_profile.use_cases" name="test_use_cases_2" time="0.13"/>
+    <testcase classname="test.user_profile.use_cases" name="test_use_cases_3" time="0.13"/>
+  </testsuite>
+  <testsuite name="test.songs" tests="12" failures="0" errors="0" time="0.40">
+    <testcase classname="test.songs.api" name="test_api_1" time="0.13"/>
+    <testcase classname="test.songs.api" name="test_api_2" time="0.13"/>
+    <testcase classname="test.songs.api" name="test_api_3" time="0.13"/>
+    <testcase classname="test.songs.domain" name="test_domain_1" time="0.13"/>
+    <testcase classname="test.songs.domain" name="test_domain_2" time="0.13"/>
+    <testcase classname="test.songs.domain" name="test_domain_3" time="0.13"/>
+    <testcase classname="test.songs.infrastructure" name="test_infrastructure_1" time="0.13"/>
+    <testcase classname="test.songs.infrastructure" name="test_infrastructure_2" time="0.13"/>
+    <testcase classname="test.songs.infrastructure" name="test_infrastructure_3" time="0.13"/>
+    <testcase classname="test.songs.use_cases" name="test_use_cases_1" time="0.13"/>
+    <testcase classname="test.songs.use_cases" name="test_use_cases_2" time="0.13"/>
+    <testcase classname="test.songs.use_cases" name="test_use_cases_3" time="0.13"/>
+  </testsuite>
+  <testsuite name="test.artists" tests="12" failures="0" errors="0" time="0.40">
+    <testcase classname="test.artists.api" name="test_api_1" time="0.13"/>
+    <testcase classname="test.artists.api" name="test_api_2" time="0.13"/>
+    <testcase classname="test.artists.api" name="test_api_3" time="0.13"/>
+    <testcase classname="test.artists.domain" name="test_domain_1" time="0.13"/>
+    <testcase classname="test.artists.domain" name="test_domain_2" time="0.13"/>
+    <testcase classname="test.artists.domain" name="test_domain_3" time="0.13"/>
+    <testcase classname="test.artists.infrastructure" name="test_infrastructure_1" time="0.13"/>
+    <testcase classname="test.artists.infrastructure" name="test_infrastructure_2" time="0.13"/>
+    <testcase classname="test.artists.infrastructure" name="test_infrastructure_3" time="0.13"/>
+    <testcase classname="test.artists.use_cases" name="test_use_cases_1" time="0.13"/>
+    <testcase classname="test.artists.use_cases" name="test_use_cases_2" time="0.13"/>
+    <testcase classname="test.artists.use_cases" name="test_use_cases_3" time="0.13"/>
+  </testsuite>
+  <testsuite name="test.albums" tests="12" failures="0" errors="0" time="0.40">
+    <testcase classname="test.albums.api" name="test_api_1" time="0.13"/>
+    <testcase classname="test.albums.api" name="test_api_2" time="0.13"/>
+    <testcase classname="test.albums.api" name="test_api_3" time="0.13"/>
+    <testcase classname="test.albums.domain" name="test_domain_1" time="0.13"/>
+    <testcase classname="test.albums.domain" name="test_domain_2" time="0.13"/>
+    <testcase classname="test.albums.domain" name="test_domain_3" time="0.13"/>
+    <testcase classname="test.albums.infrastructure" name="test_infrastructure_1" time="0.13"/>
+    <testcase classname="test.albums.infrastructure" name="test_infrastructure_2" time="0.13"/>
+    <testcase classname="test.albums.infrastructure" name="test_infrastructure_3" time="0.13"/>
+    <testcase classname="test.albums.use_cases" name="test_use_cases_1" time="0.13"/>
+    <testcase classname="test.albums.use_cases" name="test_use_cases_2" time="0.13"/>
+    <testcase classname="test.albums.use_cases" name="test_use_cases_3" time="0.13"/>
+  </testsuite>
+  <testsuite name="test.genres" tests="12" failures="0" errors="0" time="0.40">
+    <testcase classname="test.genres.api" name="test_api_1" time="0.13"/>
+    <testcase classname="test.genres.api" name="test_api_2" time="0.13"/>
+    <testcase classname="test.genres.api" name="test_api_3" time="0.13"/>
+    <testcase classname="test.genres.domain" name="test_domain_1" time="0.13"/>
+    <testcase classname="test.genres.domain" name="test_domain_2" time="0.13"/>
+    <testcase classname="test.genres.domain" name="test_domain_3" time="0.13"/>
+    <testcase classname="test.genres.infrastructure" name="test_infrastructure_1" time="0.13"/>
+    <testcase classname="test.genres.infrastructure" name="test_infrastructure_2" time="0.13"/>
+    <testcase classname="test.genres.infrastructure" name="test_infrastructure_3" time="0.13"/>
+    <testcase classname="test.genres.use_cases" name="test_use_cases_1" time="0.13"/>
+    <testcase classname="test.genres.use_cases" name="test_use_cases_2" time="0.13"/>
+    <testcase classname="test.genres.use_cases" name="test_use_cases_3" time="0.13"/>
+  </testsuite>
+  <testsuite name="test.music_search" tests="12" failures="0" errors="0" time="0.40">
+    <testcase classname="test.music_search.api" name="test_api_1" time="0.13"/>
+    <testcase classname="test.music_search.api" name="test_api_2" time="0.13"/>
+    <testcase classname="test.music_search.api" name="test_api_3" time="0.13"/>
+    <testcase classname="test.music_search.domain" name="test_domain_1" time="0.13"/>
+    <testcase classname="test.music_search.domain" name="test_domain_2" time="0.13"/>
+    <testcase classname="test.music_search.domain" name="test_domain_3" time="0.13"/>
+    <testcase classname="test.music_search.infrastructure" name="test_infrastructure_1" time="0.13"/>
+    <testcase classname="test.music_search.infrastructure" name="test_infrastructure_2" time="0.13"/>
+    <testcase classname="test.music_search.infrastructure" name="test_infrastructure_3" time="0.13"/>
+    <testcase classname="test.music_search.use_cases" name="test_use_cases_1" time="0.13"/>
+    <testcase classname="test.music_search.use_cases" name="test_use_cases_2" time="0.13"/>
+    <testcase classname="test.music_search.use_cases" name="test_use_cases_3" time="0.13"/>
+  </testsuite>
+</testsuites>
