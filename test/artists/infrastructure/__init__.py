@@ -1,0 +1,1 @@
+# Tests Infrastructure de Artists
