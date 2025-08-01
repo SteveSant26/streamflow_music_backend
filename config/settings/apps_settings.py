@@ -24,7 +24,7 @@ LOCAL_APPS = [
     "apps.songs",
     "apps.genres",
     "apps.music_search",
-    "src.apps.payments",
+    # "src.apps.payments",  # Temporarily disabled for existing project compatibility
 ]
 INSTALLED_APPS = THEME_APPLICATION + DEFAULT_DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
