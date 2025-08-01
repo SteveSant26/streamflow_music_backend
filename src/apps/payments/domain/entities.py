@@ -2,7 +2,7 @@
 Domain entities for payment system
 """
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from enum import Enum
 
@@ -90,7 +90,7 @@ class Subscription:
     def is_on_trial(self) -> bool:
         if not self.trial_end:
             return False
-        return self.trial_end > datetime.utcnow()
+        return self.trial_end > datetime.now(timezone.utc)
 
 
 @dataclass
