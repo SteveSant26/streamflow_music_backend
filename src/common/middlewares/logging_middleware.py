@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 import uuid
@@ -11,8 +12,26 @@ class LoggingMiddleware(MiddlewareMixin):
     def __init__(self, get_response=None):
         super().__init__(get_response)
         self.logger = logging.getLogger("django.request")
+        # Check if we have async views
+        if get_response and asyncio.iscoroutinefunction(get_response):
+            self.async_capable = True
+            self.sync_capable = False
 
+    # Sync methods
     def process_request(self, request):
+        return self._process_request_impl(request)
+
+    def process_response(self, request, response):
+        return self._process_response_impl(request, response)
+
+    # Async methods
+    async def aprocess_request(self, request):
+        return self._process_request_impl(request)
+
+    async def aprocess_response(self, request, response):
+        return self._process_response_impl(request, response)
+
+    def _process_request_impl(self, request):
         request.request_id = str(uuid.uuid4())[:8]
 
         # Guardar tiempo inicio
@@ -28,7 +47,7 @@ class LoggingMiddleware(MiddlewareMixin):
             f"[{request.request_id}] {method} {url} - IP: {client_ip} - User-Agent: {user_agent[:50]}..."
         )
 
-    def process_response(self, request, response):
+    def _process_response_impl(self, request, response):
         # Calcular tiempo transcurrido
         start_time = getattr(request, "_start_time", None)
         if start_time:
@@ -51,6 +70,10 @@ class LoggingMiddleware(MiddlewareMixin):
             response["X-Process-Time"] = f"{process_time:.3f}"
 
         return response
+
+    # Async versions of exception handling
+    async def aprocess_exception(self, request, exception):
+        return self.process_exception(request, exception)
 
     def process_exception(self, request, exception):
         # Calcular tiempo incluso en caso de error

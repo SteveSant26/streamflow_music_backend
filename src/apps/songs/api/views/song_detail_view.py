@@ -26,10 +26,10 @@ class SongDetailView(APIView, LoggingMixin):
         self.mapper = SongMapper()
 
     @extend_schema(responses={200: SongSerializer})
-    def get(self, request, song_id):
+    async def get(self, request, song_id):
         """Obtiene detalles de una canción"""
         try:
-            song = self.get_song_by_id_use_case.execute(song_id)
+            song = await self.get_song_by_id_use_case.execute(song_id)
 
             if not song:
                 return Response(

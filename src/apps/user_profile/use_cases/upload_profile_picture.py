@@ -4,7 +4,7 @@ from apps.user_profile.domain.exceptions import (
 )
 from common.interfaces import IStorageService
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import UserProfileEntity
 from ..domain.repository import IUserRepository
@@ -19,7 +19,8 @@ class UploadProfilePicture(BaseUseCase):
         self.storage_service = storage_service
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, user_id: str, profile_picture_file) -> UserProfileEntity:
+    @log_performance(threshold_seconds=5.0)  # Subida de archivos puede tomar tiempo
+    async def execute(self, user_id: str, profile_picture_file) -> UserProfileEntity:
         """
         Ejecuta el caso de uso de subir foto de perfil.
 
@@ -42,7 +43,7 @@ class UploadProfilePicture(BaseUseCase):
                 "Error al subir la imagen del perfil."
             )
 
-        user = self.user_repository.get_by_id(user_id)
+        user = await self.user_repository.get_by_id(user_id)
         if not user:
             self.logger.error(f"User with ID {user_id} not found.")
             raise UserNotFoundException(user_id)
@@ -68,4 +69,4 @@ class UploadProfilePicture(BaseUseCase):
         user.profile_picture = file_path
         self.logger.info(f"Profile picture uploaded successfully for user {user_id}")
 
-        return self.user_repository.update(user_id, user)
+        return await self.user_repository.update(user_id, user)

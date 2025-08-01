@@ -12,5 +12,5 @@ class IUserRepository(IBaseRepository[UserProfileEntity, UserProfileModel]):
     """
 
     @abstractmethod
-    def get_by_email(self, email: str) -> Optional[UserProfileEntity]:
+    async def get_by_email(self, email: str) -> Optional[UserProfileEntity]:
         """Obtiene un usuario por email"""

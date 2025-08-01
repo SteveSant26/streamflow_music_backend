@@ -1,5 +1,3 @@
-import asyncio
-
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
@@ -27,10 +25,10 @@ class SearchSongsView(APIView, LoggingMixin):
     def __init__(self):
         super().__init__()
         self.repository = SongRepository()
-        # Import MusicService at class level to avoid circular imports
-        from ....music_search.infrastructure.music_service import MusicService
+        # Usar la factory para obtener el servicio de música
+        from common.factories import MediaServiceFactory
 
-        self.music_service = MusicService()
+        self.music_service = MediaServiceFactory.create_music_service()
         self.search_songs_use_case = SearchSongsUseCase(
             self.repository, self.music_service
         )
@@ -52,7 +50,7 @@ class SearchSongsView(APIView, LoggingMixin):
             ),
         ],
     )
-    def get(self, request):
+    async def get(self, request):
         """Busca canciones"""
         try:
             query = request.GET.get("q")
@@ -71,8 +69,8 @@ class SearchSongsView(APIView, LoggingMixin):
                 query=query, limit=limit, include_youtube=include_youtube
             )
 
-            # Ejecutar función async en el evento loop
-            songs = asyncio.run(self.search_songs_use_case.execute(request_dto))
+            # Ejecutar función async directamente sin asyncio.run()
+            songs = await self.search_songs_use_case.execute(request_dto)
 
             songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
             serializer = SongListSerializer(songs_dtos, many=True)

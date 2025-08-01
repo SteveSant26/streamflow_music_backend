@@ -1,7 +1,7 @@
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import SongEntity
 from ..domain.repository.Isong_repository import ISongRepository
@@ -15,6 +15,9 @@ class GetSongsByArtistUseCase(BaseUseCase[str, List[SongEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(
+        threshold_seconds=2.0
+    )  # Búsqueda por artista puede devolver muchos resultados
     async def execute(self, artist_name: str, limit: int = 20) -> List[SongEntity]:
         """
         Obtiene canciones de un artista específico

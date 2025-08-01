@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import ArtistEntity
 from ..domain.repository import IArtistRepository
@@ -15,7 +16,8 @@ class GetRecentArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, limit: int = 10) -> List[ArtistEntity]:
+    @log_performance(threshold_seconds=2.0)
+    async def execute(self, limit: int = 10) -> List[ArtistEntity]:
         """
         Obtiene artistas agregados recientemente ordenados por fecha de creación
 
@@ -26,10 +28,9 @@ class GetRecentArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
             Lista de artistas recientes
         """
         self.logger.debug(f"Getting recent artists with limit: {limit}")
-        all_artists = self.repository.get_all()
+        all_artists = await self.repository.get_all()
 
         # Ordenar por fecha de creación (más recientes primero)
-        from datetime import datetime
 
         sorted_artists = sorted(
             all_artists,

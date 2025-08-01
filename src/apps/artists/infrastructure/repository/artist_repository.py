@@ -59,38 +59,42 @@ class ArtistRepository(
             self.logger.error(f"Error al convertir entidad artista a modelo: {str(e)}")
             raise
 
-    def find_by_name(self, name: str) -> Optional[ArtistEntity]:
+    async def find_by_name(self, name: str) -> Optional[ArtistEntity]:
         """Busca un artista por nombre exacto"""
         try:
-            model = self.model_class.objects.get(name__iexact=name, is_active=True)
+            model = await self.model_class.objects.aget(
+                name__iexact=name, is_active=True
+            )
             return self._model_to_entity(model)
         except self.model_class.DoesNotExist:
             return None
 
-    def search_by_name(self, name: str, limit: int = 10) -> List[ArtistEntity]:
+    async def search_by_name(self, name: str, limit: int = 10) -> List[ArtistEntity]:
         """Busca artistas por nombre (búsqueda parcial)"""
         models = self.model_class.objects.filter(
             name__icontains=name, is_active=True
         ).order_by("-followers_count")[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]
 
-    def find_by_country(self, country: str, limit: int = 10) -> List[ArtistEntity]:
+    async def find_by_country(
+        self, country: str, limit: int = 10
+    ) -> List[ArtistEntity]:
         """Busca artistas por país"""
         models = self.model_class.objects.filter(
             country__iexact=country, is_active=True
         ).order_by("-followers_count")[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]
 
-    def get_popular_artists(self, limit: int = 10) -> List[ArtistEntity]:
+    async def get_popular_artists(self, limit: int = 10) -> List[ArtistEntity]:
         """Obtiene los artistas más populares"""
         models = self.model_class.objects.filter(is_active=True).order_by(
             "-followers_count"
         )[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]
 
-    def get_verified_artists(self, limit: int = 10) -> List[ArtistEntity]:
+    async def get_verified_artists(self, limit: int = 10) -> List[ArtistEntity]:
         """Obtiene artistas verificados"""
         models = self.model_class.objects.filter(
             is_verified=True, is_active=True
         ).order_by("-followers_count")[:limit]
-        return [self._model_to_entity(model) for model in models]
+        return [self._model_to_entity(model) async for model in models]

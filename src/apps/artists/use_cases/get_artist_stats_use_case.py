@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.repository import IArtistRepository
 
@@ -14,7 +14,8 @@ class GetArtistStatsUseCase(BaseUseCase[None, Dict[str, Any]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self) -> Dict[str, Any]:
+    @log_performance(threshold_seconds=2.0)
+    async def execute(self) -> Dict[str, Any]:
         """
         Obtiene estadísticas generales de artistas
 
@@ -22,7 +23,7 @@ class GetArtistStatsUseCase(BaseUseCase[None, Dict[str, Any]]):
             Diccionario con estadísticas de artistas
         """
         self.logger.debug("Getting artist statistics")
-        all_artists = self.repository.get_all()
+        all_artists = await self.repository.get_all()
 
         stats = {
             "total_artists": len(all_artists),

@@ -13,12 +13,10 @@ class UserRepository(
     def __init__(self):
         super().__init__(UserProfileModel)
 
-    # Métodos específicos del repositorio de usuarios (implementación de IUserRepository)
-
-    def get_by_email(self, email: str) -> Optional[UserProfileEntity]:
+    async def get_by_email(self, email: str) -> Optional[UserProfileEntity]:
         """Obtiene un usuario por email"""
         try:
-            user = self.model_class.objects.get(email=email)
+            user = await self.model_class.objects.aget(email=email)
             return self._model_to_entity(user)
         except self.model_class.DoesNotExist:
             return None

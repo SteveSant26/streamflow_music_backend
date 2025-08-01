@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Type
 
+from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 
 from common.exceptions.base import NotFoundException
@@ -24,13 +25,15 @@ class BaseWriteOnlyDjangoRepository(
     def __init__(self, model_class: Type[ModelType], *args, **kwargs):
         self.model_class = model_class
 
-    def save(self, entity: EntityType) -> EntityType:
-        """Guarda una entidad (crear o actualizar)"""
+    async def save(self, entity: EntityType) -> EntityType:
         try:
             model_data = self._entity_to_model_data(entity)
-            model_instance, created = self.model_class.objects.update_or_create(
-                id=getattr(entity, "id", None), defaults=model_data
-            )
+
+            # Wrapping the sync ORM call inside sync_to_async
+            model_instance, created = await sync_to_async(
+                self.model_class.objects.update_or_create
+            )(id=getattr(entity, "id", None), defaults=model_data)
+
             action = "created" if created else "updated"
             self.logger.info(
                 f"{self.model_class.__name__} {action} with id {model_instance.pk}"
@@ -40,7 +43,7 @@ class BaseWriteOnlyDjangoRepository(
             self.logger.error(f"Error saving {self.model_class.__name__}: {str(e)}")
             raise
 
-    def delete(self, entity_id: str) -> None:
+    async def delete(self, entity_id: str) -> None:
         """Elimina lógicamente una entidad (soft delete)"""
         try:
             updated_count = self.model_class.objects.filter(id=entity_id).update(
@@ -60,13 +63,13 @@ class BaseWriteOnlyDjangoRepository(
             )
             raise
 
-    def update(self, entity_id: str, entity: EntityType) -> EntityType:
+    async def update(self, entity_id: str, entity: EntityType) -> EntityType:
         """Actualiza una entidad específica"""
         try:
             model_data = self._entity_to_model_data(entity)
-            updated_count = self.model_class.objects.filter(id=entity_id).update(
-                **model_data
-            )
+            updated_count = await sync_to_async(
+                self.model_class.objects.filter(id=entity_id).update
+            )(**model_data)
 
             if updated_count == 0:
                 self.logger.warning(
@@ -76,7 +79,7 @@ class BaseWriteOnlyDjangoRepository(
                     f"{self.model_class.__name__} with id {entity_id} does not exist"
                 )
 
-            updated_model = self.model_class.objects.get(id=entity_id)
+            updated_model = await self.model_class.objects.aget(id=entity_id)
             self.logger.info(
                 f"{self.model_class.__name__} with id {entity_id} updated successfully"
             )
@@ -91,10 +94,12 @@ class BaseWriteOnlyDjangoRepository(
             )
             raise
 
-    def hard_delete(self, entity_id: str) -> None:
+    async def hard_delete(self, entity_id: str) -> None:
         """Elimina físicamente una entidad de la base de datos"""
         try:
-            deleted_count, _ = self.model_class.objects.filter(id=entity_id).delete()
+            deleted_count, _ = await sync_to_async(
+                self.model_class.objects.filter(id=entity_id).delete
+            )()
             if deleted_count > 0:
                 self.logger.info(
                     f"{self.model_class.__name__} with id {entity_id} permanently deleted"

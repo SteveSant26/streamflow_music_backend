@@ -2,7 +2,7 @@ from typing import Optional
 
 from apps.songs.domain.exceptions import SongPlayCountException
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import SongEntity
 from ..domain.repository.Isong_repository import ISongRepository
@@ -16,6 +16,7 @@ class IncrementPlayCountUseCase(BaseUseCase[str, Optional[SongEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(threshold_seconds=1.0)  # Operación de actualización simple
     async def execute(self, song_id: str) -> Optional[SongEntity]:
         """
         Incrementa el contador de reproducciones de una canción

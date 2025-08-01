@@ -1,7 +1,7 @@
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import GenreEntity
 from ..domain.repository import IGenreRepository
@@ -15,7 +15,8 @@ class GetGenresByPopularityRangeUseCase(BaseUseCase[tuple, List[GenreEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, min_score: int, max_score: int) -> List[GenreEntity]:
+    @log_performance(threshold_seconds=1.0)
+    async def execute(self, min_score: int, max_score: int) -> List[GenreEntity]:
         """
         Obtiene géneros por rango de popularidad
 
@@ -29,4 +30,6 @@ class GetGenresByPopularityRangeUseCase(BaseUseCase[tuple, List[GenreEntity]]):
         self.logger.debug(
             f"Getting genres by popularity range: {min_score}-{max_score}"
         )
-        return self.repository.get_genres_by_popularity_range(min_score, max_score)
+        return await self.repository.get_genres_by_popularity_range(
+            min_score, max_score
+        )

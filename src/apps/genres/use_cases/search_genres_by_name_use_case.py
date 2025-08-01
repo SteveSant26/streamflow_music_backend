@@ -1,7 +1,7 @@
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import GenreEntity
 from ..domain.repository import IGenreRepository
@@ -15,7 +15,8 @@ class SearchGenresByNameUseCase(BaseUseCase[str, List[GenreEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, name: str, limit: int = 10) -> List[GenreEntity]:
+    @log_performance(threshold_seconds=1.0)
+    async def execute(self, name: str, limit: int = 10) -> List[GenreEntity]:
         """
         Busca géneros por nombre
 
@@ -27,4 +28,4 @@ class SearchGenresByNameUseCase(BaseUseCase[str, List[GenreEntity]]):
             Lista de géneros que coinciden con el nombre
         """
         self.logger.debug(f"Searching genres by name: {name} with limit: {limit}")
-        return self.repository.search_by_name(name, limit)
+        return await self.repository.search_by_name(name, limit)

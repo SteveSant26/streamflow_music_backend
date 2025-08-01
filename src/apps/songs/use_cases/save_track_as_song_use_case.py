@@ -4,7 +4,7 @@ from typing import Optional
 
 from common.factories import StorageServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ...music_search.domain.interfaces import MusicTrackData
 from ..domain.entities import SongEntity
@@ -20,6 +20,9 @@ class SaveTrackAsSongUseCase(BaseUseCase[MusicTrackData, Optional[SongEntity]]):
         self.music_storage = StorageServiceFactory.create_music_files_service()
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(
+        threshold_seconds=4.0
+    )  # Operación de guardado y procesamiento de archivos
     async def execute(self, track: MusicTrackData) -> Optional[SongEntity]:
         """
         Convierte un MusicTrackData en SongEntity y lo guarda

@@ -1,7 +1,7 @@
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import AlbumEntity
 from ..domain.repository import IAlbumRepository
@@ -15,7 +15,8 @@ class GetAlbumsByArtistUseCase(BaseUseCase[str, List[AlbumEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, artist_id: str, limit: int = 10) -> List[AlbumEntity]:
+    @log_performance(threshold_seconds=3.0)
+    async def execute(self, artist_id: str, limit: int = 10) -> List[AlbumEntity]:
         """
         Obtiene álbumes por artista
 
@@ -27,4 +28,4 @@ class GetAlbumsByArtistUseCase(BaseUseCase[str, List[AlbumEntity]]):
             Lista de álbumes del artista
         """
         self.logger.debug(f"Getting albums by artist: {artist_id}")
-        return self.repository.find_by_artist_id(artist_id, limit)
+        return await self.repository.find_by_artist_id(artist_id, limit)

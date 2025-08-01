@@ -1,9 +1,9 @@
 from typing import List
 
+from common.factories import MediaServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
-from ...music_search.infrastructure.music_service import MusicService
 from ..domain.entities import SongEntity
 from ..domain.repository.Isong_repository import ISongRepository
 
@@ -11,12 +11,15 @@ from ..domain.repository.Isong_repository import ISongRepository
 class GetRandomSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
     """Caso de uso para obtener canciones aleatorias"""
 
-    def __init__(self, song_repository: ISongRepository, music_service: MusicService):
+    def __init__(self, song_repository: ISongRepository, music_service=None):
         super().__init__()
         self.song_repository = song_repository
-        self.music_service = music_service
+        self.music_service = music_service or MediaServiceFactory.create_music_service()
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(
+        threshold_seconds=4.0
+    )  # Puede incluir búsquedas externas y procesamiento
     async def execute(
         self, count: int = 6, force_refresh: bool = False
     ) -> List[SongEntity]:
@@ -43,7 +46,10 @@ class GetRandomSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
 
             # Si no hay suficientes canciones, buscar nuevas desde YouTube
             self.logger.info("Fetching new random songs from YouTube")
-            new_tracks = await self.music_service.get_random_music_tracks(count)
+            from common.types.media_types import SearchOptions
+
+            options = SearchOptions(max_results=count)
+            new_tracks = await self.music_service.get_random_audio_tracks(options)
 
             # Guardar las nuevas canciones en la base de datos
             saved_songs = []

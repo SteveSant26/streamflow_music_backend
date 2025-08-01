@@ -1,9 +1,9 @@
 from typing import List
 
+from common.factories import MediaServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
-from ...music_search.infrastructure.music_service import MusicService
 from ..domain.entities import SongEntity
 from ..domain.repository.Isong_repository import ISongRepository
 
@@ -11,12 +11,13 @@ from ..domain.repository.Isong_repository import ISongRepository
 class SearchSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
     """Caso de uso para buscar canciones"""
 
-    def __init__(self, song_repository: ISongRepository, music_service: MusicService):
+    def __init__(self, song_repository: ISongRepository, music_service=None):
         super().__init__()
         self.song_repository = song_repository
-        self.music_service = music_service
+        self.music_service = music_service or MediaServiceFactory.create_music_service()
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(threshold_seconds=3.0)  # Búsqueda puede incluir consultas externas
     async def execute(
         self, query: str, limit: int = 20, include_youtube: bool = True
     ) -> List[SongEntity]:
@@ -44,8 +45,11 @@ class SearchSongsUseCase(BaseUseCase[dict, List[SongEntity]]):
 
             # Buscar en YouTube para completar los resultados
             self.logger.info(f"Searching YouTube for additional results: '{query}'")
-            youtube_tracks = await self.music_service.search_and_process_music(
-                query, limit - len(local_songs)
+            from common.types.media_types import SearchOptions
+
+            options = SearchOptions(max_results=limit - len(local_songs))
+            youtube_tracks = await self.music_service.search_and_process_audio(
+                query, options
             )
 
             # Guardar nuevas canciones encontradas

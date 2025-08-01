@@ -2,6 +2,16 @@ from typing import TypeVar
 
 from django.db import models
 
+# Importar tipos de medios
+from .media_types import (
+    AudioTrackData,
+    DownloadOptions,
+    MusicTrackData,
+    SearchOptions,
+    VideoInfo,
+    YouTubeVideoInfo,
+)
+
 # Entity type - Representa el tipo de entidad del dominio
 EntityType = TypeVar("EntityType")
 

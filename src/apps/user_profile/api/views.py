@@ -68,12 +68,12 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
         )
 
     @action(detail=False, methods=["get"], url_path="me")
-    def me(self, request):
+    async def me(self, request):
         self.logger.info(f"User {request.user.id} is requesting their profile.")
 
         # Usar caso de uso
         get_user_profile = GetUserProfileUseCase(user_repository)
-        user_entity = get_user_profile.execute(str(request.user.id))
+        user_entity = await get_user_profile.execute(str(request.user.id))
 
         # El serializer maneja la conversión automáticamente
         return Response(
@@ -81,7 +81,7 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
         )
 
     @action(detail=False, methods=["post"], url_path="upload-profile-picture")
-    def upload_profile_picture(self, request):
+    async def upload_profile_picture(self, request):
         self.logger.info(f"User {request.user.id} is uploading a profile picture.")
 
         # Validar datos de entrada
@@ -94,7 +94,7 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
         # Usar caso de uso con parámetros limpios
         upload_profile_picture = UploadProfilePicture(user_repository, storage_service)
 
-        user_entity = upload_profile_picture.execute(
+        user_entity = await upload_profile_picture.execute(
             user_id=str(request.user.id), profile_picture_file=profile_picture_file
         )
         self.logger.info(

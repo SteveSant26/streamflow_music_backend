@@ -23,10 +23,10 @@ class BaseReadOnlyDjangoRepository(
     def __init__(self, model_class: Type[ModelType], *args, **kwargs):
         self.model_class = model_class
 
-    def get_by_id(self, entity_id: str) -> Optional[EntityType]:
+    async def get_by_id(self, entity_id: str) -> Optional[EntityType]:
         """Obtiene una entidad por ID"""
         try:
-            model_instance = self.model_class.objects.get(
+            model_instance = await self.model_class.objects.aget(
                 id=entity_id, **self._get_active_filter()
             )
             return self._model_to_entity(model_instance)
@@ -41,10 +41,12 @@ class BaseReadOnlyDjangoRepository(
             )
             raise
 
-    def get_all(self) -> List[EntityType]:
+    async def get_all(self) -> List[EntityType]:
         """Obtiene todas las entidades activas"""
         try:
-            queryset = self.model_class.objects.filter(**self._get_active_filter())
+            queryset = await self.model_class.objects.afilter(
+                **self._get_active_filter()
+            )
             queryset = self._apply_default_ordering(queryset)
             return [self._model_to_entity(cast(ModelType, model)) for model in queryset]
         except Exception as e:

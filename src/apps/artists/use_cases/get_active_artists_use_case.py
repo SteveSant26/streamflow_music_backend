@@ -1,7 +1,7 @@
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import ArtistEntity
 from ..domain.repository import IArtistRepository
@@ -15,7 +15,8 @@ class GetActiveArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, limit: int = 50) -> List[ArtistEntity]:
+    @log_performance(threshold_seconds=3.0)
+    async def execute(self, limit: int = 50) -> List[ArtistEntity]:
         """
         Obtiene artistas activos
 
@@ -27,7 +28,7 @@ class GetActiveArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
         """
         self.logger.debug(f"Getting active artists with limit: {limit}")
         # Usando get_all y filtrando por is_active
-        all_artists = self.repository.get_all()
+        all_artists = await self.repository.get_all()
         active_artists = [artist for artist in all_artists if artist.is_active][:limit]
 
         self.logger.info(f"Found {len(active_artists)} active artists")

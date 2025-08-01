@@ -30,13 +30,13 @@ from ...use_cases import IncrementPlayCountUseCase
     },
 )
 @api_view(["POST"])
-def increment_play_count_view(request, song_id):
+async def increment_play_count_view(request, song_id):
     """Incrementa el contador de reproducciones"""
     try:
         repository = SongRepository()
         increment_use_case = IncrementPlayCountUseCase(repository)
 
-        song = increment_use_case.execute(song_id)
+        song = await increment_use_case.execute(song_id)
 
         if not song:
             return Response(

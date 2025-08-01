@@ -1,6 +1,6 @@
 from apps.songs.domain.exceptions import SongNotFoundException
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import SongEntity
 from ..domain.repository.Isong_repository import ISongRepository
@@ -14,6 +14,7 @@ class GetSongByIdUseCase(BaseUseCase[str, SongEntity]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(threshold_seconds=1.0)  # Consulta simple por ID
     async def execute(self, song_id: str) -> SongEntity:
         """
         Obtiene una canción por ID

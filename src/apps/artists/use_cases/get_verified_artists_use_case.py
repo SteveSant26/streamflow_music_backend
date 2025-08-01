@@ -1,7 +1,7 @@
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import ArtistEntity
 from ..domain.repository import IArtistRepository
@@ -15,7 +15,10 @@ class GetVerifiedArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, limit: int = 10) -> List[ArtistEntity]:
+    @log_performance(
+        threshold_seconds=1.0
+    )  # Consulta simple con filtro de verificación
+    async def execute(self, limit: int = 10) -> List[ArtistEntity]:
         """
         Obtiene artistas verificados
 
@@ -26,4 +29,4 @@ class GetVerifiedArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
             Lista de artistas verificados
         """
         self.logger.info(f"Getting verified artists with limit: {limit}")
-        return self.repository.get_verified_artists(limit)
+        return await self.repository.get_verified_artists(limit)

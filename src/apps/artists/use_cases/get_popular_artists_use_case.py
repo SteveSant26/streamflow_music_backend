@@ -1,7 +1,7 @@
 from typing import List
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from common.utils.logging_decorators import log_execution
+from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import ArtistEntity
 from ..domain.repository import IArtistRepository
@@ -15,7 +15,8 @@ class GetPopularArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
         self.repository = repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def execute(self, limit: int = 10) -> List[ArtistEntity]:
+    @log_performance(threshold_seconds=1.0)
+    async def execute(self, limit: int = 10) -> List[ArtistEntity]:
         """
         Obtiene artistas populares ordenados por seguidores
 
@@ -26,4 +27,4 @@ class GetPopularArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
             Lista de artistas populares
         """
         self.logger.info(f"Getting popular artists with limit: {limit}")
-        return self.repository.get_popular_artists(limit)
+        return await self.repository.get_popular_artists(limit)
