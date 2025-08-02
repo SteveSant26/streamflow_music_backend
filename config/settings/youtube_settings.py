@@ -28,7 +28,15 @@ RANDOM_MUSIC_QUERIES: List[str] = [
     "folk music",
 ]
 
-# Comprehensive music genres list for YouTube Music classification
+# CONFIGURACIÓN DE GÉNEROS MUSICALES LOCALES
+# Nota: Aunque el nombre incluye "YOUTUBE", estos géneros son completamente independientes
+# de las categorías de YouTube. Solo usamos YouTube Category ID 10 (Music) para filtrar
+# videos musicales, pero la clasificación de géneros se hace con nuestro sistema local.
+#
+# Estructura: cada género tiene:
+# - name: Nombre del género
+# - keywords: Palabras clave para análisis automático
+# - category: Campo legacy, se ignora en el nuevo sistema
 YOUTUBE_MUSIC_GENRES = {
     # Pop and Mainstream
     "pop": {

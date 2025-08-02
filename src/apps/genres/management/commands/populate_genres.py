@@ -1,5 +1,7 @@
 """
 Comando de gestión para poblar la base de datos con géneros musicales predefinidos.
+Este comando gestiona únicamente los géneros locales del sistema, independientemente
+de las categorías de YouTube.
 """
 
 import uuid
@@ -11,7 +13,7 @@ from apps.genres.infrastructure.models import GenreModel
 
 
 class Command(BaseCommand):
-    help = "Pobla la base de datos con géneros musicales predefinidos"
+    help = "Pobla la base de datos con géneros musicales locales predefinidos"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -39,11 +41,17 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"{deleted_count} géneros eliminados exitosamente.")
             )
 
+        # Nota: Aunque el setting se llama YOUTUBE_MUSIC_GENRES por razones históricas,
+        # este comando ahora gestiona únicamente géneros locales del sistema.
+        # Solo usamos YouTube Category ID 10 (Music) para filtrar videos musicales,
+        # pero la clasificación de géneros es completamente independiente de YouTube.
         genres_config = getattr(settings, "YOUTUBE_MUSIC_GENRES", {})
 
         if not genres_config:
             self.stdout.write(
-                self.style.ERROR("No se encontró configuración de géneros en settings.")
+                self.style.ERROR(
+                    "No se encontró configuración de géneros musicales en settings."
+                )
             )
             return
 
@@ -63,7 +71,6 @@ class Command(BaseCommand):
                 continue
 
             name = genre_data.get("name")
-            category = genre_data.get("category", "General")
             keywords = genre_data.get("keywords", [])
 
             if not name:
@@ -80,9 +87,7 @@ class Command(BaseCommand):
 
             if existing_genre:
                 if options["update"]:
-                    existing_genre.description = self._build_description(
-                        category, keywords
-                    )
+                    existing_genre.description = self._build_description(keywords)
                     # Mantener la popularidad existente
                     existing_genre.save()
                     self.stdout.write(f"✅ Actualizado: {name}")
@@ -96,7 +101,7 @@ class Command(BaseCommand):
             _ = GenreModel.objects.create(
                 id=uuid.uuid4(),
                 name=name,
-                description=self._build_description(category, keywords),
+                description=self._build_description(keywords),
                 popularity_score=0,
                 is_active=True,
             )
@@ -119,12 +124,9 @@ class Command(BaseCommand):
         if options["show_stats"]:
             self._show_statistics()
 
-    def _build_description(self, category, keywords):
-        """Construye una descripción basada en la categoría y palabras clave"""
-        if not category:
-            category = "General"
-
-        description = f"Género musical de la categoría {category}."
+    def _build_description(self, keywords):
+        """Construye una descripción basada en las palabras clave del género"""
+        description = "Género musical del sistema local."
         if keywords and isinstance(keywords, list):
             keywords_str = ", ".join(keywords[:5])  # Limitar a 5 palabras clave
             description += f" Palabras clave: {keywords_str}."
@@ -140,27 +142,6 @@ class Command(BaseCommand):
         self.stdout.write(f"📊 Total de géneros: {total_genres}")
         self.stdout.write(f"✅ Géneros activos: {active_genres}")
 
-        # Géneros por categoría (basado en descripción)
-        categories = {}
-        for genre in GenreModel.objects.all():
-            if genre.description:
-                # Extraer categoría
-                words = genre.description.split()
-                if "categoría" in words:
-                    try:
-                        cat_index = words.index("categoría") + 1
-                        if cat_index < len(words):
-                            category = words[cat_index].replace(".", "")
-                            categories[category] = categories.get(category, 0) + 1
-                    except (ValueError, IndexError):
-                        # Ignore lines that don't contain category information
-                        continue
-
-        if categories:
-            self.stdout.write("\n📂 Géneros por categoría:")
-            for category, count in sorted(categories.items()):
-                self.stdout.write(f"   {category}: {count} géneros")
-
         # Top 5 géneros más populares
         popular_genres = GenreModel.objects.filter(is_active=True).order_by(
             "-popularity_score", "name"
@@ -173,6 +154,21 @@ class Command(BaseCommand):
                     f"   {i}. {genre.name} (Popularidad: {genre.popularity_score})"
                 )
 
+        # Mostrar algunos géneros como muestra
+        sample_genres = GenreModel.objects.filter(is_active=True).order_by("name")[:10]
+        if sample_genres:
+            self.stdout.write("\n🎵 Géneros disponibles (muestra):")
+            for genre in sample_genres:
+                # Extraer palabras clave de la descripción
+                keywords_text = ""
+                if genre.description and "Palabras clave:" in genre.description:
+                    keywords_part = genre.description.split("Palabras clave:")[
+                        1
+                    ].strip()
+                    keywords_text = f" - {keywords_part}"
+
+                self.stdout.write(f"   • {genre.name}{keywords_text}")
+
         self.stdout.write("\n💡 Comandos útiles:")
         self.stdout.write(
             "   python manage.py populate_genres --update  # Actualizar existentes"
@@ -181,5 +177,5 @@ class Command(BaseCommand):
             "   python manage.py populate_genres --clear   # Limpiar y recrear"
         )
         self.stdout.write(
-            "   python demo_genre_system.py                # Probar el sistema"
+            "   # Los géneros son independientes de las categorías de YouTube"
         )

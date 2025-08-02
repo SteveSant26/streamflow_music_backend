@@ -1,3 +1,5 @@
+from typing import Any
+
 from apps.albums.domain.exceptions import AlbumNotFoundException
 from common.interfaces.ibase_use_case import BaseGetByIdUseCase
 
@@ -5,7 +7,7 @@ from ..domain.entities import AlbumEntity
 from ..domain.repository import IAlbumRepository
 
 
-class GetAlbumUseCase(BaseGetByIdUseCase[AlbumEntity]):
+class GetAlbumUseCase(BaseGetByIdUseCase[AlbumEntity, Any]):
     """Caso de uso para obtener un álbum por ID"""
 
     def __init__(self, repository: IAlbumRepository):

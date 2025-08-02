@@ -11,16 +11,15 @@ class SongResponseDTO:
     title: str
     album_id: Optional[str] = None
     artist_id: Optional[str] = None
-    genre_id: Optional[str] = None
+    genre_ids: Optional[List[str]] = None  # Lista de IDs de géneros
     duration_seconds: int = 0
     album_title: Optional[str] = None
     artist_name: Optional[str] = None
-    genre_name: Optional[str] = None
+    genre_names: Optional[List[str]] = None  # Lista de nombres de géneros
     track_number: Optional[int] = None
     file_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
     lyrics: Optional[str] = None
-    tags: Optional[List[str]] = None
     play_count: int = 0
     favorite_count: int = 0
     download_count: int = 0

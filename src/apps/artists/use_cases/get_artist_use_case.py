@@ -1,3 +1,5 @@
+from typing import Any
+
 from apps.artists.domain.exceptions import ArtistNotFoundException
 from common.interfaces.ibase_use_case import BaseGetByIdUseCase
 
@@ -5,7 +7,7 @@ from ..domain.entities import ArtistEntity
 from ..domain.repository import IArtistRepository
 
 
-class GetArtistUseCase(BaseGetByIdUseCase[ArtistEntity]):
+class GetArtistUseCase(BaseGetByIdUseCase[ArtistEntity, Any]):
     """Caso de uso para obtener un artista por ID"""
 
     def __init__(self, repository: IArtistRepository):

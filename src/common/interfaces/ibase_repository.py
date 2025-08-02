@@ -28,7 +28,7 @@ class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
         """Guarda una entidad."""
 
     @abstractmethod
-    async def delete(self, entity_id: str) -> None:
+    async def delete(self, entity_id: str) -> bool:
         """Elimina una entidad por ID."""
 
     @abstractmethod

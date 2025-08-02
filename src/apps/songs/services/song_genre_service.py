@@ -3,20 +3,19 @@ Servicio para manejo de géneros en canciones.
 Se encarga de analizar y asignar géneros automáticamente cuando se procesa música nueva.
 """
 
-import logging
 from typing import Any, Dict, Optional
 
 from apps.genres.infrastructure.models import GenreModel
 from apps.genres.services.music_genre_analyzer import MusicGenreAnalyzer
 from apps.songs.infrastructure.models import SongModel
+from common.mixins.logging_mixin import LoggingMixin
 
-logger = logging.getLogger(__name__)
 
-
-class SongGenreService:
+class SongGenreService(LoggingMixin):
     """Servicio para asignar géneros automáticamente a las canciones"""
 
     def __init__(self):
+        super().__init__()
         self.genre_analyzer = MusicGenreAnalyzer()
 
     async def assign_genres_to_song(
@@ -39,7 +38,7 @@ class SongGenreService:
         try:
             # Si ya tiene géneros y no se fuerza el reanálisis, saltar
             if not force_reanalysis and song.genres.exists():
-                logger.debug(f"Canción '{song.title}' ya tiene géneros asignados")
+                self.logger.debug(f"Canción '{song.title}' ya tiene géneros asignados")
                 return True
 
             # Usar el analizador mejorado para obtener géneros
@@ -68,7 +67,9 @@ class SongGenreService:
                 )
 
             if not genre_matches:
-                logger.warning(f"No se pudieron determinar géneros para '{song.title}'")
+                self.logger.warning(
+                    f"No se pudieron determinar géneros para '{song.title}'"
+                )
                 return False
 
             # Convertir GenreMatch a GenreModel
@@ -79,10 +80,14 @@ class SongGenreService:
                     genre_model = GenreModel.objects.get(id=match.genre.id)
                     genre_objects.append(genre_model)
                 except GenreModel.DoesNotExist:
-                    logger.warning(f"Género {match.genre.name} no encontrado en la BD")
+                    self.logger.warning(
+                        f"Género {match.genre.name} no encontrado en la BD"
+                    )
 
             if not genre_objects:
-                logger.warning(f"No se encontraron modelos válidos para '{song.title}'")
+                self.logger.warning(
+                    f"No se encontraron modelos válidos para '{song.title}'"
+                )
                 return False
 
             # Asignar géneros a la canción
@@ -90,12 +95,12 @@ class SongGenreService:
             song.genre_names = [genre.name for genre in genre_objects]
             song.save(update_fields=["genre_names"])
 
-            logger.info(
+            self.logger.info(
                 f"Géneros asignados a '{song.title}': "
                 f"{', '.join([g.name for g in genre_objects])}"
             )
             return True
 
         except Exception as e:
-            logger.error(f"Error asignando géneros a '{song.title}': {str(e)}")
+            self.logger.error(f"Error asignando géneros a '{song.title}': {str(e)}")
             return False

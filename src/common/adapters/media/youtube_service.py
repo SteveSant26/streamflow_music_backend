@@ -256,9 +256,11 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 snippet["channelTitle"]
             )
 
-            # Get genre based on category
+            # Solo almacenar el category_id para referencia, el género se analiza por separado
             category_id = snippet.get("categoryId", "10")
-            genre = self._get_genre_from_category(category_id)
+
+            # No mapear género aquí - se hará con MusicGenreAnalyzer posteriormente
+            # Solo usamos "Music" como valor por defecto ya que filtramos por Category ID 10
 
             # Get the best quality thumbnail available
             thumbnail_url = self._get_best_thumbnail(snippet.get("thumbnails", {}))
@@ -276,7 +278,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 like_count=int(statistics.get("likeCount", 0)),
                 tags=snippet.get("tags", []),
                 category_id=category_id,
-                genre=genre,
+                genre="Music",  # Valor por defecto - el género real se determina con MusicGenreAnalyzer
                 url=f"https://www.youtube.com/watch?v={video_data['id']}",
             )
 
@@ -313,24 +315,6 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
         except Exception as e:
             self.logger.error(f"Error parsing published date '{date_str}': {str(e)}")
             return datetime.now()
-
-    def _get_genre_from_category(self, category_id: str) -> str:
-        """Gets genre based on YouTube category"""
-        categories = getattr(settings, "YOUTUBE_MUSIC_GENRES", {})
-
-        try:
-            # Try with integer key first (as defined in settings)
-            category_int = int(category_id)
-            if category_int in categories:
-                return categories[category_int]
-
-            # Fallback to string key for backward compatibility
-            if str(category_id) in categories:
-                return categories[str(category_id)]
-
-            return "Music"  # Default fallback
-        except (ValueError, TypeError):
-            return "Music"
 
     def _get_best_thumbnail(self, thumbnails: Dict[str, Any]) -> str:
         """Gets the URL of the best quality thumbnail available"""

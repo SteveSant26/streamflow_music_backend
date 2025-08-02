@@ -8,7 +8,7 @@ from common.utils.logging_decorators import log_execution, log_performance
 
 from ...music_search.domain.interfaces import MusicTrackData
 from ..domain.entities import SongEntity
-from ..domain.repository.Isong_repository import ISongRepository
+from ..domain.repository import ISongRepository
 
 
 class SaveTrackAsSongUseCase(BaseUseCase[MusicTrackData, Optional[SongEntity]]):
@@ -47,8 +47,7 @@ class SaveTrackAsSongUseCase(BaseUseCase[MusicTrackData, Optional[SongEntity]]):
                 duration_seconds=track.duration_seconds,
                 file_url=file_url,
                 thumbnail_url=track.thumbnail_url,
-                genre_name=track.genre,
-                tags=track.tags,
+                genre_names=[track.genre] if track.genre else [],  # Convertir a lista
                 source_type="youtube",
                 source_id=track.video_id,
                 source_url=track.url,

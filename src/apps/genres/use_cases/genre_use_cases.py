@@ -2,7 +2,7 @@
 Casos de uso para operaciones básicas de géneros.
 """
 
-from typing import List
+from typing import Any, List
 
 from common.interfaces.ibase_use_case import (
     BaseGetAllUseCase,
@@ -14,17 +14,17 @@ from common.utils.logging_decorators import log_execution, log_performance
 from ..api.dtos import GetPopularGenresRequestDTO, SearchGenresByNameRequestDTO
 from ..domain.entities import GenreEntity
 from ..domain.exceptions import GenreNotFoundException
-from ..domain.repository.Igenre_repository import IGenreRepository
+from ..domain.repository import IGenreRepository
 
 
-class GetAllGenresUseCase(BaseGetAllUseCase[GenreEntity]):
+class GetAllGenresUseCase(BaseGetAllUseCase[GenreEntity, Any]):
     """Caso de uso para obtener todos los géneros"""
 
     def __init__(self, repository: IGenreRepository):
         super().__init__(repository)
 
 
-class GetGenreUseCase(BaseGetByIdUseCase[GenreEntity]):
+class GetGenreUseCase(BaseGetByIdUseCase[GenreEntity, Any]):
     """Caso de uso para obtener un género específico"""
 
     def __init__(self, repository: IGenreRepository):

@@ -1,12 +1,15 @@
+from typing import Dict
+
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import UserProfileEntity
-from ..infrastructure.repository import UserRepository
+from ..domain.repository import IUserRepository
 
 
-class SyncUserFromSupabase(BaseUseCase):
-    def __init__(self, user_repository: UserRepository):
+class SyncUserFromSupabase(BaseUseCase[Dict, UserProfileEntity]):
+    def __init__(self, user_repository: IUserRepository):
+        super().__init__()
         self.user_repository = user_repository
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")

@@ -42,7 +42,7 @@ class BaseWriteOnlyDjangoRepository(
             self.logger.error(f"Error saving {self.model_class.__name__}: {str(e)}")
             raise
 
-    async def delete(self, entity_id: str) -> None:
+    async def delete(self, entity_id: str) -> bool:
         """Elimina lógicamente una entidad (soft delete)"""
         try:
             updated_count = self.model_class.objects.filter(id=entity_id).update(
@@ -52,10 +52,12 @@ class BaseWriteOnlyDjangoRepository(
                 self.logger.info(
                     f"{self.model_class.__name__} with id {entity_id} marked as inactive"
                 )
+                return True
             else:
                 self.logger.warning(
                     f"{self.model_class.__name__} with id {entity_id} not found for deletion"
                 )
+                return False
         except Exception as e:
             self.logger.error(
                 f"Error deleting {self.model_class.__name__} with id {entity_id}: {str(e)}"

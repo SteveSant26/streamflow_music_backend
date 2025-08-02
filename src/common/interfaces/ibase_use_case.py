@@ -18,7 +18,7 @@ class BaseUseCase(ABC, Generic[InputType, ReturnType], LoggingMixin):
         """Ejecuta el caso de uso."""
 
 
-class BaseGetByIdUseCase(BaseUseCase[str, EntityType], Generic[EntityType]):
+class BaseGetByIdUseCase(BaseUseCase[str, EntityType], Generic[EntityType, ModelType]):
     """Clase base para casos de uso de obtener por ID."""
 
     def __init__(self, repository: IReadOnlyRepository[EntityType, ModelType]):
@@ -44,7 +44,9 @@ class BaseGetByIdUseCase(BaseUseCase[str, EntityType], Generic[EntityType]):
         """Obtiene la excepción para entidad no encontrada."""
 
 
-class BaseGetAllUseCase(BaseUseCase[None, list[EntityType]], Generic[EntityType]):
+class BaseGetAllUseCase(
+    BaseUseCase[None, list[EntityType]], Generic[EntityType, ModelType]
+):
     """Clase base para casos de uso de obtener todas las entidades."""
 
     def __init__(self, repository: IReadOnlyRepository[EntityType, ModelType]):

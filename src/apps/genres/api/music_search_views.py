@@ -2,8 +2,7 @@
 API Views adicionales para búsqueda de música por géneros.
 """
 
-import asyncio
-
+from asgiref.sync import async_to_sync
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -45,11 +44,7 @@ def search_music_by_genre_api(request):
 
         # Usar el caso de uso
         use_case = SearchMusicByGenreUseCase(GenreRepository())
-
-        async def search():
-            return await use_case.execute(genre_name, max_results, order)
-
-        result = asyncio.run(search())
+        result = async_to_sync(use_case.execute)(genre_name, max_results, order)
 
         if not result["success"]:
             return Response(result, status=status.HTTP_404_NOT_FOUND)

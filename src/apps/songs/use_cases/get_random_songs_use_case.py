@@ -8,7 +8,7 @@ from common.utils.logging_decorators import log_execution, log_performance
 
 from ..api.dtos.song_dtos import RandomSongsRequestDTO
 from ..domain.entities import SongEntity
-from ..domain.repository.Isong_repository import ISongRepository
+from ..domain.repository import ISongRepository
 from .save_track_as_song_use_case import SaveTrackAsSongUseCase
 
 
