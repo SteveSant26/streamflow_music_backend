@@ -167,7 +167,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         self,
         query: Optional[str] = None,
         options: Optional[SearchOptions] = None,
-        create_missing_entities: bool = False,
+        # create_missing_entities: bool = False,
     ) -> Dict[str, Any]:
         """
         Obtiene música con metadatos completos y análisis de BD
@@ -192,10 +192,12 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
 
             # 2. Procesar artistas y álbumes
             artists_info = await self._process_extracted_artists(
-                videos, create_missing_entities
+                videos,
+                # create_missing_entities
             )
             albums_info = await self._process_extracted_albums(
-                videos, create_missing_entities
+                videos,
+                # create_missing_entities
             )
 
             # 3. Convertir a audio tracks
@@ -333,7 +335,9 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         )
 
     async def _process_extracted_artists(
-        self, videos: List[YouTubeVideoInfo], create_missing: bool
+        self,
+        videos: List[YouTubeVideoInfo],
+        # create_missing: bool
     ) -> Dict[str, Any]:
         """Procesa artistas extraídos (solo si hay repositorios configurados)"""
         if not self.artist_repository:
@@ -344,7 +348,9 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         return {"extracted_only": True, "artists": self._get_unique_artists(videos)}
 
     async def _process_extracted_albums(
-        self, videos: List[YouTubeVideoInfo], create_missing: bool
+        self,
+        videos: List[YouTubeVideoInfo],
+        # create_missing: bool
     ) -> Dict[str, Any]:
         """Procesa álbumes extraídos (solo si hay repositorios configurados)"""
         if not self.album_repository:
@@ -426,9 +432,11 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         """Obtiene métricas del servicio"""
         return {
             **self._metrics,
-            "youtube_quota_usage": self.youtube_service.get_quota_usage()
-            if hasattr(self.youtube_service, "get_quota_usage")
-            else {},
+            "youtube_quota_usage": (
+                self.youtube_service.get_quota_usage()
+                if hasattr(self.youtube_service, "get_quota_usage")
+                else {}
+            ),
             "service_uptime": "N/A",  # Se podría implementar
             "last_activity": datetime.now().isoformat(),
         }
