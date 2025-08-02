@@ -14,7 +14,7 @@ urlpatterns = [
     # Canciones aleatorias
     path("random/", RandomSongsView.as_view(), name="random-songs"),
     # Detalles de una canción específica
-    path("<int:song_id>/", SongDetailView.as_view(), name="song-detail"),
+    path("<uuid:song_id>/", SongDetailView.as_view(), name="song-detail"),
     # Procesar video de YouTube
     path(
         "process-youtube/",
@@ -23,7 +23,7 @@ urlpatterns = [
     ),
     # Incrementar contador de reproducciones
     path(
-        "<int:song_id>/increment-play-count/",
+        "<uuid:song_id>/increment-play-count/",
         increment_play_count_view,
         name="increment-play-count",
     ),
