@@ -31,6 +31,15 @@ class SongResponseDTO:
     audio_quality: Optional[str] = None
     created_at: Optional[datetime] = None
     release_date: Optional[datetime] = None
+    audio_downloaded: bool = False  # Indica si el audio está descargado
+
+    # Campos adicionales para compatibilidad con serializers
+    youtube_video_id: Optional[str] = None  # source_id para videos de YouTube
+    youtube_url: Optional[str] = None  # source_url para videos de YouTube
+    youtube_view_count: int = 0  # Conteo de views en YouTube
+    youtube_like_count: int = 0  # Conteo de likes en YouTube
+    is_explicit: bool = False  # Indica si el contenido es explícito
+    published_at: Optional[datetime] = None  # Fecha de publicación original
 
 
 @dataclass

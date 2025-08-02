@@ -1,3 +1,16 @@
+"""
+⚠️  SERVICIO DEPRECADO ⚠️
+
+EnhancedMusicService ha sido deprecado en favor de UnifiedMusicService.
+Por favor, migra tu código usando:
+
+from src.common.factories.unified_music_service_factory import get_music_service
+music_service = get_music_service("default")
+
+Consulta docs/MIGRATION_GUIDE.md para más detalles.
+"""
+
+import warnings
 from typing import Any, Dict, List, Optional
 
 from ...interfaces.imedia_service import IMusicService, IYouTubeService
@@ -12,6 +25,14 @@ from ...types.media_types import (
 )
 from ...utils.retry_manager import RetryManager
 from .video_processing_pipeline import VideoProcessingPipeline
+
+# Emitir warning de deprecación al importar
+warnings.warn(
+    "EnhancedMusicService está deprecado. Usa UnifiedMusicService en su lugar. "
+    "Consulta docs/MIGRATION_GUIDE.md para migrar.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class EnhancedMusicService(IMusicService, LoggingMixin):
