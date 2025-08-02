@@ -49,11 +49,20 @@ class SongRepository(ISongRepository, LoggingMixin):
             }
 
             if song.id:
-                # Update existing song
-                song_obj = await sync_to_async(SongModel.objects.get)(id=song.id)
-                for key, value in song_data.items():
-                    setattr(song_obj, key, value)
-                await sync_to_async(song_obj.save)()
+                # Update existing song - first check if it exists
+                try:
+                    song_obj = await sync_to_async(SongModel.objects.get)(id=song.id)
+                    for key, value in song_data.items():
+                        setattr(song_obj, key, value)
+                    await sync_to_async(song_obj.save)()
+                except SongModel.DoesNotExist:
+                    # Song doesn't exist, create it instead
+                    self.logger.warning(
+                        f"Song with ID {song.id} not found, creating new one"
+                    )
+                    song_obj = await sync_to_async(SongModel.objects.create)(
+                        **song_data
+                    )
             else:
                 # Create new song
                 song_obj = await sync_to_async(SongModel.objects.create)(**song_data)

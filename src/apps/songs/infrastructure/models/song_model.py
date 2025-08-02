@@ -60,7 +60,7 @@ class SongModel(models.Model):
         ],
     )
     source_id = models.CharField(
-        max_length=100, null=True, blank=True, db_index=True
+        max_length=100, null=True, blank=True, db_index=True  # noqa
     )  # NOSONAR
     source_url = models.URLField(null=True, blank=True, max_length=500)
 

@@ -1,7 +1,3 @@
-"""
-Servicio mejorado para descarga de audio desde videos
-"""
-
 import asyncio
 import os
 import tempfile
@@ -10,11 +6,14 @@ from typing import Any, Dict, Optional
 
 import yt_dlp
 
+from src.config.music_service_config import get_optimized_ydl_options
+
 from ...interfaces.imedia_service import IAudioDownloadService
 from ...mixins.logging_mixin import LoggingMixin
 from ...types.media_types import AudioServiceConfig, DownloadOptions
 from ...utils.retry_manager import RetryManager
 from ...utils.validators import MediaDataValidator, URLValidator
+from ...utils.youtube_error_handler import YouTubeErrorHandler
 
 
 class AudioDownloadService(IAudioDownloadService, LoggingMixin):
@@ -35,22 +34,27 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
         self.retry_manager = RetryManager(
             max_retries=self.config.max_retries, base_delay=self.config.retry_delay
         )
+        self.error_handler = YouTubeErrorHandler()
 
         # Configuración base para yt-dlp
         self._base_ydl_opts = self._build_base_ydl_options()
 
     def _build_base_ydl_options(self) -> Dict[str, Any]:
-        """Construye las opciones base para yt-dlp"""
-        return {
-            "quiet": True,
-            "no_warnings": True,
-            "writesubtitles": False,
-            "writeautomaticsub": False,
-            "referer": "https://www.youtube.com/",
-            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "socket_timeout": self.config.request_timeout,
-            "retries": 0,  # Manejamos reintentos externamente
-        }
+        """Construye las opciones base optimizadas para yt-dlp"""
+        # Usar configuraciones optimizadas
+        base_options = get_optimized_ydl_options()
+
+        # Agregar configuraciones específicas del servicio
+        base_options.update(
+            {
+                "outtmpl": {"default": "%(id)s.%(ext)s"},
+                "restrictfilenames": True,
+                "windowsfilenames": True,
+                "trim_filename": 100,
+            }
+        )
+
+        return base_options
 
     async def download_audio(
         self, video_url: str, options: Optional[DownloadOptions] = None
@@ -138,31 +142,84 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
     def _download_audio_sync(
         self, video_url: str, options: DownloadOptions
     ) -> Optional[bytes]:
-        """Descarga sincrónica del audio"""
+        """Descarga sincrónica del audio usando configuración simplificada como ApiEjemplo"""
         temp_dir = self.config.temp_dir or tempfile.gettempdir()
 
         with tempfile.TemporaryDirectory(dir=temp_dir) as working_dir:
             try:
-                output_path = f"{working_dir}/{uuid.uuid4()}.%(ext)s"
-
-                # Configurar opciones de yt-dlp
-                ydl_opts = self._build_ydl_options(options, output_path)
-
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    self.logger.debug(f"Starting download for: {video_url}")
-                    ydl.download([video_url])
-
-                # Buscar el archivo descargado
-                audio_file = self._find_downloaded_file(working_dir)
-                if audio_file:
-                    return self._read_and_validate_audio_file(audio_file, options)
-
-                self.logger.warning(f"No audio file found after download: {video_url}")
-                return None
-
+                # Usar configuración simple similar a ApiEjemplo
+                return self._simple_download_approach(video_url, options, working_dir)
             except Exception as e:
-                self.logger.error(f"yt-dlp download error: {str(e)}")
-                return None
+                self.logger.warning(f"Simple download failed: {str(e)}")
+
+                # Solo intentar un método de fallback si el primero falla
+                try:
+                    return self._fallback_download_approach(
+                        video_url, options, working_dir
+                    )
+                except Exception as fallback_error:
+                    self.logger.error(
+                        f"All download approaches failed: {str(fallback_error)}"
+                    )
+                    return None
+
+    def _simple_download_approach(
+        self, video_url: str, options: DownloadOptions, working_dir: str
+    ) -> Optional[bytes]:
+        """Enfoque simple de descarga basado en configuración probada exitosamente"""
+        output_path = f"{working_dir}/{uuid.uuid4()}.%(ext)s"
+
+        # Usar configuración optimizada que ya fue probada y funciona
+        ydl_opts = get_optimized_ydl_options()
+        ydl_opts["outtmpl"] = output_path
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            self.logger.debug(f"Starting simple download for: {video_url}")
+            ydl.download([video_url])
+
+        # Buscar el archivo descargado
+        audio_file = self._find_downloaded_file(working_dir)
+        if audio_file:
+            return self._read_and_validate_audio_file(audio_file, options)
+
+        self.logger.warning(f"No audio file found after simple download: {video_url}")
+        return None
+
+    def _fallback_download_approach(
+        self, video_url: str, options: DownloadOptions, working_dir: str
+    ) -> Optional[bytes]:
+        """Enfoque de fallback con configuración alternativa"""
+        output_path = f"{working_dir}/{uuid.uuid4()}.%(ext)s"
+
+        # Configuración alternativa más permisiva
+        ydl_opts = self._build_ydl_options(options, output_path)
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            self.logger.debug(f"Starting fallback download for: {video_url}")
+            ydl.download([video_url])
+
+        # Buscar el archivo descargado
+        audio_file = self._find_downloaded_file(working_dir)
+        if audio_file:
+            return self._read_and_validate_audio_file(audio_file, options)
+
+        self.logger.warning(f"No audio file found after fallback download: {video_url}")
+        return None
+
+    def _attempt_download_with_config(
+        self,
+        video_url: str,
+        options: DownloadOptions,
+        working_dir: str,
+        use_enhanced: bool = False,
+        # fallback_config: Optional[Dict[str, Any]] = None,
+    ) -> Optional[bytes]:
+        """Método simplificado de descarga (mantenido por compatibilidad)"""
+        # Delegar a los nuevos métodos simplificados
+        if use_enhanced:
+            return self._simple_download_approach(video_url, options, working_dir)
+        else:
+            return self._fallback_download_approach(video_url, options, working_dir)
 
     def _read_and_validate_audio_file(
         self, audio_file: str, options: DownloadOptions

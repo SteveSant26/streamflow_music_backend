@@ -1,7 +1,3 @@
-"""
-Servicio mejorado para interactuar con la API de YouTube
-"""
-
 import random
 import re
 from datetime import datetime
@@ -14,6 +10,7 @@ from googleapiclient.errors import HttpError
 from ...interfaces.imedia_service import IYouTubeService
 from ...mixins.logging_mixin import LoggingMixin
 from ...types.media_types import SearchOptions, YouTubeServiceConfig, YouTubeVideoInfo
+from ...utils.music_metadata_extractor import MusicMetadataExtractor
 from ...utils.retry_manager import CircuitBreaker, RetryManager
 from ...utils.validators import TextCleaner, URLValidator
 
@@ -24,15 +21,22 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
     def __init__(
         self,
         config: Optional[YouTubeServiceConfig] = None,
-        api_key: Optional[str] = None,
     ):
         super().__init__()
         self.config = config or YouTubeServiceConfig()
-        self.api_key = api_key or self.config.api_key or settings.YOUTUBE_API_KEY
+
+        # Use API key from settings
+        self.api_key = settings.YOUTUBE_API_KEY
+        self.service_name = settings.YOUTUBE_API_SERVICE_NAME
+        self.api_version = settings.YOUTUBE_API_VERSION
+
+        if not self.api_key:
+            raise ValueError("YOUTUBE_API_KEY must be set in Django settings")
 
         # Componentes auxiliares
         self.text_cleaner = TextCleaner()
         self.url_validator = URLValidator()
+        self.metadata_extractor = MusicMetadataExtractor()
         self.retry_manager = RetryManager(
             max_retries=self.config.max_retries, base_delay=self.config.retry_delay
         )
@@ -53,8 +57,8 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
         """Construye el cliente de YouTube API"""
         try:
             return build(
-                self.config.service_name,
-                self.config.api_version,
+                self.service_name,
+                self.api_version,
                 developerKey=self.api_key,
             )
         except Exception as e:
@@ -103,6 +107,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
         try:
             search_response = self.youtube.search().list(**search_params).execute()
+            self.logger.debug(f"Search response: {search_response}")
 
             if self.enable_quota_tracking:
                 self.quota_used_today += 100  # Cost of search operation
@@ -277,7 +282,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             # Obtener la mejor calidad de thumbnail disponible
             thumbnail_url = self._get_best_thumbnail(snippet.get("thumbnails", {}))
 
-            return YouTubeVideoInfo(
+            video_info = YouTubeVideoInfo(
                 video_id=video_data["id"],
                 title=title,
                 channel_title=channel_title,
@@ -293,6 +298,11 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 genre=genre,
                 url=f"https://www.youtube.com/watch?v={video_data['id']}",
             )
+
+            # Extraer metadatos musicales (artistas y álbumes)
+            video_info = self.metadata_extractor.extract_music_metadata(video_info)
+
+            return video_info
 
         except Exception as e:
             self.logger.error(f"Error building video info: {str(e)}")
@@ -325,29 +335,19 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
     def _get_genre_from_category(self, category_id: str) -> str:
         """Obtiene el género basado en la categoría de YouTube"""
-        categories = getattr(
-            settings,
-            "YOUTUBE_CATEGORIES",
-            {
-                "10": "Music",
-                "1": "Film & Animation",
-                "2": "Autos & Vehicles",
-                "15": "Pets & Animals",
-                "17": "Sports",
-                "19": "Travel & Events",
-                "20": "Gaming",
-                "22": "People & Blogs",
-                "23": "Comedy",
-                "24": "Entertainment",
-                "25": "News & Politics",
-                "26": "Howto & Style",
-                "27": "Education",
-                "28": "Science & Technology",
-            },
-        )
+        categories = getattr(settings, "YOUTUBE_CATEGORIES", {})
 
         try:
-            return categories.get(str(category_id), "Music")
+            # Try with integer key first (as defined in settings)
+            category_int = int(category_id)
+            if category_int in categories:
+                return categories[category_int]
+
+            # Fallback to string key for backward compatibility
+            if str(category_id) in categories:
+                return categories[str(category_id)]
+
+            return "Music"  # Default fallback
         except (ValueError, TypeError):
             return "Music"
 
@@ -373,4 +373,255 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             "quota_remaining": max(
                 0, self.config.quota_limit_per_day - self.quota_used_today
             ),
+        }
+
+    async def get_enriched_random_videos(
+        self, options: Optional[SearchOptions] = None
+    ) -> List[YouTubeVideoInfo]:
+        """
+        Obtiene videos aleatorios con metadatos musicales extraídos
+
+        Returns:
+            Lista de videos con información de artistas y álbumes extraída
+        """
+        videos = await self.get_random_videos(options)
+        return self._enrich_videos_with_music_data(videos)
+
+    async def search_videos_with_music_metadata(
+        self, query: str, options: Optional[SearchOptions] = None
+    ) -> List[YouTubeVideoInfo]:
+        """
+        Busca videos y extrae metadatos musicales
+
+        Args:
+            query: Consulta de búsqueda
+            options: Opciones de búsqueda
+
+        Returns:
+            Lista de videos con metadatos musicales extraídos
+        """
+        videos = await self.search_videos(query, options)
+        return self._enrich_videos_with_music_data(videos)
+
+    def _enrich_videos_with_music_data(
+        self, videos: List[YouTubeVideoInfo]
+    ) -> List[YouTubeVideoInfo]:
+        """
+        Enriquece videos con datos musicales adicionales
+
+        Args:
+            videos: Lista de videos a enriquecer
+
+        Returns:
+            Videos con datos musicales enriquecidos
+        """
+        enriched_videos = []
+
+        for video in videos:
+            try:
+                # Los metadatos ya se extraen en _build_video_info,
+                # pero aquí podemos hacer procesamiento adicional
+                enriched_video = self._add_music_insights(video)
+                enriched_videos.append(enriched_video)
+
+            except Exception as e:
+                self.logger.error(f"Error enriching video {video.video_id}: {str(e)}")
+                # Agregar el video sin enriquecimiento
+                enriched_videos.append(video)
+
+        return enriched_videos
+
+    def _add_music_insights(self, video: YouTubeVideoInfo) -> YouTubeVideoInfo:
+        """
+        Agrega insights musicales adicionales al video
+
+        Args:
+            video: Video a enriquecer
+
+        Returns:
+            Video con insights adicionales
+        """
+        try:
+            # Agregar información contextual
+            if video.extracted_artists:
+                main_artist = video.extracted_artists[0]
+                self.logger.debug(
+                    f"Main artist for video {video.video_id}: {main_artist.name}"
+                )
+
+                # Agregar información adicional al artista principal
+                if main_artist.additional_info is None:
+                    main_artist.additional_info = {}
+
+                main_artist.additional_info.update(
+                    {
+                        "video_genre": video.genre,
+                        "video_category": video.category_id,
+                        "channel_match": main_artist.channel_id == video.channel_id,
+                    }
+                )
+
+            if video.extracted_albums:
+                main_album = video.extracted_albums[0]
+                self.logger.debug(
+                    f"Main album for video {video.video_id}: {main_album.title}"
+                )
+
+                # Agregar información contextual al álbum
+                if main_album.additional_info is None:
+                    main_album.additional_info = {}
+
+                main_album.additional_info.update(
+                    {
+                        "video_published_year": video.published_at.year,
+                        "estimated_album_track": (
+                            True if main_album.confidence_score > 0.5 else False
+                        ),
+                    }
+                )
+
+            return video
+
+        except Exception as e:
+            self.logger.error(
+                f"Error adding music insights to video {video.video_id}: {str(e)}"
+            )
+            return video
+
+    def get_extracted_artists_summary(
+        self, videos: List[YouTubeVideoInfo]
+    ) -> Dict[str, Any]:
+        """
+        Obtiene un resumen de todos los artistas extraídos
+
+        Args:
+            videos: Lista de videos con metadatos extraídos
+
+        Returns:
+            Resumen de artistas con estadísticas
+        """
+        artists_data: Dict[str, Dict[str, Any]] = {}
+        total_extractions = 0
+
+        for video in videos:
+            if video.extracted_artists:
+                total_extractions += len(video.extracted_artists)
+
+                for artist in video.extracted_artists:
+                    if artist.name not in artists_data:
+                        artists_data[artist.name] = {
+                            "name": artist.name,
+                            "appearances": 0,
+                            "total_confidence": 0.0,
+                            "sources": set(),
+                            "videos": [],
+                            "channel_ids": set(),
+                        }
+
+                    artist_data = artists_data[artist.name]
+                    artist_data["appearances"] += 1
+                    artist_data["total_confidence"] += artist.confidence_score
+                    artist_data["sources"].add(artist.extracted_from)
+                    artist_data["videos"].append(
+                        {
+                            "video_id": video.video_id,
+                            "title": video.title,
+                            "confidence": artist.confidence_score,
+                        }
+                    )
+
+                    if artist.channel_id:
+                        artist_data["channel_ids"].add(artist.channel_id)
+
+        # Calcular estadísticas finales
+        for artist_name, data in artists_data.items():
+            data["average_confidence"] = data["total_confidence"] / data["appearances"]
+            data["sources"] = list(data["sources"])
+            data["channel_ids"] = list(data["channel_ids"])
+            data["is_likely_main_artist"] = data["average_confidence"] > 0.6
+
+        # Ordenar por confianza
+        sorted_artists = sorted(
+            artists_data.items(),
+            key=lambda item: float(item[1]["average_confidence"]),
+            reverse=True,
+        )
+
+        return {
+            "total_videos": len(videos),
+            "total_artist_extractions": total_extractions,
+            "unique_artists": len(artists_data),
+            "artists": dict(sorted_artists),
+        }
+
+    def get_extracted_albums_summary(
+        self, videos: List[YouTubeVideoInfo]
+    ) -> Dict[str, Any]:
+        """
+        Obtiene un resumen de todos los álbumes extraídos
+
+        Args:
+            videos: Lista de videos con metadatos extraídos
+
+        Returns:
+            Resumen de álbumes con estadísticas
+        """
+        albums_data: Dict[str, Dict[str, Any]] = {}
+        total_extractions = 0
+
+        for video in videos:
+            if video.extracted_albums:
+                total_extractions += len(video.extracted_albums)
+
+                for album in video.extracted_albums:
+                    album_key = f"{album.title}||{album.artist_name or 'Unknown'}"
+
+                    if album_key not in albums_data:
+                        albums_data[album_key] = {
+                            "title": album.title,
+                            "artist_name": album.artist_name,
+                            "appearances": 0,
+                            "total_confidence": 0.0,
+                            "sources": set(),
+                            "videos": [],
+                            "release_years": set(),
+                        }
+
+                    album_data = albums_data[album_key]
+                    album_data["appearances"] += 1
+                    album_data["total_confidence"] += album.confidence_score
+                    album_data["sources"].add(album.extracted_from)
+                    album_data["videos"].append(
+                        {
+                            "video_id": video.video_id,
+                            "title": video.title,
+                            "confidence": album.confidence_score,
+                        }
+                    )
+
+                    if album.release_year:
+                        album_data["release_years"].add(album.release_year)
+
+        # Calcular estadísticas finales
+        for album_key, data in albums_data.items():
+            data["average_confidence"] = data["total_confidence"] / data["appearances"]
+            data["sources"] = list(data["sources"])
+            data["release_years"] = list(data["release_years"])
+            data["estimated_release_year"] = (
+                max(data["release_years"]) if data["release_years"] else None
+            )
+            data["is_likely_album_track"] = data["average_confidence"] > 0.5
+
+        # Ordenar por confianza
+        sorted_albums = sorted(
+            albums_data.items(),
+            key=lambda item: float(item[1]["average_confidence"]),
+            reverse=True,
+        )
+
+        return {
+            "total_videos": len(videos),
+            "total_album_extractions": total_extractions,
+            "unique_albums": len(albums_data),
+            "albums": dict(sorted_albums),
         }

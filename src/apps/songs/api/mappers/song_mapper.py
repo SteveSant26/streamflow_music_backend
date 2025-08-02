@@ -75,6 +75,16 @@ class SongMapper(AbstractMapper, LoggingMixin):
             audio_quality=entity.audio_quality,
             created_at=entity.created_at,
             release_date=entity.release_date,
+            audio_downloaded=bool(entity.file_url),  # True si hay URL de archivo
+            # Campos adicionales mapeados desde los campos existentes
+            youtube_video_id=entity.source_id
+            if entity.source_type == "youtube"
+            else None,
+            youtube_url=entity.source_url if entity.source_type == "youtube" else None,
+            youtube_view_count=0,  # Este podríamos poblarlo desde metadata si está disponible
+            youtube_like_count=0,  # Este podríamos poblarlo desde metadata si está disponible
+            is_explicit=False,  # Por defecto False, se podría determinar desde tags o metadata
+            published_at=entity.release_date,  # Usamos release_date como published_at
         )
 
     def dto_to_entity(self, dto: SongResponseDTO) -> SongEntity:
@@ -106,4 +116,5 @@ class SongMapper(AbstractMapper, LoggingMixin):
             audio_quality=dto.audio_quality or "standard",
             created_at=dto.created_at,
             release_date=dto.release_date,
+            # Nota: audio_downloaded se calcula a partir de file_url, no se almacena en la entidad
         )

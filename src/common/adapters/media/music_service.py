@@ -1,5 +1,23 @@
+"""
+⚠️  SERVICIO DEPRECADO ⚠️
+
+Este servicio ha sido deprecado en favor de UnifiedMusicService.
+Por favor, migra tu código usando:
+
+from src.common.factories.unified_music_service_factory import get_music_service
+
+# En lugar de:
+# music_service = MusicService(youtube_service, audio_service, storage_service)
+
+# Usa:
+music_service = get_music_service("default")
+
+Consulta docs/MIGRATION_GUIDE.md para más detalles.
+"""
+
 import asyncio
 import uuid
+import warnings
 from io import BytesIO
 from typing import List, Optional, Sequence
 
@@ -22,6 +40,14 @@ from ...types.media_types import (
 )
 from ...utils.retry_manager import RetryManager
 from ...utils.validators import MediaDataValidator, TextCleaner
+
+# Emitir warning de deprecación al importar
+warnings.warn(
+    "MusicService está deprecado. Usa UnifiedMusicService en su lugar. "
+    "Consulta docs/MIGRATION_GUIDE.md para migrar.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class ThumbnailProcessor(LoggingMixin):
@@ -118,30 +144,75 @@ class AudioProcessor(LoggingMixin):
         if not self.audio_service:
             return None, None
 
-        audio_data = await self.audio_service.download_audio(video_info.url)
+        self.logger.info(
+            f"Starting audio download for {video_info.video_id} from {video_info.url}"
+        )
 
+        audio_data = await self.audio_service.download_audio(video_info.url)
+        self.logger.debug(
+            f"Downloaded audio for {video_info.video_id}, size: {len(audio_data) if audio_data else 'None'} bytes"
+        )
         if audio_data:
             # Validar tamaño del archivo
             if not self.media_validator.validate_filesize(len(audio_data)):
                 self.logger.warning(f"Audio file too large: {len(audio_data)} bytes")
                 return None, None
 
-            # Generar nombre único para el archivo de audio
             audio_filename = f"audio/{video_info.video_id}_{uuid.uuid4().hex[:8]}.mp3"
 
             # Subir audio a storage
             if await self._upload_audio_to_storage(audio_data, audio_filename):
                 return audio_data, audio_filename
 
+        print()
+        print()
+        print()
+        print("Audio data is None or upload failed")
+
         return None, None
 
     async def _upload_audio_to_storage(self, audio_data: bytes, filename: str) -> bool:
         """Sube el archivo de audio al almacenamiento"""
         try:
+            self.logger.info(
+                f"Starting upload to storage. File: {filename}, Size: {len(audio_data)} bytes"
+            )
+
+            # Verificar que tenemos el servicio de storage
+            if not self.music_storage:
+                self.logger.error("Music storage service not available")
+                return False
+
+            # Crear objeto BytesIO y verificar que tiene contenido
             audio_file_obj = BytesIO(audio_data)
-            return self.music_storage.upload_item(filename, audio_file_obj)
+            audio_file_obj.seek(0)  # Asegurarse de que el puntero esté al inicio
+
+            self.logger.debug(f"Created BytesIO object for {filename}")
+
+            # Intentar subir el archivo
+            upload_result = self.music_storage.upload_item(filename, audio_file_obj)
+            self.logger.debug(f"Upload result for {filename}: {upload_result}")
+
+            if upload_result:
+                self.logger.info(f"Successfully uploaded audio file: {filename}")
+
+                # Verificar que se puede obtener la URL
+                file_url = self.music_storage.get_item_url(filename)
+                if file_url:
+                    self.logger.info(f"File URL generated successfully: {file_url}")
+                else:
+                    self.logger.warning(
+                        f"Could not generate URL for uploaded file: {filename}"
+                    )
+
+                return True
+            else:
+                self.logger.error(f"Upload failed for file: {filename}")
+                return False
+
         except Exception as e:
             self.logger.error(f"Error uploading audio to storage: {str(e)}")
+            self.logger.exception("Upload exception details:")
             return False
 
 

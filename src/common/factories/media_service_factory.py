@@ -1,6 +1,7 @@
 """
 Factory para servicios de medios
 """
+
 from typing import Optional
 
 from ..adapters.media import AudioDownloadService, MusicService, YouTubeAPIService
@@ -28,13 +29,12 @@ class MediaServiceFactory:
     @classmethod
     def create_youtube_service(
         cls,
-        api_key: Optional[str] = None,
         config: Optional[YouTubeServiceConfig] = None,
     ) -> IYouTubeService:
         """Crea o retorna la instancia singleton del servicio de YouTube"""
         if cls._youtube_service_instance is None:
             cls._youtube_service_instance = YouTubeAPIService(
-                config=config, api_key=api_key
+                config=config,
             )
         return cls._youtube_service_instance
 
@@ -91,15 +91,12 @@ class MediaServiceFactory:
         music_config: Optional[MusicServiceConfig] = None,
         youtube_config: Optional[YouTubeServiceConfig] = None,
         audio_config: Optional[AudioServiceConfig] = None,
-        youtube_api_key: Optional[str] = None,
         audio_options: Optional[DownloadOptions] = None,
     ) -> IMusicService:
         """Crea un servicio de música completo con todos los componentes"""
 
         # Crear servicio de YouTube
-        youtube_service = cls.create_youtube_service(
-            api_key=youtube_api_key, config=youtube_config
-        )
+        youtube_service = cls.create_youtube_service(config=youtube_config)
 
         # Crear servicio de descarga de audio
         audio_service = cls.create_audio_download_service(

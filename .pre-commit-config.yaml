@@ -65,9 +65,6 @@ repos:
             |^generate_simple_coverage\.py$
             |^generate_sonar_reports\.py$
           )
-        env:
-          PYTHONIOENCODING: "utf-8"
-          PYTHONUTF8: "1"
 
   # Commit message formatting
   - repo: https://github.com/commitizen-tools/commitizen
