@@ -3,7 +3,9 @@ from typing import List
 
 from .utils.env import env
 
-YOUTUBE_API_KEY = env("YOUTUBE_API_KEY")  # Remueve el fallback hardcodeado
+YOUTUBE_API_KEY = env("YOUTUBE_API_KEY")
+if not YOUTUBE_API_KEY:
+    raise ValueError("YOUTUBE_API_KEY must be set in the environment variables")
 YOUTUBE_API_SERVICE_NAME = os.getenv("YOUTUBE_API_SERVICE_NAME", "youtube")
 YOUTUBE_API_VERSION = os.getenv("YOUTUBE_API_VERSION", "v3")
 

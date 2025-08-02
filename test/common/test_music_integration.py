@@ -7,7 +7,7 @@ from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime
 
 from src.common.adapters.media.youtube_service import YouTubeAPIService
-from src.common.adapters.music_integration_service import MusicIntegrationService
+# from src.common.adapters.media.music_service_builder import MusicIntegrationService
 from src.common.utils.music_metadata_extractor import MusicMetadataExtractor
 from src.common.types.media_types import (
     YouTubeVideoInfo, 
@@ -119,40 +119,42 @@ class TestYouTubeServiceEnhancements:
         assert self.service._check_quota_limit(40) == True
         assert self.service._check_quota_limit(60) == False
     
-    def test_get_extracted_artists_summary(self):
-        """Test resumen de artistas extraídos"""
-        videos = [
-            YouTubeVideoInfo(
-                video_id="test1",
-                title="Test Song",
-                channel_title="TestChannel",
-                channel_id="test123",
-                thumbnail_url="",
-                description="",
-                duration_seconds=180,
-                published_at=datetime.now(),
-                view_count=1000,
-                like_count=100,
-                tags=[],
-                category_id="10",
-                genre="Pop",
-                url="https://youtube.com/watch?v=test1",
-                extracted_artists=[
-                    ExtractedArtistInfo(
-                        name="Test Artist",
-                        extracted_from="title",
-                        confidence_score=0.8
-                    )
-                ]
-            )
-        ]
-        
-        summary = self.service.get_extracted_artists_summary(videos)
-        
-        assert summary['total_videos'] == 1
-        assert summary['unique_artists'] == 1
-        assert 'Test Artist' in summary['artists']
-        assert summary['artists']['Test Artist']['average_confidence'] == 0.8
+    # NOTE: This test was disabled because get_extracted_artists_summary method
+    # was removed during simplification - it was only used in tests
+    # def test_get_extracted_artists_summary(self):
+    #     """Test resumen de artistas extraídos"""
+    #     videos = [
+    #         YouTubeVideoInfo(
+    #             video_id="test1",
+    #             title="Test Song",
+    #             channel_title="TestChannel",
+    #             channel_id="test123",
+    #             thumbnail_url="",
+    #             description="",
+    #             duration_seconds=180,
+    #             published_at=datetime.now(),
+    #             view_count=1000,
+    #             like_count=100,
+    #             tags=[],
+    #             category_id="10",
+    #             genre="Pop",
+    #             url="https://youtube.com/watch?v=test1",
+    #             extracted_artists=[
+    #                 ExtractedArtistInfo(
+    #                     name="Test Artist",
+    #                     extracted_from="title",
+    #                     confidence_score=0.8
+    #                 )
+    #             ]
+    #         )
+    #     ]
+    #     
+    #     summary = self.service.get_extracted_artists_summary(videos)
+    #     
+    #     assert summary['total_videos'] == 1
+    #     assert summary['unique_artists'] == 1
+    #     assert 'Test Artist' in summary['artists']
+    #     assert summary['artists']['Test Artist']['average_confidence'] == 0.8
 
 
 class TestMusicIntegrationService:
@@ -199,9 +201,9 @@ class TestMusicIntegrationService:
             )
         ]
         
-        self.mock_youtube_service.get_enriched_random_videos = AsyncMock(return_value=mock_videos)
-        self.mock_youtube_service.get_extracted_artists_summary = Mock(return_value={})
-        self.mock_youtube_service.get_extracted_albums_summary = Mock(return_value={})
+        self.mock_youtube_service.get_random_videos = AsyncMock(return_value=mock_videos)
+        # Note: get_extracted_artists_summary and get_extracted_albums_summary were removed
+        # The metadata is now extracted automatically in the get_random_videos method
         
         # Mock del repositorio de artistas
         self.mock_artist_repo.get_by_name = AsyncMock(return_value=None)

@@ -11,6 +11,7 @@ from ...types.media_types import (
 )
 from ...utils.retry_manager import RetryManager
 from .audio_download_service import AudioDownloadService
+from .enhanced_music_service import EnhancedMusicService
 from .music_service import AudioProcessor, MetadataExtractor, ThumbnailProcessor
 from .video_processing_pipeline import VideoProcessingPipeline
 from .video_processors import (
@@ -227,7 +228,6 @@ class MusicServiceBuilder:
         )
 
         # Crear el servicio principal
-        from .enhanced_music_service import EnhancedMusicService
 
         return EnhancedMusicService(
             config=self._music_config,
