@@ -33,7 +33,6 @@ from .youtube_settings import (  # noqa: F401
     YOUTUBE_API_SERVICE_NAME,
     YOUTUBE_API_VERSION,
     YOUTUBE_MUSIC_GENRES,
-    YT_DLP_AUDIO_OPTS,
 )
 
 SECRET_KEY = env("SECRET_KEY")

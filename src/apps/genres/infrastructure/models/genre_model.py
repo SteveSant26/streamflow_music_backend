@@ -13,7 +13,7 @@ class GenreModel(models.Model):
     color_hex = models.CharField(
         max_length=7,
         blank=True,
-        null=True,
+        null=True,  # NOSONAR
         verbose_name="Color representativo",
         help_text="Color en formato hexadecimal (#RRGGBB)",
     )

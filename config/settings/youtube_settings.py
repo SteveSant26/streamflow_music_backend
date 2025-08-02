@@ -321,16 +321,16 @@ YOUTUBE_MUSIC_GENRES = {
 }
 
 
-# yt-dlp configuration for audio extraction
-YT_DLP_AUDIO_OPTS = {
-    "format": "bestaudio/best",
-    "extractaudio": True,
-    "audioformat": "mp3",
-    "audioquality": "192",
-    "quiet": True,
-    "no_warnings": True,
-    "writesubtitles": False,
-    "writeautomaticsub": False,
-    "referer": "https://www.youtube.com/",
-    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-}
+# # yt-dlp configuration for audio extraction
+# YT_DLP_AUDIO_OPTS = {
+#     "format": "bestaudio/best",
+#     "extractaudio": True,
+#     "audioformat": "mp3",
+#     "audioquality": "192",
+#     "quiet": True,
+#     "no_warnings": True,
+#     "writesubtitles": False,
+#     "writeautomaticsub": False,
+#     "referer": "https://www.youtube.com/",
+#     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+# }

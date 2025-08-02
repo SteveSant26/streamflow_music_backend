@@ -10,7 +10,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ..infrastructure.repository.genre_repository import GenreRepository
-from ..services.genre_service import GenreService
 from ..use_cases.search_music_by_genre_use_case import SearchMusicByGenreUseCase
 
 
@@ -93,106 +92,5 @@ def search_music_by_genre_api(request):
                 "error": str(e),
                 "message": f"Error buscando música del género: {genre_name_safe}",
             },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def get_popular_genres_api(request):
-    """
-    Obtiene los géneros más populares.
-
-    Query Parameters:
-    - limit: int (default: 10) - Número máximo de resultados
-    """
-    try:
-        limit = int(request.GET.get("limit", 10))
-        if limit > 50:
-            limit = 50
-
-        genre_service = GenreService()
-
-        async def get_popular():
-            return await genre_service.get_popular_genres(limit=limit)
-
-        genres = asyncio.run(get_popular())
-
-        genres_data = [
-            {
-                "id": genre.id,
-                "name": genre.name,
-                "description": genre.description,
-                "popularity_score": genre.popularity_score,
-                "is_active": genre.is_active,
-            }
-            for genre in genres
-        ]
-
-        return Response(
-            {"success": True, "total": len(genres_data), "genres": genres_data},
-            status=status.HTTP_200_OK,
-        )
-
-    except Exception as e:
-        return Response(
-            {
-                "success": False,
-                "error": str(e),
-                "message": "Error obteniendo géneros populares",
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def search_genres_api(request):
-    """
-    Busca géneros por nombre en la base de datos.
-
-    Query Parameters:
-    - name: str (required) - Nombre del género a buscar
-    - limit: int (default: 10) - Número máximo de resultados
-    """
-    try:
-        name = request.GET.get("name")
-        if not name:
-            return Response(
-                {"success": False, "error": 'Parámetro "name" es requerido'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        limit = int(request.GET.get("limit", 10))
-        genre_service = GenreService()
-
-        async def search():
-            return await genre_service.search_genres(name, limit=limit)
-
-        genres = asyncio.run(search())
-
-        genres_data = [
-            {
-                "id": genre.id,
-                "name": genre.name,
-                "description": genre.description,
-                "popularity_score": genre.popularity_score,
-            }
-            for genre in genres
-        ]
-
-        return Response(
-            {
-                "success": True,
-                "search_term": name,
-                "total": len(genres_data),
-                "genres": genres_data,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-    except Exception as e:
-        return Response(
-            {"success": False, "error": str(e), "message": "Error buscando géneros"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
