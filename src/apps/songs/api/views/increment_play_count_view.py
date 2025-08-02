@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -31,7 +32,7 @@ from ..dtos import IncrementCountRequestDTO
     },
 )
 @api_view(["POST"])
-async def increment_play_count_view(request, song_id):
+def increment_play_count_view(request, song_id):
     """Incrementa el contador de reproducciones"""
     try:
         repository = SongRepository()
@@ -40,7 +41,7 @@ async def increment_play_count_view(request, song_id):
         # Crear DTO con el song_id
         request_dto = IncrementCountRequestDTO(song_id=song_id)
 
-        song = await increment_use_case.execute(request_dto)
+        song = async_to_sync(increment_use_case.execute)(request_dto)
 
         if not song:
             return Response(

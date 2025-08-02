@@ -49,6 +49,7 @@ class SongListSerializer(serializers.Serializer):
     thumbnail_url = serializers.URLField(allow_null=True)
     play_count = serializers.IntegerField()
     audio_downloaded = serializers.BooleanField()
+    file_url = serializers.URLField(allow_null=True)
 
     def get_duration_formatted(self, obj) -> str:
         """Retorna la duración en formato MM:SS"""

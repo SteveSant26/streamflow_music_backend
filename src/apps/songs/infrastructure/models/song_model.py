@@ -12,10 +12,17 @@ class SongModel(models.Model):
     # Información básica
     title = models.CharField(max_length=255)
 
-    # Relaciones (por ahora como UUIDs, luego serán FK cuando estén los otros modelos)
+    # Relaciones
     album_id = models.UUIDField(null=True, blank=True, db_index=True)
     artist_id = models.UUIDField(null=True, blank=True, db_index=True)
-    genre_id = models.UUIDField(null=True, blank=True, db_index=True)
+
+    # Relación con géneros - Many to Many para permitir múltiples géneros por canción
+    genres = models.ManyToManyField(
+        "genres.GenreModel",
+        blank=True,
+        related_name="songs",
+        help_text="Géneros musicales asociados a esta canción",
+    )
 
     # Información desnormalizada para mejor rendimiento en consultas
     album_title = models.CharField(
@@ -24,9 +31,13 @@ class SongModel(models.Model):
     artist_name = models.CharField(
         max_length=255, null=True, blank=True, db_index=True  # NOSONAR
     )  # NOSONAR
-    genre_name = models.CharField(
-        max_length=100, null=True, blank=True, db_index=True  # NOSONAR
-    )  # NOSONAR
+
+    # Géneros desnormalizados para consultas rápidas (se actualiza automáticamente)
+    genre_names = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Lista de nombres de géneros para búsquedas rápidas",
+    )
 
     # Metadatos de la canción
     duration_seconds = models.IntegerField(
@@ -41,7 +52,6 @@ class SongModel(models.Model):
 
     # Contenido adicional
     lyrics = models.TextField(null=True, blank=True)  # NOSONAR
-    tags = models.JSONField(default=list, blank=True)
 
     # Métricas internas de la aplicación
     play_count = models.PositiveIntegerField(default=0, db_index=True)
@@ -91,7 +101,6 @@ class SongModel(models.Model):
             models.Index(fields=["source_type", "source_id"]),
             models.Index(fields=["artist_name", "play_count"]),
             models.Index(fields=["album_title", "track_number"]),
-            models.Index(fields=["genre_name", "play_count"]),
             models.Index(fields=["is_active", "created_at"]),
             models.Index(fields=["play_count"], name="songs_most_played_idx"),
             models.Index(fields=["favorite_count"], name="songs_most_favorited_idx"),
@@ -132,3 +141,12 @@ class SongModel(models.Model):
         """Incrementa el contador de descargas"""
         self.download_count += 1
         self.save(update_fields=["download_count"])
+
+    def get_primary_genre(self):
+        """Retorna el primer género asignado como género principal"""
+        return self.genres.first()
+
+    @property
+    def genres_display(self):
+        """Retorna los géneros como string separado por comas para display"""
+        return ", ".join(self.genre_names) if self.genre_names else "Sin género"

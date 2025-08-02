@@ -4,7 +4,6 @@ from django.db import models
 class UserProfileModel(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
     email = models.EmailField(editable=False, unique=True)
-    password = models.CharField(max_length=255)  # Campo para la contraseña
     profile_picture = models.CharField(
         max_length=255,
         blank=True,

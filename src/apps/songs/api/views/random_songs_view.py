@@ -1,13 +1,13 @@
 from asgiref.sync import async_to_sync
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.serializers import Serializer
 
 from common.factories import MediaServiceFactory
-from common.mixins.logging_mixin import LoggingMixin
+from common.mixins.paginated_api_view import PaginatedAPIView
+from common.utils.schema_decorators import paginated_list_endpoint
 
 from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import GetRandomSongsUseCase
@@ -22,7 +22,7 @@ from ..serializers.song_serializers import SongListSerializer
         description="Get random songs from the database with optional refresh from YouTube",
     )
 )
-class RandomSongsView(APIView, LoggingMixin):
+class RandomSongsView(PaginatedAPIView):
     """Vista para obtener canciones aleatorias"""
 
     permission_classes = [AllowAny]
@@ -36,18 +36,14 @@ class RandomSongsView(APIView, LoggingMixin):
         )
         self.mapper = SongMapper()
 
-    @extend_schema(
-        responses={200: SongListSerializer(many=True)},
-        parameters=[
-            OpenApiParameter(
-                "count", OpenApiTypes.INT, description="Number of songs to return"
-            ),
-            OpenApiParameter(
-                "force_refresh",
-                OpenApiTypes.BOOL,
-                description="Force refresh from YouTube",
-            ),
-        ],
+    def get_serializer_class(self) -> type[Serializer]:
+        """Override this method to specify the serializer"""
+        return SongListSerializer
+
+    @paginated_list_endpoint(
+        serializer_class=SongListSerializer,
+        tags=["Songs"],
+        description="Get random songs from the database",
     )
     def get(self, request):
         """Obtiene canciones aleatorias"""
@@ -63,9 +59,9 @@ class RandomSongsView(APIView, LoggingMixin):
             songs = async_to_sync(self.get_random_songs_use_case.execute)(request_dto)
 
             songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
-            serializer = SongListSerializer(songs_dtos, many=True)
 
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Usar el método heredado del PaginationMixin
+            return self.paginate_and_respond(songs_dtos, request)
 
         except Exception as e:
             self.logger.error(f"Error getting random songs: {str(e)}")
