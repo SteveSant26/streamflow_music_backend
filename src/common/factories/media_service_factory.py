@@ -114,10 +114,10 @@ class MediaServiceFactory:
     def create_development_music_service(cls) -> IMusicService:
         """Crea un servicio de música para desarrollo con configuraciones optimizadas"""
 
-        # Usar el builder para crear la versión mejorada
-        from ..adapters.media.music_service_builder import MusicServiceBuilder
+        # Usar el UnifiedMusicServiceFactory para crear la versión mejorada
+        from .unified_music_service_factory import get_music_service
 
-        return MusicServiceBuilder().for_development().build()
+        return get_music_service("development")
 
     @classmethod
     def create_enhanced_music_service(
@@ -126,51 +126,55 @@ class MediaServiceFactory:
         youtube_service: Optional[IYouTubeService] = None,
         audio_service: Optional[IAudioDownloadService] = None,
     ) -> IMusicService:
-        """Crea un servicio de música mejorado con pipeline"""
-        from ..adapters.media.music_service_builder import MusicServiceBuilder
+        """Crea un servicio de música mejorado con configuración personalizada"""
+        from .unified_music_service_factory import UnifiedMusicServiceFactory
 
-        builder = MusicServiceBuilder()
+        # Si se proporcionan servicios específicos, crear servicio personalizado
+        if youtube_service or audio_service or config:
+            # Convertir servicios si son necesarios
+            from ..adapters.media.audio_download_service import AudioDownloadService
+            from ..adapters.media.youtube_service import YouTubeAPIService
 
-        if config:
-            builder.with_music_config(config)
+            youtube_svc = youtube_service
+            if youtube_svc and not isinstance(youtube_svc, YouTubeAPIService):
+                # Si necesitas convertir el tipo, hazlo aquí
+                pass
 
-        # Si se proporcionan servicios específicos, úsalos
-        if youtube_service or audio_service:
-            # Para servicios específicos, usar la implementación original
-            youtube_svc = youtube_service or cls.create_youtube_service()
-            audio_svc = audio_service or cls.create_audio_download_service()
+            audio_svc = audio_service
+            if audio_svc and not isinstance(audio_svc, AudioDownloadService):
+                # Si necesitas convertir el tipo, hazlo aquí
+                pass
 
-            cls._music_service_instance = MusicService(
-                config=config,
-                youtube_service=youtube_svc,
-                audio_service=audio_svc,
+            return UnifiedMusicServiceFactory.create_custom_service(
+                music_config=config,
+                youtube_config=None,
+                audio_config=None,
+                with_repositories=False,
             )
         else:
-            # Usar el builder para crear la versión mejorada
-            cls._music_service_instance = builder.build()
-
-        return cls._music_service_instance
+            # Usar configuración por defecto
+            return UnifiedMusicServiceFactory.create_default_service()
 
     @classmethod
     def create_development_enhanced_service(cls) -> IMusicService:
         """Crea un servicio mejorado para desarrollo"""
-        from ..adapters.media.music_service_builder import MusicServiceBuilder
+        from .unified_music_service_factory import get_music_service
 
-        return MusicServiceBuilder().for_development().build()
+        return get_music_service("development")
 
     @classmethod
     def create_production_enhanced_service(cls) -> IMusicService:
         """Crea un servicio mejorado para producción"""
-        from ..adapters.media.music_service_builder import MusicServiceBuilder
+        from .unified_music_service_factory import get_music_service
 
-        return MusicServiceBuilder().for_production().build()
+        return get_music_service("production")
 
     @classmethod
     def create_podcast_service(cls) -> IMusicService:
         """Crea un servicio optimizado para podcasts"""
-        from ..adapters.media.music_service_builder import MusicServiceBuilder
+        from .unified_music_service_factory import get_music_service
 
-        return MusicServiceBuilder().for_podcasts().build()
+        return get_music_service("podcast")
 
     @classmethod
     def reset_instances(cls):

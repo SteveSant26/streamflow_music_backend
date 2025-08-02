@@ -192,22 +192,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
     def _get_random_queries(self) -> List[str]:
         """Gets random queries for search"""
-        return getattr(
-            settings,
-            "RANDOM_MUSIC_QUERIES",
-            [
-                "popular music 2024",
-                "trending songs",
-                "best music hits",
-                "top 40 music",
-                "latest music videos",
-                "new releases music",
-                "acoustic songs",
-                "rock music",
-                "pop hits",
-                "indie music",
-            ],
-        )
+        return settings.RANDOM_MUSIC_QUERIES
 
     async def _get_videos_details(self, video_ids: List[str]) -> List[YouTubeVideoInfo]:
         """Gets complete details of a list of videos"""
@@ -331,7 +316,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
     def _get_genre_from_category(self, category_id: str) -> str:
         """Gets genre based on YouTube category"""
-        categories = getattr(settings, "YOUTUBE_CATEGORIES", {})
+        categories = getattr(settings, "YOUTUBE_MUSIC_GENRES", {})
 
         try:
             # Try with integer key first (as defined in settings)
@@ -370,3 +355,179 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 0, self.config.quota_limit_per_day - self.quota_used_today
             ),
         }
+
+    async def get_music_categories(self) -> List[Dict[str, Any]]:
+        """Gets all available YouTube video categories with focus on music"""
+        try:
+            # Check quota before making the call
+            if self.enable_quota_tracking and not self._check_quota_limit(1):
+                self.logger.warning("YouTube API quota limit reached for categories")
+                return self._get_fallback_music_categories()
+
+            categories_response = await self.circuit_breaker.call(
+                self._fetch_video_categories
+            )
+
+            if self.enable_quota_tracking:
+                self.quota_used_today += 1  # Cost per videoCategories.list call
+
+            music_categories = []
+            for category in categories_response.get("items", []):
+                category_info = self._build_category_info(category)
+                if category_info and self._is_music_related_category(category_info):
+                    music_categories.append(category_info)
+
+            # Always include the main music category if not present
+            if not any(cat["id"] == "10" for cat in music_categories):
+                music_categories.insert(
+                    0,
+                    {
+                        "id": "10",
+                        "title": "Music",
+                        "assignable": True,
+                        "is_primary_music": True,
+                    },
+                )
+
+            return music_categories
+
+        except Exception as e:
+            self.logger.error(f"Error getting music categories: {str(e)}")
+            return self._get_fallback_music_categories()
+
+    def _fetch_video_categories(self) -> Dict[str, Any]:
+        """Makes the actual API call to get video categories"""
+        return (
+            self.youtube.videoCategories()
+            .list(part="snippet", regionCode="US")
+            .execute()
+        )
+
+    def _build_category_info(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Builds category information from API data"""
+        try:
+            snippet = category_data["snippet"]
+            return {
+                "id": category_data["id"],
+                "title": snippet["title"],
+                "assignable": snippet.get("assignable", False),
+                "channel_id": snippet.get("channelId", ""),
+                "is_primary_music": category_data["id"] == "10",
+            }
+        except Exception as e:
+            self.logger.error(f"Error building category info: {str(e)}")
+            return None
+
+    def _is_music_related_category(self, category: Dict[str, Any]) -> bool:
+        """Determines if a category is music-related"""
+        music_keywords = [
+            "music",
+            "musical",
+            "song",
+            "audio",
+            "sound",
+            "concert",
+            "performance",
+            "artist",
+            "band",
+        ]
+
+        title_lower = category["title"].lower()
+        return category["id"] == "10" or any(  # Primary music category
+            keyword in title_lower for keyword in music_keywords
+        )
+
+    def _get_fallback_music_categories(self) -> List[Dict[str, Any]]:
+        """Returns fallback music categories when API is not available"""
+        return [
+            {
+                "id": "10",
+                "title": "Music",
+                "assignable": True,
+                "channel_id": "",
+                "is_primary_music": True,
+            }
+        ]
+
+    async def search_music_only(
+        self, query: str, options: Optional[SearchOptions] = None
+    ) -> List["YouTubeVideoInfo"]:
+        """Search specifically for music content only"""
+        if not options:
+            options = SearchOptions()
+
+        # Force music category
+        options.video_category_id = "10"
+
+        # Add music-specific keywords to query if not present
+        music_keywords = ["music", "song", "audio", "track", "artist", "band"]
+        query_lower = query.lower()
+
+        if not any(keyword in query_lower for keyword in music_keywords):
+            query = f"{query} music"
+
+        try:
+            videos = await self.search_videos(query, options)
+
+            # Additional filtering for music content
+            music_videos = []
+            for video in videos:
+                if self._is_music_content(video):
+                    music_videos.append(video)
+
+            return music_videos
+
+        except Exception as e:
+            self.logger.error(f"Error searching music only: {str(e)}")
+            return []
+
+    def _is_music_content(self, video: "YouTubeVideoInfo") -> bool:
+        """Determines if video content is music-related"""
+        # Check category
+        if video.category_id != "10":
+            return False
+
+        # Check for music indicators in title
+        music_indicators = [
+            "music",
+            "song",
+            "audio",
+            "track",
+            "album",
+            "single",
+            "official video",
+            "music video",
+            "mv",
+            "cover",
+            "remix",
+            "acoustic",
+            "live",
+            "concert",
+            "performance",
+        ]
+
+        title_lower = video.title.lower()
+        description_lower = video.description.lower()
+
+        # Title should contain music indicators
+        title_has_music = any(
+            indicator in title_lower for indicator in music_indicators
+        )
+
+        # Tags should contain music-related terms
+        music_tags = any(
+            tag.lower() in ["music", "song", "audio", "track", "artist", "band"]
+            for tag in video.tags
+        )
+
+        # Description should mention music
+        desc_has_music = any(
+            indicator in description_lower for indicator in music_indicators[:6]
+        )
+
+        # At least 2 of these conditions should be true
+        music_score = sum([title_has_music, music_tags, desc_has_music])
+
+        return music_score >= 2

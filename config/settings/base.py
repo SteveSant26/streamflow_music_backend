@@ -8,15 +8,15 @@ from .database_settings import DATABASES  # noqa: F401
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: F401
 from .middleware_settings import MIDDLEWARE  # noqa: F401
 from .rest_framework_settings import REST_FRAMEWORK  # noqa: F401
+
 # Temporarily disabled Stripe settings for migrations
-# from .stripe_settings import (  # noqa: F401
-#     STRIPE_BASIC_PRICE_ID,
-#     STRIPE_FAMILY_PRICE_ID,
-#     STRIPE_PREMIUM_PRICE_ID,
-#     STRIPE_PUBLISHABLE_KEY,
-#     STRIPE_SECRET_KEY,
-#     STRIPE_WEBHOOK_SECRET,
-# )
+from .stripe_settings import (  # noqa: F401
+    STRIPE_PREMIUM_MONTHLY_PRICE_ID,
+    STRIPE_PREMIUM_YEARLY_PRICE_ID,
+    STRIPE_PUBLISHABLE_KEY,
+    STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET,
+)
 from .supabase_settings import (  # noqa: F401
     SUPABASE_ANON_KEY,
     SUPABASE_JWT_ALGORITHM,
@@ -32,8 +32,7 @@ from .youtube_settings import (  # noqa: F401
     YOUTUBE_API_KEY,
     YOUTUBE_API_SERVICE_NAME,
     YOUTUBE_API_VERSION,
-    YOUTUBE_CATEGORIES,
-    YT_DLP_AUDIO_OPTS,
+    YOUTUBE_MUSIC_GENRES,
 )
 
 SECRET_KEY = env("SECRET_KEY")
@@ -76,13 +75,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = "/media/"
 
-# Stripe Configuration (temporary for migrations)
-STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
-STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
-STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
-STRIPE_BASIC_PRICE_ID = env("STRIPE_BASIC_PRICE_ID", default="")
-STRIPE_PREMIUM_PRICE_ID = env("STRIPE_PREMIUM_PRICE_ID", default="")
-STRIPE_FAMILY_PRICE_ID = env("STRIPE_FAMILY_PRICE_ID", default="")
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 

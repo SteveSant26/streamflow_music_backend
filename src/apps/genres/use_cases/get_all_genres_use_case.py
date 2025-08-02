@@ -1,7 +1,11 @@
+"""
+Caso de uso para obtener todos los géneros.
+"""
+
 from common.interfaces.ibase_use_case import BaseGetAllUseCase
 
 from ..domain.entities import GenreEntity
-from ..domain.repository import IGenreRepository
+from ..domain.repository.Igenre_repository import IGenreRepository
 
 
 class GetAllGenresUseCase(BaseGetAllUseCase[GenreEntity]):
