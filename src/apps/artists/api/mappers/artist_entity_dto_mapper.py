@@ -1,8 +1,6 @@
 from apps.artists.domain.entities import ArtistEntity
+from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 from common.mixins.logging_mixin import LoggingMixin
-from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
-    AbstractEntityDtoMapper,
-)
 
 from ..dtos import ArtistResponseDTO
 

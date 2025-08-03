@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from apps.artists.domain.entities import ArtistEntity
 from apps.artists.infrastructure.models import ArtistModel
-from src.common.interfaces.imapper import AbstractEntityModelMapper
+from common.interfaces.imapper import AbstractEntityModelMapper
 
 
 class ArtistEntityModelMapper(AbstractEntityModelMapper[ArtistEntity, ArtistModel]):

@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
-from apps.user_profile.api.dtos import UserProfileResponseDTO
+from apps.user_profile.api.mappers import UserProfileMapper
 from apps.user_profile.domain.entities import UserProfileEntity
 from common.serializers import BaseEntitySerializer
-from src.apps.user_profile.api.mappers import UserProfileMapper
+
+from ..dtos import UserProfileResponseDTO
 
 
 class RetrieveUserProfileSerializer(BaseEntitySerializer):

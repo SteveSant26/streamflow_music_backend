@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any, List, Optional
 
-from src.common.interfaces.ibase_repository import IBaseRepository
+from common.interfaces.ibase_repository import IBaseRepository
 
 from ..entities import SongEntity
 

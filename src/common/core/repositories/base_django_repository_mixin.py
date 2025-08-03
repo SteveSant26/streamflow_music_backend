@@ -1,10 +1,12 @@
 from abc import ABC
-from typing import Generic, Type
+from typing import Generic, Type, TypeVar
 
-from src.common.interfaces.imapper import AbstractEntityModelMapper
-from src.common.types import EntityType, ModelType
+from common.interfaces.imapper import AbstractEntityModelMapper
 
 from ...mixins.logging_mixin import LoggingMixin
+
+EntityType = TypeVar("EntityType")
+ModelType = TypeVar("ModelType")
 
 
 class BaseDjangoRepositoryMixin(ABC, Generic[EntityType, ModelType], LoggingMixin):

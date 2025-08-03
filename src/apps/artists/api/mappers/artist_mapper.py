@@ -1,4 +1,4 @@
-from src.common.interfaces.imapper.abstract_mapper import AbstractMapper
+from common.interfaces.imapper.abstract_mapper import AbstractMapper
 
 from .artist_entity_dto_mapper import ArtistEntityDTOMapper
 from .artist_entity_model_mapper import ArtistEntityModelMapper

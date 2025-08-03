@@ -16,35 +16,13 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
     def __init__(self):
         super().__init__(GenreModel, GenreEntityModelMapper())
 
-    async def search_by_name(self, name: str, limit: int = 10) -> List[GenreEntity]:
-        """Busca géneros por nombre"""
-        self.logger.debug(f"Searching genres by name: {name} with limit: {limit}")
-        models = await sync_to_async(
-            lambda: list(
-                self.model_class.objects.filter(name__icontains=name).order_by("name")[
-                    :limit
-                ]
-            )
-        )()
-        return self.mapper.models_to_entities(models)
-
-    async def get_popular_genres(self, limit: int = 10) -> List[GenreEntity]:
+    async def get_popular_genres(self) -> List[GenreEntity]:
         """Obtiene géneros populares"""
-        self.logger.debug(f"Getting popular genres with limit: {limit}")
+        self.logger.debug("Getting popular genres")
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.all().order_by("-popularity_score", "name")[
-                    :limit
-                ]
+                self.model_class.objects.all().order_by("-popularity_score", "name")
             )
-        )()
-        return self.mapper.models_to_entities(models)
-
-    async def get_active_genres(self, limit: int = 10) -> List[GenreEntity]:
-        """Obtiene géneros activos"""
-        self.logger.debug(f"Getting active genres with limit: {limit}")
-        models = await sync_to_async(
-            lambda: list(self.model_class.objects.all().order_by("name")[:limit])
         )()
         return self.mapper.models_to_entities(models)
 

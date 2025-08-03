@@ -1,17 +1,5 @@
-from .genre_dtos import (
-    GenreResponseDTO,
-    GenreSearchRequestDTO,
-    GetPopularGenresRequestDTO,
-    PopularGenresRequestDTO,
-    SearchGenresByNameRequestDTO,
-    SearchGenresRequestDTO,
-)
+from .genre_dtos import GenreResponseDTO
 
 __all__ = [
     "GenreResponseDTO",
-    "GenreSearchRequestDTO",
-    "GetPopularGenresRequestDTO",
-    "PopularGenresRequestDTO",
-    "SearchGenresByNameRequestDTO",
-    "SearchGenresRequestDTO",
 ]

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from common.mixins.logging_mixin import LoggingMixin
-from src.common.types.media_types import YouTubeVideoInfo
+from common.types.media_types import YouTubeVideoInfo
 
 from ..domain.entities import GenreEntity
 from ..domain.repository.Igenre_repository import IGenreRepository

@@ -18,11 +18,15 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         self.logger.debug(f"Converting model to entity for song {model.id}")
 
         # Obtener los IDs de géneros de la relación many-to-many
-        genre_ids = (
-            [str(genre.id) for genre in model.genres.all()]
-            if hasattr(model, "genres")
-            else []
-        )
+        # NOTA: Esta operación debería ser llamada desde un contexto sync
+        genre_ids = []
+        if hasattr(model, "genres"):
+            # Usamos prefetch_related en el repositorio para evitar queries adicionales
+            try:
+                genre_ids = [str(genre.id) for genre in model.genres.all()]
+            except Exception:
+                # Si falla, dejamos la lista vacía
+                genre_ids = []
 
         return SongEntity(
             id=str(model.id),

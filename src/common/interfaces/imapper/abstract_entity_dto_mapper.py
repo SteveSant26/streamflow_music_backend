@@ -1,10 +1,12 @@
 from abc import abstractmethod
-from typing import Generic, Iterable
+from typing import Generic, Iterable, TypeVar
 
 from pyparsing import ABC
 
-from src.common.mixins.logging_mixin import LoggingMixin
-from src.common.types import DTOType, EntityType
+from common.mixins.logging_mixin import LoggingMixin
+
+EntityType = TypeVar("EntityType")
+DTOType = TypeVar("DTOType")
 
 
 class AbstractEntityDtoMapper(Generic[EntityType, DTOType], ABC, LoggingMixin):

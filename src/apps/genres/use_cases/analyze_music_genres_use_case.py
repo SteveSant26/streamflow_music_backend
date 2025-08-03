@@ -1,12 +1,8 @@
-"""
-Caso de uso para análisis automático de géneros musicales.
-"""
-
 import logging
 from typing import Any, Dict, List, Optional
 
 from common.interfaces.ibase_use_case import BaseUseCase
-from src.common.types.media_types import YouTubeVideoInfo
+from common.types.media_types import YouTubeVideoInfo
 
 from ..domain.repository import IGenreRepository
 from ..infrastructure.repository.genre_repository import GenreRepository

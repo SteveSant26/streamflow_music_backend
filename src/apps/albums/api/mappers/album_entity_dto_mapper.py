@@ -7,9 +7,7 @@ from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
 from ..dtos import AlbumResponseDTO
 
 
-class AlbumEntityDTOMapper(
-    AbstractEntityDtoMapper[AlbumEntity, AlbumResponseDTO], LoggingMixin
-):
+class AlbumEntityDTOMapper(AbstractEntityDtoMapper, LoggingMixin):
     """Mapper para convertir entre entidades del dominio y DTOs de la API."""
 
     def __init__(self):

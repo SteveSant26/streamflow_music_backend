@@ -1,9 +1,9 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from src.common.core.repositories.base_django_repository_mixin import (
+from common.core.repositories.base_django_repository_mixin import (
     BaseDjangoRepositoryMixin,
 )
-from src.common.types import EntityType, ModelType
+from common.types import EntityType, ModelType
 
 from ...exceptions import NotFoundException
 from ...interfaces import IWriteOnlyRepository

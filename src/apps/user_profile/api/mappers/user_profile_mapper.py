@@ -1,4 +1,4 @@
-from src.common.interfaces.imapper.abstract_mapper import AbstractMapper
+from common.interfaces.imapper.abstract_mapper import AbstractMapper
 
 from .user_profile_entity_dto_mapper import UserProfileEntityDTOMapper
 from .user_profile_entity_model_mapper import UserProfileEntityModelMapper

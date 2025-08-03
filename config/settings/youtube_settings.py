@@ -22,10 +22,6 @@ RANDOM_MUSIC_QUERIES: List[str] = [
     "indie music",
     "r&b music",
     "country music",
-    "jazz music",
-    "blues music",
-    "classical music",
-    "folk music",
 ]
 
 

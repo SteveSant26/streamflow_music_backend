@@ -1,10 +1,8 @@
-from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
-    AbstractEntityDtoMapper,
-)
-from src.common.interfaces.imapper.abstract_model_entity_mapper import (
+from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
+from common.interfaces.imapper.abstract_model_entity_mapper import (
     AbstractEntityModelMapper,
 )
-from src.common.types import DTOType, EntityType, ModelType
+from common.types import DTOType, EntityType, ModelType
 
 
 class AbstractMapper(
