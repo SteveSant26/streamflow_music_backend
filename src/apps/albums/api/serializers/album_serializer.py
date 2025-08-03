@@ -28,7 +28,6 @@ class AlbumSerializer(BaseEntitySerializer):
     cover_image_url = serializers.URLField(read_only=True, allow_null=True)
     total_tracks = serializers.IntegerField(read_only=True)
     play_count = serializers.IntegerField(read_only=True)
-    is_active = serializers.BooleanField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True, allow_null=True)
     updated_at = serializers.DateTimeField(read_only=True, allow_null=True)
 

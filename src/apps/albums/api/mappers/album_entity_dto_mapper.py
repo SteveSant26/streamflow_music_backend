@@ -31,7 +31,6 @@ class AlbumEntityDTOMapper(
             cover_image_url=entity.cover_image_url,
             total_tracks=entity.total_tracks,
             play_count=entity.play_count,
-            is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -50,7 +49,6 @@ class AlbumEntityDTOMapper(
             cover_image_url=dto.cover_image_url,
             total_tracks=dto.total_tracks,
             play_count=dto.play_count,
-            is_active=dto.is_active,
             created_at=dto.created_at,
             updated_at=dto.updated_at,
         )

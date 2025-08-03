@@ -22,7 +22,7 @@ class ArtistRepository(
         """Busca un artista por nombre exacto"""
         try:
             model = await self.model_class.objects.aget(
-                name__iexact=name, is_active=True
+                name__iexact=name,
             )
             return self.mapper.model_to_entity(model)
         except self.model_class.DoesNotExist:
@@ -33,8 +33,10 @@ class ArtistRepository(
         models = await sync_to_async(
             lambda: list(
                 self.model_class.objects.filter(
-                    name__icontains=name, is_active=True
-                ).order_by("-followers_count")[:limit]
+                    name__icontains=name,
+                ).order_by(
+                    "-followers_count"
+                )[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -46,8 +48,10 @@ class ArtistRepository(
         models = await sync_to_async(
             lambda: list(
                 self.model_class.objects.filter(
-                    country__iexact=country, is_active=True
-                ).order_by("-followers_count")[:limit]
+                    country__iexact=country,
+                ).order_by(
+                    "-followers_count"
+                )[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -56,9 +60,7 @@ class ArtistRepository(
         """Obtiene los artistas más populares"""
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.filter(is_active=True).order_by(
-                    "-followers_count"
-                )[:limit]
+                self.model_class.objects.all().order_by("-followers_count")[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -68,8 +70,10 @@ class ArtistRepository(
         models = await sync_to_async(
             lambda: list(
                 self.model_class.objects.filter(
-                    is_verified=True, is_active=True
-                ).order_by("-followers_count")[:limit]
+                    is_verified=True,
+                ).order_by(
+                    "-followers_count"
+                )[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)

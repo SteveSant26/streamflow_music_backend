@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import Optional
+from abc import abstractmethod
+from typing import Any, Optional
 
 from apps.user_profile.domain.entities import UserProfileEntity
+from common.interfaces.ibase_repository import IBaseRepository
 
 
-class IUserRepository(ABC):
+class IUserRepository(IBaseRepository[UserProfileEntity, Any]):
     """
     Interface for user repository.
 

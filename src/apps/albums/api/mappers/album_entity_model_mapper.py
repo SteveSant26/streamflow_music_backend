@@ -26,7 +26,6 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
             cover_image_url=model.cover_image_url,
             total_tracks=model.total_tracks,
             play_count=model.play_count,
-            is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
@@ -46,7 +45,6 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
             cover_image_url=entity.cover_image_url,
             total_tracks=entity.total_tracks,
             play_count=entity.play_count,
-            is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -65,5 +63,4 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
             "cover_image_url": entity.cover_image_url,
             "total_tracks": entity.total_tracks,
             "play_count": entity.play_count,
-            "is_active": entity.is_active,
         }

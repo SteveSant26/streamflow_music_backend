@@ -29,7 +29,7 @@ class GetActiveArtistsUseCase(BaseUseCase[None, List[ArtistEntity]]):
         self.logger.debug(f"Getting active artists with limit: {limit}")
         # Usando get_all y filtrando por is_active
         all_artists = await self.repository.get_all()
-        active_artists = [artist for artist in all_artists if artist.is_active][:limit]
+        active_artists = [artist for artist in all_artists][:limit]
 
         self.logger.info(f"Found {len(active_artists)} active artists")
         return active_artists

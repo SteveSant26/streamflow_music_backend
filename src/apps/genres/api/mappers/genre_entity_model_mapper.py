@@ -9,7 +9,7 @@ from apps.genres.infrastructure.models import GenreModel
 from src.common.interfaces.imapper import AbstractEntityModelMapper
 
 
-class GenreEntityModelMapper(AbstractEntityModelMapper[GenreModel, GenreEntity]):
+class GenreEntityModelMapper(AbstractEntityModelMapper[GenreEntity, GenreModel]):
     """Mapper para convertir entre entidades del dominio y modelos de Genre."""
 
     def __init__(self):
@@ -27,7 +27,6 @@ class GenreEntityModelMapper(AbstractEntityModelMapper[GenreModel, GenreEntity])
             image_url=model.image_url,
             color_hex=model.color_hex,
             popularity_score=model.popularity_score,
-            is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
@@ -44,7 +43,6 @@ class GenreEntityModelMapper(AbstractEntityModelMapper[GenreModel, GenreEntity])
             image_url=entity.image_url,
             color_hex=entity.color_hex,
             popularity_score=entity.popularity_score,
-            is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -60,5 +58,4 @@ class GenreEntityModelMapper(AbstractEntityModelMapper[GenreModel, GenreEntity])
             "image_url": entity.image_url,
             "color_hex": entity.color_hex,
             "popularity_score": entity.popularity_score,
-            "is_active": entity.is_active,
         }

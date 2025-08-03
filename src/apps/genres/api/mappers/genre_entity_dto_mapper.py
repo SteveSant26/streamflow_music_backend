@@ -32,7 +32,6 @@ class GenreEntityDTOMapper(
             image_url=entity.image_url,
             color_hex=entity.color_hex,
             popularity_score=entity.popularity_score,
-            is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -48,7 +47,6 @@ class GenreEntityDTOMapper(
             image_url=dto.image_url,
             color_hex=dto.color_hex,
             popularity_score=dto.popularity_score,
-            is_active=dto.is_active,
             created_at=dto.created_at,
             updated_at=dto.updated_at,
         )

@@ -104,9 +104,7 @@ class AnalyzeMusicGenresUseCase(BaseUseCase[YouTubeVideoInfo, Dict[str, Any]]):
                         if identified_genres
                         else 0
                     ),
-                    "analysis_sources": list(
-                        set(match.source for match in genre_matches)
-                    ),
+                    "analysis_sources": list({match.source for match in genre_matches}),
                 },
             }
 

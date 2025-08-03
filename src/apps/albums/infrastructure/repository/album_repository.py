@@ -23,8 +23,10 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         models = await sync_to_async(
             lambda: list(
                 self.model_class.objects.filter(
-                    artist_id=artist_id, is_active=True
-                ).order_by("-release_date")[:limit]
+                    artist_id=artist_id,
+                ).order_by(
+                    "-release_date"
+                )[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -34,8 +36,10 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         models = await sync_to_async(
             lambda: list(
                 self.model_class.objects.filter(
-                    title__icontains=title, is_active=True
-                ).order_by("-play_count")[:limit]
+                    title__icontains=title,
+                ).order_by(
+                    "-play_count"
+                )[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -43,22 +47,14 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
     async def get_recent_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes recientes"""
         models = await sync_to_async(
-            lambda: list(
-                self.model_class.objects.filter(is_active=True).order_by("-created_at")[
-                    :limit
-                ]
-            )
+            lambda: list(self.model_class.objects.all().order_by("-created_at")[:limit])
         )()
         return self.mapper.models_to_entities(models)
 
     async def get_popular_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes populares"""
         models = await sync_to_async(
-            lambda: list(
-                self.model_class.objects.filter(is_active=True).order_by("-play_count")[
-                    :limit
-                ]
-            )
+            lambda: list(self.model_class.objects.all().order_by("-play_count")[:limit])
         )()
         return self.mapper.models_to_entities(models)
 
@@ -69,8 +65,10 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         models = await sync_to_async(
             lambda: list(
                 self.model_class.objects.filter(
-                    release_date__year=year, is_active=True
-                ).order_by("-play_count")[:limit]
+                    release_date__year=year,
+                ).order_by(
+                    "-play_count"
+                )[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)

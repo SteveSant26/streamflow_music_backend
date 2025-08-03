@@ -42,9 +42,7 @@ class SongEntityDTOMapper(
             audio_quality=entity.audio_quality,
             created_at=entity.created_at,
             release_date=entity.release_date,
-            audio_downloaded=bool(
-                entity.file_url
-            ),  # True si hay URL de archivo # Usamos release_date como published_at
+            audio_downloaded=bool(entity.file_url),
         )
 
     def dto_to_entity(self, dto: SongResponseDTO) -> SongEntity:
@@ -74,5 +72,4 @@ class SongEntityDTOMapper(
             audio_quality=dto.audio_quality or "standard",
             created_at=dto.created_at,
             release_date=dto.release_date,
-            # Nota: audio_downloaded se calcula a partir de file_url, no se almacena en la entidad
         )

@@ -38,3 +38,11 @@ class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
     @abstractmethod
     async def update(self, entity_id: str, entity: EntityType) -> EntityType:
         """Actualiza una entidad."""
+
+
+class IBaseRepository(
+    IReadOnlyRepository[EntityType, ModelType],
+    IWriteOnlyRepository[EntityType, ModelType],
+    ABC,
+):
+    """Repositorio base que combina operaciones de lectura y escritura."""
