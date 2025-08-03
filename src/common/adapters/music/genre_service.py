@@ -1,27 +1,22 @@
 """
 Servicio simplificado para gestión de géneros musicales.
-Enfocado en operaciones básicas, el análisis automático se maneja en apps/genres.
+Se enfoca únicamente en buscar música por género usando YouTube API.
+La clasificación y análisis de géneros se maneja en apps/genres con MusicGenreAnalyzer.
 """
 
-import logging
 from typing import List, Optional
 
-from django.conf import settings
-
+from ...mixins.logging_mixin import LoggingMixin
 from ...types.media_types import SearchOptions, YouTubeVideoInfo
 from ..media.youtube_service import YouTubeAPIService
 
 
-class MusicGenreService:
-    """Servicio simplificado para operaciones básicas de géneros"""
+class MusicGenreService(LoggingMixin):
+    """Servicio simplificado para búsqueda de música por género"""
 
     def __init__(self, youtube_service: Optional[YouTubeAPIService] = None):
-        self.logger = logging.getLogger(__name__)
+        super().__init__()
         self.youtube_service = youtube_service or YouTubeAPIService()
-
-    def get_predefined_genres(self) -> dict:
-        """Obtiene géneros predefinidos desde configuración"""
-        return getattr(settings, "YOUTUBE_MUSIC_GENRES", {})
 
     async def search_music_by_genre(
         self, genre_name: str, max_results: int = 20, order: str = "relevance"
@@ -50,12 +45,13 @@ class MusicGenreService:
             return []
 
     def get_genre_keywords(self, genre_name: str) -> List[str]:
-        """Obtiene palabras clave para un género específico"""
-        genres_config = self.get_predefined_genres()
+        """Genera palabras clave básicas para búsqueda de un género específico"""
+        # Generar palabras clave básicas para búsqueda
+        base_keywords = [genre_name.lower(), f"{genre_name.lower()} music"]
 
-        for genre_key, genre_data in genres_config.items():
-            if genre_data.get("name", "").lower() == genre_name.lower():
-                return genre_data.get("keywords", [])
+        # Agregar variaciones comunes
+        if " " in genre_name:
+            # Para géneros compuestos como "Hip Hop"
+            base_keywords.append(genre_name.lower().replace(" ", ""))
 
-        # Fallback: generar palabras clave básicas
-        return [genre_name.lower(), f"{genre_name.lower()} music"]
+        return base_keywords

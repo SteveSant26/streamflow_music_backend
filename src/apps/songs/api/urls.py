@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.songs.api.views import (
+from .views import (
     MostPopularSongsView,
     ProcessYouTubeVideoView,
     RandomSongsView,

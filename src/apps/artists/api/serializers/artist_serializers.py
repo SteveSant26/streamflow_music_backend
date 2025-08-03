@@ -22,7 +22,6 @@ class ArtistResponseSerializer(BaseEntitySerializer):
     image_url = serializers.URLField(read_only=True, required=False, allow_null=True)
     followers_count = serializers.IntegerField(read_only=True)
     is_verified = serializers.BooleanField(read_only=True)
-    is_active = serializers.BooleanField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True, required=False)
     updated_at = serializers.DateTimeField(read_only=True, required=False)
 

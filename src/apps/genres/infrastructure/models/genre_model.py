@@ -20,7 +20,6 @@ class GenreModel(models.Model):
     popularity_score = models.PositiveIntegerField(
         default=0, verbose_name="Puntuación de popularidad"
     )
-    is_active = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de creación"
     )

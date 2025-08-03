@@ -3,10 +3,10 @@ Servicio para análisis automático de géneros musicales.
 Analiza videos/música y determina qué géneros corresponden mejor.
 """
 
-import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from common.mixins.logging_mixin import LoggingMixin
 from src.common.types.media_types import YouTubeVideoInfo
 
 from ..domain.entities import GenreEntity
@@ -24,79 +24,16 @@ class GenreMatch:
     source: str  # 'title', 'description', 'tags', 'channel'
 
 
-class MusicGenreAnalyzer:
+class MusicGenreAnalyzer(LoggingMixin):
     """Analiza música para identificar géneros automáticamente"""
 
     def __init__(self, genre_repository: Optional[IGenreRepository] = None):
+        super().__init__()
         self.repository = genre_repository or GenreRepository()
-        self.logger = logging.getLogger(__name__)
 
         # Inicializar cache de géneros de BD
         self._genres_cache: Optional[List[GenreEntity]] = None
         self._keywords_cache: Optional[Dict[str, List[str]]] = None
-
-        # Palabras clave extendidas por género (base para análisis)
-        self.base_genre_keywords = {
-            # Pop y sus variantes
-            "Pop": ["pop", "mainstream", "chart", "hits", "top 40", "radio", "popular"],
-            "K-Pop": [
-                "kpop",
-                "k-pop",
-                "korean pop",
-                "bts",
-                "blackpink",
-                "twice",
-                "korean",
-            ],
-            "J-Pop": ["jpop", "j-pop", "japanese pop", "japanese", "anime music"],
-            "Dance Pop": ["dance pop", "dance", "upbeat", "club", "party"],
-            # Rock y sus subgéneros
-            "Rock": ["rock", "guitar", "band", "drums", "bass guitar"],
-            "Alternative Rock": ["alternative", "alt rock", "indie rock", "grunge"],
-            "Hard Rock": ["hard rock", "heavy rock", "classic rock"],
-            "Punk": ["punk", "punk rock", "hardcore", "fast", "aggressive"],
-            "Metal": [
-                "metal",
-                "heavy metal",
-                "metalcore",
-                "death metal",
-                "black metal",
-            ],
-            # Electrónica
-            "Electronic": ["electronic", "synth", "digital", "synthesizer"],
-            "EDM": ["edm", "festival", "rave", "drop", "electronic dance"],
-            "House": ["house", "deep house", "tech house", "progressive house"],
-            "Techno": ["techno", "minimal", "detroit", "underground"],
-            "Dubstep": ["dubstep", "bass", "wobble", "drop", "skrillex"],
-            "Trance": ["trance", "uplifting", "progressive trance", "armin"],
-            # Hip Hop y Rap
-            "Hip Hop": ["hip hop", "rap", "beats", "rapper", "mc"],
-            "Rap": ["rap", "rapper", "rhyme", "verse", "bars"],
-            "Trap": ["trap", "808", "southern rap", "atlanta", "mumble rap"],
-            "Drill": ["drill", "uk drill", "chicago drill"],
-            # R&B y Soul
-            "R&B": ["r&b", "rnb", "rhythm and blues", "smooth"],
-            "Soul": ["soul", "motown", "neo soul", "soulful"],
-            "Funk": ["funk", "groove", "bass", "james brown"],
-            # Tradicionales
-            "Jazz": ["jazz", "swing", "bebop", "saxophone", "trumpet"],
-            "Blues": ["blues", "12 bar", "delta", "chicago blues"],
-            "Classical": ["classical", "orchestra", "symphony", "piano", "violin"],
-            "Country": ["country", "nashville", "acoustic", "banjo", "fiddle"],
-            "Folk": ["folk", "acoustic", "traditional", "storytelling"],
-            # Latinos
-            "Reggaeton": ["reggaeton", "perreo", "dembow", "latino", "puerto rico"],
-            "Salsa": ["salsa", "mambo", "cuban", "tropical", "timba"],
-            "Bachata": ["bachata", "dominican", "guitar", "romantic"],
-            "Cumbia": ["cumbia", "colombian", "accordion", "tropical"],
-            # Reggae
-            "Reggae": ["reggae", "jamaica", "rastafari", "bob marley"],
-            "Dancehall": ["dancehall", "jamaican", "ragga", "toasting"],
-            # Otros
-            "Indie": ["indie", "independent", "underground", "alternative"],
-            "Ambient": ["ambient", "atmospheric", "chill", "meditation"],
-            "Lo-Fi": ["lofi", "lo-fi", "chill", "study beats", "relaxing"],
-        }
 
     async def _get_genres_from_database(self) -> List[GenreEntity]:
         """Obtiene todos los géneros de la base de datos con cache"""
@@ -111,6 +48,26 @@ class MusicGenreAnalyzer:
                 self._genres_cache = []
 
         return self._genres_cache
+
+    def _extract_keywords_from_genre(self, genre: GenreEntity) -> List[str]:
+        """Extrae palabras clave de un género de la base de datos"""
+        keywords = [genre.name.lower()]
+
+        # Extraer keywords de la descripción si existe
+        if genre.description and "Palabras clave:" in genre.description:
+            try:
+                keywords_part = genre.description.split("Palabras clave:")[1].strip()
+                # Quitar el punto final si existe
+                keywords_part = keywords_part.rstrip(".")
+                # Dividir por comas y limpiar espacios
+                db_keywords = [kw.strip().lower() for kw in keywords_part.split(",")]
+                keywords.extend(db_keywords)
+            except Exception as e:
+                self.logger.warning(
+                    f"Error extrayendo keywords de {genre.name}: {str(e)}"
+                )
+
+        return keywords
 
     async def analyze_music_genres(
         self,
@@ -141,7 +98,7 @@ class MusicGenreAnalyzer:
             genre_matches = []
 
             for genre in all_genres:
-                match = await self._analyze_genre_match(music_info, genre)
+                match = self._analyze_genre_match(music_info, genre)
                 if match and match.confidence_score >= min_confidence:
                     genre_matches.append(match)
 
@@ -155,13 +112,13 @@ class MusicGenreAnalyzer:
             self.logger.error(f"Error analizando géneros para música: {str(e)}")
             return []
 
-    async def _analyze_genre_match(
+    def _analyze_genre_match(
         self, music_info: YouTubeVideoInfo, genre: GenreEntity
     ) -> Optional[GenreMatch]:
         """Analiza qué tan bien coincide un género con la música"""
 
-        # Obtener palabras clave para este género
-        keywords = self.base_genre_keywords.get(genre.name, [genre.name.lower()])
+        # Obtener palabras clave para este género desde la base de datos
+        keywords = self._extract_keywords_from_genre(genre)
 
         # Textos a analizar
         title = music_info.title.lower()
@@ -170,10 +127,10 @@ class MusicGenreAnalyzer:
         channel = music_info.channel_title.lower()
 
         # Buscar coincidencias
-        title_matches = self._find_matches(title, keywords, "title")
-        desc_matches = self._find_matches(description, keywords, "description")
-        tag_matches = self._find_matches(" ".join(tags), keywords, "tags")
-        channel_matches = self._find_matches(channel, keywords, "channel")
+        title_matches = self._find_matches(title, keywords)
+        desc_matches = self._find_matches(description, keywords)
+        tag_matches = self._find_matches(" ".join(tags), keywords)
+        channel_matches = self._find_matches(channel, keywords)
 
         # Calcular puntuación
         all_matches = title_matches + desc_matches + tag_matches + channel_matches
@@ -195,7 +152,7 @@ class MusicGenreAnalyzer:
             ),
         )
 
-    def _find_matches(self, text: str, keywords: List[str], source: str) -> List[str]:
+    def _find_matches(self, text: str, keywords: List[str]) -> List[str]:
         """Encuentra coincidencias de palabras clave en un texto"""
         matches = []
 

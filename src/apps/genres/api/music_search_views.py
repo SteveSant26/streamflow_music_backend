@@ -1,9 +1,6 @@
-"""
-API Views adicionales para búsqueda de música por géneros.
-"""
-
-import asyncio
-
+from asgiref.sync import async_to_sync
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -13,6 +10,34 @@ from ..infrastructure.repository.genre_repository import GenreRepository
 from ..use_cases.search_music_by_genre_use_case import SearchMusicByGenreUseCase
 
 
+@extend_schema(
+    summary="Buscar música por género",
+    description="Devuelve una lista de videos relacionados con el género musical dado",
+    parameters=[
+        OpenApiParameter(
+            name="genre",
+            type=OpenApiTypes.STR,
+            required=True,
+            location=OpenApiParameter.QUERY,
+            description="Nombre del género",
+        ),
+        OpenApiParameter(
+            name="max_results",
+            type=OpenApiTypes.INT,
+            required=False,
+            location=OpenApiParameter.QUERY,
+            description="Cantidad máxima de resultados (default: 20, máximo: 50)",
+        ),
+        OpenApiParameter(
+            name="order",
+            type=OpenApiTypes.STR,
+            required=False,
+            location=OpenApiParameter.QUERY,
+            description="Criterio de orden: relevance, date, rating, viewCount, title",
+        ),
+    ],
+    responses={200: OpenApiTypes.OBJECT},
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def search_music_by_genre_api(request):
@@ -45,11 +70,7 @@ def search_music_by_genre_api(request):
 
         # Usar el caso de uso
         use_case = SearchMusicByGenreUseCase(GenreRepository())
-
-        async def search():
-            return await use_case.execute(genre_name, max_results, order)
-
-        result = asyncio.run(search())
+        result = async_to_sync(use_case.execute)(genre_name, max_results, order)
 
         if not result["success"]:
             return Response(result, status=status.HTTP_404_NOT_FOUND)
@@ -66,9 +87,9 @@ def search_music_by_genre_api(request):
                     "duration": video.duration_seconds,
                     "view_count": video.view_count,
                     "like_count": video.like_count,
-                    "published_at": video.published_at.isoformat()
-                    if video.published_at
-                    else None,
+                    "published_at": (
+                        video.published_at.isoformat() if video.published_at else None
+                    ),
                     "channel_title": video.channel_title,
                 }
             )

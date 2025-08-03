@@ -5,14 +5,15 @@ Caso de uso para análisis automático de géneros musicales.
 import logging
 from typing import Any, Dict, List, Optional
 
+from common.interfaces.ibase_use_case import BaseUseCase
 from src.common.types.media_types import YouTubeVideoInfo
 
-from ..domain.repository.Igenre_repository import IGenreRepository
+from ..domain.repository import IGenreRepository
 from ..infrastructure.repository.genre_repository import GenreRepository
 from ..services.music_genre_analyzer import GenreMatch, MusicGenreAnalyzer
 
 
-class AnalyzeMusicGenresUseCase:
+class AnalyzeMusicGenresUseCase(BaseUseCase[YouTubeVideoInfo, Dict[str, Any]]):
     """Caso de uso para análisis automático de géneros musicales"""
 
     def __init__(
@@ -20,9 +21,9 @@ class AnalyzeMusicGenresUseCase:
         genre_repository: Optional[IGenreRepository] = None,
         analyzer: Optional[MusicGenreAnalyzer] = None,
     ):
+        super().__init__()
         self.repository = genre_repository or GenreRepository()
         self.analyzer = analyzer or MusicGenreAnalyzer(self.repository)
-        self.logger = logging.getLogger(__name__)
 
     async def execute(
         self,
@@ -103,9 +104,7 @@ class AnalyzeMusicGenresUseCase:
                         if identified_genres
                         else 0
                     ),
-                    "analysis_sources": list(
-                        set(match.source for match in genre_matches)
-                    ),
+                    "analysis_sources": list({match.source for match in genre_matches}),
                 },
             }
 
@@ -244,7 +243,7 @@ class AnalyzeMusicGenresUseCase:
             self.logger.warning(f"Error actualizando popularidad de géneros: {str(e)}")
 
 
-class ValidateGenreClassificationUseCase:
+class ValidateGenreClassificationUseCase(BaseUseCase[YouTubeVideoInfo, Dict[str, Any]]):
     """Caso de uso para validar si una música pertenece a un género específico"""
 
     def __init__(
@@ -252,9 +251,9 @@ class ValidateGenreClassificationUseCase:
         genre_repository: Optional[IGenreRepository] = None,
         analyzer: Optional[MusicGenreAnalyzer] = None,
     ):
+        super().__init__()
         self.repository = genre_repository or GenreRepository()
         self.analyzer = analyzer or MusicGenreAnalyzer(self.repository)
-        self.logger = logging.getLogger(__name__)
 
     async def execute(
         self, music_info: YouTubeVideoInfo, expected_genre: str

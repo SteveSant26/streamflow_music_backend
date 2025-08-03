@@ -54,18 +54,6 @@ class GenreService:
         except Exception:
             return None
 
-    async def get_genres_by_category(self, category: str) -> List[GenreEntity]:
-        """Obtiene géneros filtrados por categoría (simulado por descripción)"""
-        try:
-            all_genres = await self.get_all_genres()
-            return [
-                genre
-                for genre in all_genres
-                if genre.description and category.lower() in genre.description.lower()
-            ]
-        except Exception:
-            return []
-
     async def update_genre_popularity(self, genre_id: str, increment: int = 1) -> bool:
         """Actualiza la popularidad de un género"""
         try:

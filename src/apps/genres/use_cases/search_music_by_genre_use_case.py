@@ -2,17 +2,18 @@
 Caso de uso para buscar música por género utilizando la API de YouTube.
 """
 
-import logging
-from typing import Optional
+from typing import Dict, Optional
 
+from common.interfaces.ibase_use_case import BaseUseCase
+from common.utils.logging_decorators import log_execution, log_performance
 from src.common.adapters.media.youtube_service import YouTubeAPIService
 from src.common.types.media_types import SearchOptions
 
 from ..domain.entities import GenreEntity
-from ..domain.repository.Igenre_repository import IGenreRepository
+from ..domain.repository import IGenreRepository
 
 
-class SearchMusicByGenreUseCase:
+class SearchMusicByGenreUseCase(BaseUseCase[str, Dict]):
     """Caso de uso para buscar música por género"""
 
     def __init__(
@@ -20,10 +21,12 @@ class SearchMusicByGenreUseCase:
         genre_repository: IGenreRepository,
         youtube_service: Optional[YouTubeAPIService] = None,
     ):
+        super().__init__()
         self.genre_repository = genre_repository
         self.youtube_service = youtube_service or YouTubeAPIService()
-        self.logger = logging.getLogger(__name__)
 
+    @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(threshold_seconds=5.0)  # Búsqueda externa puede ser lenta
     async def execute(
         self, genre_name: str, max_results: int = 20, order: str = "relevance"
     ) -> dict:

@@ -60,7 +60,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         albums = async_to_sync(get_all_albums.execute)()
 
         # Convertir entidades a DTOs usando el mapper
-        album_dtos = [self.mapper.entity_to_response_dto(album) for album in albums]
+        album_dtos = [self.mapper.entity_to_dto(album) for album in albums]
         serializer = self.get_serializer(album_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -73,7 +73,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         album = async_to_sync(get_album.execute)(pk)
 
         # Convertir entidad a DTO usando el mapper
-        album_dto = self.mapper.entity_to_response_dto(album)
+        album_dto = self.mapper.entity_to_dto(album)
         serializer = self.get_serializer(album_dto)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -98,7 +98,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         albums = async_to_sync(get_popular_albums.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        album_dtos = [self.mapper.entity_to_response_dto(album) for album in albums]
+        album_dtos = [self.mapper.entity_to_dto(album) for album in albums]
         serializer = self.get_serializer(album_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -135,7 +135,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         albums = async_to_sync(search_albums.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        album_dtos = [self.mapper.entity_to_response_dto(album) for album in albums]
+        album_dtos = [self.mapper.entity_to_dto(album) for album in albums]
         serializer = self.get_serializer(album_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -172,7 +172,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         albums = async_to_sync(get_albums_by_artist.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        album_dtos = [self.mapper.entity_to_response_dto(album) for album in albums]
+        album_dtos = [self.mapper.entity_to_dto(album) for album in albums]
         serializer = self.get_serializer(album_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

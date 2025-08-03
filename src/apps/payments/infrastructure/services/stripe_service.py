@@ -1,25 +1,23 @@
 """
 Stripe service implementation
 """
-try:
-    import stripe
-except ImportError:
-    stripe = None
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
+import stripe
 from django.conf import settings
 
-from ...domain.interfaces import IStripeService
 from ...domain.exceptions import (
-    CustomerCreationError,
-    CheckoutSessionError,
     BillingPortalError,
-    SubscriptionError,
-    PaymentMethodError,
-    WebhookError,
+    CheckoutSessionError,
+    CustomerCreationError,
     InvoiceError,
-    StripeServiceError
+    PaymentMethodError,
+    StripeServiceError,
+    SubscriptionError,
+    WebhookError,
 )
+from ...domain.interfaces import IStripeService
 
 
 class StripeService(IStripeService):
@@ -33,9 +31,7 @@ class StripeService(IStripeService):
         """Crea un cliente en Stripe"""
         try:
             customer = stripe.Customer.create(
-                email=email,
-                name=name,
-                metadata={"user_id": user_id}
+                email=email, name=name, metadata={"user_id": user_id}
             )
             return customer.id
         except stripe.error.StripeError as e:
@@ -47,33 +43,30 @@ class StripeService(IStripeService):
         price_id: str,
         success_url: str,
         cancel_url: str,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Crea una sesión de checkout"""
         try:
             session_params = {
                 "customer": customer_id,
                 "payment_method_types": ["card"],
-                "line_items": [{
-                    "price": price_id,
-                    "quantity": 1,
-                }],
+                "line_items": [
+                    {
+                        "price": price_id,
+                        "quantity": 1,
+                    }
+                ],
                 "mode": kwargs.get("mode", "subscription"),
                 "success_url": success_url,
                 "cancel_url": cancel_url,
                 "allow_promotion_codes": kwargs.get("allow_promotion_codes", True),
                 "billing_address_collection": "required",
-                "customer_update": {
-                    "address": "auto",
-                    "name": "auto"
-                }
+                "customer_update": {"address": "auto", "name": "auto"},
             }
 
             # Si es un cambio de suscripción
             if "subscription" in kwargs:
-                session_params["subscription_data"] = {
-                    "items": kwargs.get("items", [])
-                }
+                session_params["subscription_data"] = {"items": kwargs.get("items", [])}
 
             # Si es una nueva suscripción con trial
             if kwargs.get("trial_period_days"):
@@ -82,18 +75,13 @@ class StripeService(IStripeService):
                 }
 
             session = stripe.checkout.Session.create(**session_params)
-            return {
-                "id": session.id,
-                "url": session.url
-            }
+            return {"id": session.id, "url": session.url}
 
         except stripe.error.StripeError as e:
             raise CheckoutSessionError(f"Error creando sesión de checkout: {e}")
 
     async def create_billing_portal_session(
-        self,
-        customer_id: str,
-        return_url: str
+        self, customer_id: str, return_url: str
     ) -> Dict[str, Any]:
         """Crea una sesión del portal de facturación"""
         try:
@@ -101,9 +89,7 @@ class StripeService(IStripeService):
                 customer=customer_id,
                 return_url=return_url,
             )
-            return {
-                "url": session.url
-            }
+            return {"url": session.url}
         except stripe.error.StripeError as e:
             raise BillingPortalError(f"Error creando portal de facturación: {e}")
 
@@ -122,34 +108,30 @@ class StripeService(IStripeService):
                 "canceled_at": subscription.canceled_at,
                 "ended_at": subscription.ended_at,
                 "items": [
-                    {
-                        "price_id": item.price.id,
-                        "quantity": item.quantity
-                    }
+                    {"price_id": item.price.id, "quantity": item.quantity}
                     for item in subscription.items.data
-                ]
+                ],
             }
         except stripe.error.StripeError as e:
             raise SubscriptionError(f"Error obteniendo suscripción: {e}")
 
-    async def cancel_subscription(self, subscription_id: str) -> Dict[str, Any]:
+    async def cancel_subscription(self, subscription_id: str) -> Dict[str, Any] | None:
         """Cancela una suscripción en Stripe"""
         try:
             # Cancelar al final del período actual
             subscription = stripe.Subscription.modify(
-                subscription_id,
-                cancel_at_period_end=True
+                subscription_id, cancel_at_period_end=True
             )
             return {
                 "id": subscription.id,
                 "status": subscription.status,
                 "canceled_at": subscription.canceled_at,
-                "cancel_at_period_end": subscription.cancel_at_period_end
+                "cancel_at_period_end": subscription.cancel_at_period_end,
             }
         except stripe.error.StripeError as e:
             raise SubscriptionError(f"Error cancelando suscripción: {e}")
 
-    async def get_upcoming_invoice(self, customer_id: str) -> Dict[str, Any]:
+    async def get_upcoming_invoice(self, customer_id: str) -> Dict[str, Any] | None:
         """Obtiene la próxima factura de un cliente"""
         try:
             invoice = stripe.Invoice.upcoming(customer=customer_id)
@@ -160,7 +142,7 @@ class StripeService(IStripeService):
                 "period_start": invoice.period_start,
                 "period_end": invoice.period_end,
                 "due_date": invoice.due_date,
-                "status": invoice.status
+                "status": invoice.status,
             }
         except stripe.error.StripeError:
             # Es normal que no haya próxima factura
@@ -170,21 +152,24 @@ class StripeService(IStripeService):
         """Obtiene los métodos de pago de un cliente"""
         try:
             payment_methods = stripe.PaymentMethod.list(
-                customer=customer_id,
-                type="card"
+                customer=customer_id, type="card"
             )
-            
+
             return [
                 {
                     "id": pm.id,
                     "type": pm.type,
-                    "card": {
-                        "brand": pm.card.brand,
-                        "last4": pm.card.last4,
-                        "exp_month": pm.card.exp_month,
-                        "exp_year": pm.card.exp_year
-                    } if pm.card else None,
-                    "created": pm.created
+                    "card": (
+                        {
+                            "brand": pm.card.brand,
+                            "last4": pm.card.last4,
+                            "exp_month": pm.card.exp_month,
+                            "exp_year": pm.card.exp_year,
+                        }
+                        if pm.card
+                        else None
+                    ),
+                    "created": pm.created,
                 }
                 for pm in payment_methods.data
             ]
@@ -195,9 +180,7 @@ class StripeService(IStripeService):
         """Construye un evento de webhook desde el payload"""
         try:
             event = stripe.Webhook.construct_event(
-                payload,
-                signature,
-                settings.STRIPE_WEBHOOK_SECRET
+                payload, signature, settings.STRIPE_WEBHOOK_SECRET
             )
             return event
         except ValueError as e:
@@ -214,17 +197,13 @@ class StripeService(IStripeService):
                 "email": customer.email,
                 "name": customer.name,
                 "created": customer.created,
-                "metadata": customer.metadata
+                "metadata": customer.metadata,
             }
         except stripe.error.StripeError as e:
             raise CustomerCreationError(f"Error obteniendo cliente: {e}")
 
     async def create_payment_intent(
-        self,
-        amount: int,
-        currency: str,
-        customer_id: str,
-        **kwargs
+        self, amount: int, currency: str, customer_id: str, **kwargs
     ) -> Dict[str, Any]:
         """Crea un Payment Intent"""
         try:
@@ -233,28 +212,23 @@ class StripeService(IStripeService):
                 currency=currency,
                 customer=customer_id,
                 automatic_payment_methods={"enabled": True},
-                **kwargs
+                **kwargs,
             )
             return {
                 "id": intent.id,
                 "client_secret": intent.client_secret,
-                "status": intent.status
+                "status": intent.status,
             }
         except stripe.error.StripeError as e:
             raise PaymentMethodError(f"Error creando Payment Intent: {e}")
 
     async def get_invoice_history(
-        self,
-        customer_id: str,
-        limit: int = 10
+        self, customer_id: str, limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Obtiene el historial de facturas de un cliente"""
         try:
-            invoices = stripe.Invoice.list(
-                customer=customer_id,
-                limit=limit
-            )
-            
+            invoices = stripe.Invoice.list(customer=customer_id, limit=limit)
+
             return [
                 {
                     "id": invoice.id,
@@ -265,7 +239,7 @@ class StripeService(IStripeService):
                     "created": invoice.created,
                     "due_date": invoice.due_date,
                     "paid": invoice.paid,
-                    "invoice_pdf": invoice.invoice_pdf
+                    "invoice_pdf": invoice.invoice_pdf,
                 }
                 for invoice in invoices.data
             ]
@@ -281,11 +255,15 @@ class StripeService(IStripeService):
                 "product": price.product,
                 "unit_amount": price.unit_amount,
                 "currency": price.currency,
-                "recurring": {
-                    "interval": price.recurring.interval,
-                    "interval_count": price.recurring.interval_count
-                } if price.recurring else None,
-                "active": price.active
+                "recurring": (
+                    {
+                        "interval": price.recurring.interval,
+                        "interval_count": price.recurring.interval_count,
+                    }
+                    if price.recurring
+                    else None
+                ),
+                "active": price.active,
             }
         except stripe.error.StripeError as e:
             raise StripeServiceError(f"Error obteniendo precio: {e}")
@@ -299,7 +277,7 @@ class StripeService(IStripeService):
                 "name": product.name,
                 "description": product.description,
                 "active": product.active,
-                "metadata": product.metadata
+                "metadata": product.metadata,
             }
         except stripe.error.StripeError as e:
             raise StripeServiceError(f"Error obteniendo producto: {e}")

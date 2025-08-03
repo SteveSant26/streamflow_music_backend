@@ -20,9 +20,6 @@ from ..use_cases import (
     SearchGenresByNameUseCase,
 )
 
-# Instancia global del repositorio (idealmente esto debería ser inyección de dependencias)
-genre_repository = GenreRepository()
-
 
 @extend_schema_view(
     list=extend_schema(tags=["Genres"]),
@@ -43,16 +40,17 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.mapper = GenreMapper()
+        self.repository = GenreRepository()
 
     def list(self, request, *args, **kwargs):
         """Lista todos los géneros disponibles localmente"""
         self.logger.info("Listing genres from local cache")
 
-        get_all_genres = GetAllGenresUseCase(genre_repository)
+        get_all_genres = GetAllGenresUseCase(self.repository)
         genres = async_to_sync(get_all_genres.execute)()
 
         # Convertir entidades a DTOs usando el mapper
-        genre_dtos = [self.mapper.entity_to_response_dto(genre) for genre in genres]
+        genre_dtos = [self.mapper.entity_to_dto(genre) for genre in genres]
         serializer = GenreSerializer(genre_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -61,11 +59,11 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         """Obtiene un género específico"""
         self.logger.info(f"Retrieving genre {pk}")
 
-        get_genre = GetGenreUseCase(genre_repository)
+        get_genre = GetGenreUseCase(self.repository)
         genre = async_to_sync(get_genre.execute)(pk)
 
         # Convertir entidad a DTO usando el mapper
-        genre_dto = self.mapper.entity_to_response_dto(genre)
+        genre_dto = self.mapper.entity_to_dto(genre)
         serializer = GenreSerializer(genre_dto)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -86,13 +84,11 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         self.logger.info(f"Getting popular genres with limit: {limit}")
 
         request_dto = GetPopularGenresRequestDTO(limit=limit)
-        get_popular_genres = GetPopularGenresUseCase(genre_repository)
+        get_popular_genres = GetPopularGenresUseCase(self.repository)
         popular_genres = async_to_sync(get_popular_genres.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        genre_dtos = [
-            self.mapper.entity_to_response_dto(genre) for genre in popular_genres
-        ]
+        genre_dtos = [self.mapper.entity_to_dto(genre) for genre in popular_genres]
         serializer = GenreSerializer(genre_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -121,13 +117,11 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         self.logger.info(f"Searching genres for: {query}")
 
         request_dto = SearchGenresByNameRequestDTO(query=query, limit=10)
-        search_genres = SearchGenresByNameUseCase(genre_repository)
+        search_genres = SearchGenresByNameUseCase(self.repository)
         matching_genres = async_to_sync(search_genres.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        genre_dtos = [
-            self.mapper.entity_to_response_dto(genre) for genre in matching_genres
-        ]
+        genre_dtos = [self.mapper.entity_to_dto(genre) for genre in matching_genres]
         serializer = GenreSerializer(genre_dtos, many=True)
 
         return Response(

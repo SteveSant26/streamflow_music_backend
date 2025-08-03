@@ -9,7 +9,7 @@ from common.utils.logging_decorators import log_execution, log_performance
 
 from ..api.dtos import GetPopularGenresRequestDTO
 from ..domain.entities import GenreEntity
-from ..domain.repository.Igenre_repository import IGenreRepository
+from ..domain.repository import IGenreRepository
 
 
 class GetPopularGenresUseCase(

@@ -64,7 +64,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
     async def search_videos(
         self, query: str, options: Optional[SearchOptions] = None
     ) -> List[YouTubeVideoInfo]:
-        """Search videos on YouTube with configurable options"""
+        """Search videos on YouTube with configurable options - MUSIC ONLY"""
         if not query or not query.strip():
             self.logger.warning("Empty search query provided")
             return []
@@ -72,13 +72,34 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
         if not options:
             options = SearchOptions()
 
+        # Force music category for all searches
+        options.video_category_id = "10"
+
+        # Add music keywords to query if not present
+        music_keywords = ["music", "song", "audio", "track", "artist", "band"]
+        query_lower = query.lower()
+
+        if not any(keyword in query_lower for keyword in music_keywords):
+            query = f"{query} music"
+
         try:
-            return (
+            videos = (
                 await self.retry_manager.execute_with_retry(
                     self._search_videos_with_circuit_breaker, query, options
                 )
                 or []
             )
+
+            # Filter results to ensure only music content
+            music_videos = []
+            for video in videos:
+                if self._is_music_content(video):
+                    music_videos.append(video)
+
+            self.logger.info(
+                f"Filtered {len(videos)} videos to {len(music_videos)} music videos"
+            )
+            return music_videos
 
         except Exception as e:
             self.logger.error(f"Error searching videos with query '{query}': {str(e)}")
@@ -135,7 +156,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             "q": query.strip(),
             "part": "snippet",
             "type": "video",
-            "maxResults": min(options.max_results, 50),  # YouTube API limit
+            "maxResults": min(options.max_results, 50),
             "videoCategoryId": options.video_category_id,
             "order": options.order,
             "safeSearch": options.safe_search,
@@ -256,9 +277,11 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 snippet["channelTitle"]
             )
 
-            # Get genre based on category
+            # Solo almacenar el category_id para referencia, el género se analiza por separado
             category_id = snippet.get("categoryId", "10")
-            genre = self._get_genre_from_category(category_id)
+
+            # No mapear género aquí - se hará con MusicGenreAnalyzer posteriormente
+            # Solo usamos "Music" como valor por defecto ya que filtramos por Category ID 10
 
             # Get the best quality thumbnail available
             thumbnail_url = self._get_best_thumbnail(snippet.get("thumbnails", {}))
@@ -276,7 +299,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 like_count=int(statistics.get("likeCount", 0)),
                 tags=snippet.get("tags", []),
                 category_id=category_id,
-                genre=genre,
+                genre="Music",  # Valor por defecto - el género real se determina con MusicGenreAnalyzer
                 url=f"https://www.youtube.com/watch?v={video_data['id']}",
             )
 
@@ -313,24 +336,6 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
         except Exception as e:
             self.logger.error(f"Error parsing published date '{date_str}': {str(e)}")
             return datetime.now()
-
-    def _get_genre_from_category(self, category_id: str) -> str:
-        """Gets genre based on YouTube category"""
-        categories = getattr(settings, "YOUTUBE_MUSIC_GENRES", {})
-
-        try:
-            # Try with integer key first (as defined in settings)
-            category_int = int(category_id)
-            if category_int in categories:
-                return categories[category_int]
-
-            # Fallback to string key for backward compatibility
-            if str(category_id) in categories:
-                return categories[str(category_id)]
-
-            return "Music"  # Default fallback
-        except (ValueError, TypeError):
-            return "Music"
 
     def _get_best_thumbnail(self, thumbnails: Dict[str, Any]) -> str:
         """Gets the URL of the best quality thumbnail available"""
@@ -454,40 +459,23 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
     async def search_music_only(
         self, query: str, options: Optional[SearchOptions] = None
     ) -> List["YouTubeVideoInfo"]:
-        """Search specifically for music content only"""
-        if not options:
-            options = SearchOptions()
-
-        # Force music category
-        options.video_category_id = "10"
-
-        # Add music-specific keywords to query if not present
-        music_keywords = ["music", "song", "audio", "track", "artist", "band"]
-        query_lower = query.lower()
-
-        if not any(keyword in query_lower for keyword in music_keywords):
-            query = f"{query} music"
-
-        try:
-            videos = await self.search_videos(query, options)
-
-            # Additional filtering for music content
-            music_videos = []
-            for video in videos:
-                if self._is_music_content(video):
-                    music_videos.append(video)
-
-            return music_videos
-
-        except Exception as e:
-            self.logger.error(f"Error searching music only: {str(e)}")
-            return []
+        """Search specifically for music content only - DEPRECATED: Use search_videos() instead"""
+        self.logger.warning(
+            "search_music_only() is deprecated. search_videos() now filters for music automatically."
+        )
+        # Delegate to the main search method which now filters for music
+        return await self.search_videos(query, options)
 
     def _is_music_content(self, video: "YouTubeVideoInfo") -> bool:
         """Determines if video content is music-related"""
-        # Check category
-        if video.category_id != "10":
-            return False
+        # Primary check: Music category (if available)
+        if (
+            hasattr(video, "category_id")
+            and video.category_id
+            and video.category_id == "10"
+        ):
+            # If it's in music category, it's very likely music
+            return True
 
         # Check for music indicators in title
         music_indicators = [
@@ -506,28 +494,65 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             "live",
             "concert",
             "performance",
+            "instrumental",
+            "lyric",
+            "lyrics",
         ]
 
         title_lower = video.title.lower()
-        description_lower = video.description.lower()
+        description_lower = getattr(video, "description", "").lower()
 
         # Title should contain music indicators
         title_has_music = any(
             indicator in title_lower for indicator in music_indicators
         )
 
-        # Tags should contain music-related terms
-        music_tags = any(
-            tag.lower() in ["music", "song", "audio", "track", "artist", "band"]
-            for tag in video.tags
+        # Tags should contain music-related terms (if available)
+        music_tags = False
+        if hasattr(video, "tags") and video.tags:
+            music_tags = any(
+                tag.lower()
+                in ["music", "song", "audio", "track", "artist", "band", "musical"]
+                for tag in video.tags
+            )
+
+        # Description should mention music (if available)
+        desc_has_music = False
+        if description_lower:
+            desc_has_music = any(
+                indicator in description_lower for indicator in music_indicators[:8]
+            )
+
+        # Exclude obvious non-music content
+        non_music_indicators = [
+            "tutorial",
+            "how to",
+            "news",
+            "sports",
+            "gaming",
+            "tech review",
+            "unboxing",
+            "vlog",
+            "comedy",
+            "prank",
+            "reaction",
+            "documentary",
+        ]
+
+        has_non_music = any(
+            indicator in title_lower or indicator in description_lower
+            for indicator in non_music_indicators
         )
 
-        # Description should mention music
-        desc_has_music = any(
-            indicator in description_lower for indicator in music_indicators[:6]
-        )
+        if has_non_music:
+            # Only exclude if it has non-music indicators AND doesn't have strong music indicators
+            if not (
+                title_has_music
+                and any(strong in title_lower for strong in ["music", "song", "audio"])
+            ):
+                return False
 
-        # At least 2 of these conditions should be true
+        # At least 1 strong indicator should be true (more lenient than before)
         music_score = sum([title_has_music, music_tags, desc_has_music])
 
-        return music_score >= 2
+        return music_score >= 1

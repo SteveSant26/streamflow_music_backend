@@ -3,11 +3,9 @@ Tests específicos para MostPopularSongsView
 """
 import sys
 import unittest
-from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
-from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -90,15 +88,14 @@ class TestMostPopularSongsView(APITestCase):
 
         # Verificar permisos
         from rest_framework.permissions import AllowAny
+
         self.assertEqual(view.permission_classes, [AllowAny])
 
     def test_data_ordering_by_play_count(self):
         """Test que los datos se ordenan correctamente por play_count"""
         # Ordenar entidades por play_count descendente
         sorted_entities = sorted(
-            self.sample_entities,
-            key=lambda x: x.play_count,
-            reverse=True
+            self.sample_entities, key=lambda x: x.play_count, reverse=True
         )
 
         # Verificar orden correcto
@@ -106,14 +103,14 @@ class TestMostPopularSongsView(APITestCase):
         self.assertEqual(sorted_entities[1].play_count, 750)
         self.assertEqual(sorted_entities[2].play_count, 500)
         self.assertEqual(sorted_entities[3].play_count, 250)
-        self.assertEqual(sorted_entities[4].play_count, 100)   # Menos popular
+        self.assertEqual(sorted_entities[4].play_count, 100)  # Menos popular
 
         # Verificar que el orden es descendente
         for i in range(len(sorted_entities) - 1):
             self.assertGreaterEqual(
                 sorted_entities[i].play_count,
                 sorted_entities[i + 1].play_count,
-                "Play counts should be in descending order"
+                "Play counts should be in descending order",
             )
 
     def test_limit_parameter_validation(self):
@@ -128,8 +125,7 @@ class TestMostPopularSongsView(APITestCase):
         invalid_limits = [0, -1, -10, 101, 200]
         for limit in invalid_limits:
             self.assertTrue(
-                limit <= 0 or limit > 100,
-                f"Limit {limit} should be invalid"
+                limit <= 0 or limit > 100, f"Limit {limit} should be invalid"
             )
 
     def test_dto_creation_concept(self):
@@ -158,7 +154,7 @@ class TestMostPopularSongsView(APITestCase):
             "album_title": "string",
             "duration_formatted": "string",
             "thumbnail_url": "string",
-            "play_count": "integer"
+            "play_count": "integer",
         }
 
         # Simular conversión de entidad a datos de respuesta
@@ -170,7 +166,7 @@ class TestMostPopularSongsView(APITestCase):
             "album_title": entity.album_title,
             "duration_formatted": f"{entity.duration_seconds // 60:02d}:{entity.duration_seconds % 60:02d}",
             "thumbnail_url": entity.thumbnail_url,
-            "play_count": entity.play_count
+            "play_count": entity.play_count,
         }
 
         # Verificar que tiene todos los campos esperados
@@ -200,6 +196,7 @@ class TestMostPopularSongsView(APITestCase):
 
         # Verificar que retorna el número esperado de resultados
         import asyncio
+
         result = asyncio.run(simulate_execution())
         self.assertEqual(len(result), 3)
 
@@ -209,30 +206,30 @@ class TestMostPopularSongsView(APITestCase):
             {
                 "scenario": "Invalid limit parameter",
                 "limit": "invalid",
-                "expected_status": status.HTTP_400_BAD_REQUEST
+                "expected_status": status.HTTP_400_BAD_REQUEST,
             },
             {
                 "scenario": "Negative limit",
                 "limit": -1,
-                "expected_status": status.HTTP_400_BAD_REQUEST
+                "expected_status": status.HTTP_400_BAD_REQUEST,
             },
             {
                 "scenario": "Limit too high",
                 "limit": 1000,
-                "expected_status": status.HTTP_400_BAD_REQUEST
+                "expected_status": status.HTTP_400_BAD_REQUEST,
             },
             {
                 "scenario": "Zero limit",
                 "limit": 0,
-                "expected_status": status.HTTP_400_BAD_REQUEST
-            }
+                "expected_status": status.HTTP_400_BAD_REQUEST,
+            },
         ]
 
         for scenario in error_scenarios:
             with self.subTest(scenario=scenario["scenario"]):
                 # Verificar que se identifican correctamente los errores
                 limit = scenario["limit"]
-                
+
                 if isinstance(limit, str):
                     # Error de tipo
                     with self.assertRaises(ValueError):
@@ -240,8 +237,7 @@ class TestMostPopularSongsView(APITestCase):
                 elif limit <= 0 or limit > 100:
                     # Error de rango
                     self.assertTrue(
-                        limit <= 0 or limit > 100,
-                        f"Limit {limit} should be invalid"
+                        limit <= 0 or limit > 100, f"Limit {limit} should be invalid"
                     )
 
 

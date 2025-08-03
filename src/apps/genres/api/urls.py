@@ -7,7 +7,6 @@ from .views import GenreViewSet
 router = DefaultRouter()
 router.register(r"", GenreViewSet)
 
-# URLs adicionales específicas que no se pueden manejar con ViewSet
 additional_patterns = [
     # Búsqueda de música por género (funcionalidad específica)
     path("search-music/", search_music_by_genre_api, name="search-music-by-genre"),

@@ -30,7 +30,7 @@ class ProcessYouTubeVideoView(APIView, LoggingMixin):
         request=ProcessVideoRequestSerializer,
         responses={201: SongSerializer, 200: SongSerializer},
     )
-    async def post(self, request):
+    def post(self, request):
         """Procesa un video de YouTube y lo guarda como canción"""
         try:
             serializer = ProcessVideoRequestSerializer(data=request.data)

@@ -1,9 +1,10 @@
 """
 Django models for payments app
 """
-from django.db import models
-from django.contrib.auth import get_user_model
 import uuid
+
+from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -13,14 +14,14 @@ AMOUNT_HELP_TEXT = "Monto en centavos"
 
 class SubscriptionPlan(models.Model):
     """Modelo para planes de suscripción"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField()
     price = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
     currency = models.CharField(max_length=3, default="EUR")
     interval = models.CharField(
-        max_length=10,
-        choices=[("month", "Mensual"), ("year", "Anual")]
+        max_length=10, choices=[("month", "Mensual"), ("year", "Anual")]
     )
     interval_count = models.IntegerField(default=1)
     features = models.JSONField(default=list)
@@ -39,6 +40,7 @@ class SubscriptionPlan(models.Model):
 
 class Subscription(models.Model):
     """Modelo para suscripciones de usuarios"""
+
     STATUS_CHOICES = [
         ("active", "Activa"),
         ("canceled", "Cancelada"),
@@ -50,7 +52,9 @@ class Subscription(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="subscription"
+    )
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT)
     stripe_subscription_id = models.CharField(max_length=100, unique=True)
     stripe_customer_id = models.CharField(max_length=100)
@@ -78,6 +82,7 @@ class Subscription(models.Model):
     @property
     def is_on_trial(self):
         from django.utils import timezone
+
         if not self.trial_end:
             return False
         return self.trial_end > timezone.now()
@@ -85,8 +90,11 @@ class Subscription(models.Model):
 
 class PaymentMethod(models.Model):
     """Modelo para métodos de pago"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payment_methods")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="payment_methods"
+    )
     stripe_payment_method_id = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=20)
     card_brand = models.CharField(max_length=20, blank=True, default="")
@@ -108,6 +116,7 @@ class PaymentMethod(models.Model):
 
 class Invoice(models.Model):
     """Modelo para facturas"""
+
     STATUS_CHOICES = [
         ("draft", "Borrador"),
         ("open", "Abierta"),
@@ -119,11 +128,11 @@ class Invoice(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="invoices")
     subscription = models.ForeignKey(
-        Subscription, 
-        on_delete=models.CASCADE, 
+        Subscription,
+        on_delete=models.CASCADE,
         related_name="invoices",
         null=True,
-        blank=True
+        blank=True,
     )
     stripe_invoice_id = models.CharField(max_length=100, unique=True)
     amount = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
@@ -138,11 +147,14 @@ class Invoice(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Factura {self.stripe_invoice_id} - {self.amount/100:.2f} {self.currency}"
+        return (
+            f"Factura {self.stripe_invoice_id} - {self.amount/100:.2f} {self.currency}"
+        )
 
 
 class Payment(models.Model):
     """Modelo para pagos"""
+
     STATUS_CHOICES = [
         ("succeeded", "Exitoso"),
         ("pending", "Pendiente"),
@@ -154,18 +166,18 @@ class Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
     stripe_payment_intent_id = models.CharField(max_length=100, unique=True)
     invoice = models.ForeignKey(
-        Invoice, 
-        on_delete=models.SET_NULL, 
+        Invoice,
+        on_delete=models.SET_NULL,
         related_name="payments",
         null=True,
-        blank=True
+        blank=True,
     )
     payment_method = models.ForeignKey(
         PaymentMethod,
         on_delete=models.SET_NULL,
         related_name="payments",
         null=True,
-        blank=True
+        blank=True,
     )
     amount = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
     currency = models.CharField(max_length=3, default="EUR")
@@ -183,6 +195,7 @@ class Payment(models.Model):
 
 class StripeWebhookEvent(models.Model):
     """Modelo para eventos de webhook"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     stripe_event_id = models.CharField(max_length=100, unique=True)
     event_type = models.CharField(max_length=50)
@@ -202,8 +215,11 @@ class StripeWebhookEvent(models.Model):
 
 class CheckoutSession(models.Model):
     """Modelo para sesiones de checkout"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="checkout_sessions")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="checkout_sessions"
+    )
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
     stripe_session_id = models.CharField(max_length=100, unique=True)
     amount = models.IntegerField(help_text=AMOUNT_HELP_TEXT)
@@ -224,8 +240,11 @@ class CheckoutSession(models.Model):
 
 class BillingPortalSession(models.Model):
     """Modelo para sesiones del portal de facturación"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="billing_sessions")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="billing_sessions"
+    )
     stripe_session_id = models.CharField(max_length=100, unique=True)
     url = models.URLField()
     return_url = models.URLField()

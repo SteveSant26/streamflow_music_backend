@@ -31,7 +31,6 @@ class AlbumResponseSerializer(BaseEntitySerializer):
     )
     total_tracks = serializers.IntegerField(read_only=True)
     play_count = serializers.IntegerField(read_only=True)
-    is_active = serializers.BooleanField(read_only=True)
     created_at = serializers.DateTimeField(
         read_only=True, required=False, allow_null=True
     )

@@ -28,7 +28,7 @@ RANDOM_MUSIC_QUERIES: List[str] = [
     "folk music",
 ]
 
-# Comprehensive music genres list for YouTube Music classification
+
 YOUTUBE_MUSIC_GENRES = {
     # Pop and Mainstream
     "pop": {

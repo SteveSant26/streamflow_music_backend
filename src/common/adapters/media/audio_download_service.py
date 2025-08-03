@@ -335,3 +335,73 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
                 )
 
         return audio_formats
+
+    async def cleanup(self):
+        """Limpia recursos del servicio de descarga de audio"""
+        try:
+            temp_files_deleted = await self._cleanup_temp_files()
+            self._reset_components()
+
+            if temp_files_deleted > 0:
+                self.logger.info(
+                    f"Cleaned up {temp_files_deleted} temporary audio files"
+                )
+
+            self.logger.info("AudioDownloadService cleanup completed")
+
+        except Exception as e:
+            self.logger.error(f"Error during AudioDownloadService cleanup: {str(e)}")
+
+    async def _cleanup_temp_files(self) -> int:
+        """Limpia archivos temporales y retorna el número de archivos eliminados"""
+        temp_dir = self.config.temp_dir or tempfile.gettempdir()
+        temp_files_deleted = 0
+
+        if not os.path.exists(temp_dir):
+            return 0
+
+        audio_extensions = (".mp3", ".mp4", ".webm", ".m4a", ".wav", ".flac")
+
+        for filename in os.listdir(temp_dir):
+            if self._should_delete_file(filename, audio_extensions):
+                file_path = os.path.join(temp_dir, filename)
+                if self._try_delete_file(file_path, filename):
+                    temp_files_deleted += 1
+
+        return temp_files_deleted
+
+    def _should_delete_file(self, filename: str, audio_extensions: tuple) -> bool:
+        """Verifica si el archivo debe ser eliminado"""
+        return filename.endswith(audio_extensions)
+
+    def _try_delete_file(self, file_path: str, filename: str) -> bool:
+        """Intenta eliminar un archivo y retorna True si fue exitoso"""
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                return True
+        except OSError as file_error:
+            self.logger.warning(
+                f"Error cleaning temp file {filename}: {str(file_error)}"
+            )
+        except Exception as file_error:
+            self.logger.warning(
+                f"Error cleaning temp file {filename}: {str(file_error)}"
+            )
+
+        return False
+
+    def _reset_components(self):
+        """Reset de componentes auxiliares"""
+        for component, name in [
+            (self.retry_manager, "retry_manager"),
+            (self.error_handler, "error_handler"),
+        ]:
+            reset_method = getattr(component, "reset", None)
+            if reset_method and callable(reset_method):
+                try:
+                    reset_method()
+                except Exception as component_error:
+                    self.logger.warning(
+                        f"Error resetting {name}: {str(component_error)}"
+                    )

@@ -1,16 +1,17 @@
 """
 Use cases for payment domain
 """
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
-from ..domain.entities import SubscriptionPlan, Subscription, PaymentMethod, Invoice
+from typing import Any, Dict, List, Optional
+
+from ..domain.entities import Invoice, PaymentMethod, Subscription, SubscriptionPlan
 from ..domain.interfaces import (
+    IInvoiceRepository,
+    IPaymentMethodRepository,
+    IPaymentRepository,
+    IStripeService,
     ISubscriptionPlanRepository,
     ISubscriptionRepository,
-    IPaymentMethodRepository,
-    IInvoiceRepository,
-    IPaymentRepository,
-    IStripeService
 )
 
 
@@ -58,7 +59,7 @@ class CreateCheckoutSessionUseCase:
         self,
         stripe_service: IStripeService,
         plan_repository: ISubscriptionPlanRepository,
-        subscription_repository: ISubscriptionRepository
+        subscription_repository: ISubscriptionRepository,
     ):
         self.stripe_service = stripe_service
         self.plan_repository = plan_repository
@@ -72,25 +73,21 @@ class CreateCheckoutSessionUseCase:
             raise ValueError(f"Plan {request.plan_id} no encontrado")
 
         # Verificar si el usuario ya tiene una suscripción activa
-        existing_subscription = await self.subscription_repository.get_by_user_id(request.user_id)
+        existing_subscription = await self.subscription_repository.get_by_user_id(
+            request.user_id
+        )
         if existing_subscription and existing_subscription.is_active:
             # Si ya tiene suscripción, crear checkout para cambio de plan
             mode = "subscription"
             subscription_data = {
                 "subscription": existing_subscription.stripe_subscription_id,
-                "items": [{
-                    "price": plan.stripe_price_id,
-                    "quantity": 1
-                }]
+                "items": [{"price": plan.stripe_price_id, "quantity": 1}],
             }
         else:
             # Nueva suscripción
             mode = "subscription"
             subscription_data = {
-                "items": [{
-                    "price": plan.stripe_price_id,
-                    "quantity": 1
-                }]
+                "items": [{"price": plan.stripe_price_id, "quantity": 1}]
             }
 
         # Obtener o crear customer ID de Stripe (esto debería venir del usuario)
@@ -104,13 +101,10 @@ class CreateCheckoutSessionUseCase:
             cancel_url=request.cancel_url,
             allow_promotion_codes=request.allow_promotion_codes,
             mode=mode,
-            **subscription_data
+            **subscription_data,
         )
 
-        return {
-            "url": session.get("url"),
-            "session_id": session.get("id")
-        }
+        return {"url": session.get("url"), "session_id": session.get("id")}
 
 
 class CreateBillingPortalSessionUseCase:
@@ -119,7 +113,7 @@ class CreateBillingPortalSessionUseCase:
     def __init__(
         self,
         stripe_service: IStripeService,
-        subscription_repository: ISubscriptionRepository
+        subscription_repository: ISubscriptionRepository,
     ):
         self.stripe_service = stripe_service
         self.subscription_repository = subscription_repository
@@ -127,19 +121,18 @@ class CreateBillingPortalSessionUseCase:
     async def execute(self, request: CreateBillingPortalRequest) -> Dict[str, Any]:
         """Crea una sesión del portal de facturación"""
         # Obtener la suscripción del usuario
-        subscription = await self.subscription_repository.get_by_user_id(request.user_id)
+        subscription = await self.subscription_repository.get_by_user_id(
+            request.user_id
+        )
         if not subscription:
             raise ValueError("Usuario no tiene suscripción activa")
 
         # Crear sesión del portal
         session = await self.stripe_service.create_billing_portal_session(
-            customer_id=subscription.stripe_customer_id,
-            return_url=request.return_url
+            customer_id=subscription.stripe_customer_id, return_url=request.return_url
         )
 
-        return {
-            "url": session.get("url")
-        }
+        return {"url": session.get("url")}
 
 
 class CancelSubscriptionUseCase:
@@ -148,7 +141,7 @@ class CancelSubscriptionUseCase:
     def __init__(
         self,
         stripe_service: IStripeService,
-        subscription_repository: ISubscriptionRepository
+        subscription_repository: ISubscriptionRepository,
     ):
         self.stripe_service = stripe_service
         self.subscription_repository = subscription_repository
@@ -156,12 +149,16 @@ class CancelSubscriptionUseCase:
     async def execute(self, subscription_id: str) -> bool:
         """Cancela una suscripción"""
         # Obtener la suscripción
-        subscription = await self.subscription_repository.get_by_stripe_subscription_id(subscription_id)
+        subscription = await self.subscription_repository.get_by_stripe_subscription_id(
+            subscription_id
+        )
         if not subscription:
             raise ValueError("Suscripción no encontrada")
 
         # Cancelar en Stripe
-        await self.stripe_service.cancel_subscription(subscription.stripe_subscription_id)
+        await self.stripe_service.cancel_subscription(
+            subscription.stripe_subscription_id
+        )
 
         # Actualizar en base de datos
         return await self.subscription_repository.cancel(subscription.id)
@@ -184,7 +181,7 @@ class GetUpcomingInvoiceUseCase:
     def __init__(
         self,
         stripe_service: IStripeService,
-        subscription_repository: ISubscriptionRepository
+        subscription_repository: ISubscriptionRepository,
     ):
         self.stripe_service = stripe_service
         self.subscription_repository = subscription_repository
@@ -198,7 +195,9 @@ class GetUpcomingInvoiceUseCase:
 
         # Obtener próxima factura de Stripe
         try:
-            invoice = await self.stripe_service.get_upcoming_invoice(subscription.stripe_customer_id)
+            invoice = await self.stripe_service.get_upcoming_invoice(
+                subscription.stripe_customer_id
+            )
             return invoice
         except Exception:
             return None
@@ -223,7 +222,7 @@ class ProcessStripeWebhookUseCase:
         stripe_service: IStripeService,
         subscription_repository: ISubscriptionRepository,
         invoice_repository: IInvoiceRepository,
-        payment_repository: IPaymentRepository
+        payment_repository: IPaymentRepository,
     ):
         self.stripe_service = stripe_service
         self.subscription_repository = subscription_repository
@@ -235,7 +234,7 @@ class ProcessStripeWebhookUseCase:
         try:
             # Verificar y construir el evento
             event = self.stripe_service.construct_webhook_event(payload, signature)
-            
+
             event_type = event.get("type")
             event_data = event.get("data", {}).get("object", {})
 
@@ -260,24 +259,19 @@ class ProcessStripeWebhookUseCase:
     async def _handle_subscription_created(self, subscription_data: Dict[str, Any]):
         """Maneja la creación de una suscripción"""
         # Implementar lógica para crear/actualizar suscripción en BD
-        pass
 
     async def _handle_subscription_updated(self, subscription_data: Dict[str, Any]):
         """Maneja la actualización de una suscripción"""
         # Implementar lógica para actualizar suscripción en BD
-        pass
 
     async def _handle_subscription_deleted(self, subscription_data: Dict[str, Any]):
         """Maneja la eliminación de una suscripción"""
         # Implementar lógica para cancelar suscripción en BD
-        pass
 
     async def _handle_invoice_payment_succeeded(self, invoice_data: Dict[str, Any]):
         """Maneja el pago exitoso de una factura"""
         # Implementar lógica para registrar pago exitoso
-        pass
 
     async def _handle_invoice_payment_failed(self, invoice_data: Dict[str, Any]):
         """Maneja el fallo de pago de una factura"""
         # Implementar lógica para manejar fallo de pago
-        pass

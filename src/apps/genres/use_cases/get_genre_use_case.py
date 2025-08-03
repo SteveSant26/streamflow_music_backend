@@ -2,14 +2,16 @@
 Caso de uso para obtener un género específico.
 """
 
+from typing import Any
+
 from common.interfaces.ibase_use_case import BaseGetByIdUseCase
 
 from ..domain.entities import GenreEntity
 from ..domain.exceptions import GenreNotFoundException
-from ..domain.repository.Igenre_repository import IGenreRepository
+from ..domain.repository import IGenreRepository
 
 
-class GetGenreUseCase(BaseGetByIdUseCase[GenreEntity]):
+class GetGenreUseCase(BaseGetByIdUseCase[GenreEntity, Any]):
     """Caso de uso para obtener un género específico"""
 
     def __init__(self, repository: IGenreRepository):

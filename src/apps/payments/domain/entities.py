@@ -3,8 +3,8 @@ Domain entities for payment system
 """
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class SubscriptionStatus(Enum):
@@ -35,6 +35,7 @@ class InvoiceStatus(Enum):
 @dataclass
 class SubscriptionPlan:
     """Plan de suscripción"""
+
     id: str
     name: str
     description: str
@@ -52,6 +53,7 @@ class SubscriptionPlan:
 @dataclass
 class PaymentMethod:
     """Método de pago del usuario"""
+
     id: str
     stripe_payment_method_id: str
     user_id: str
@@ -67,6 +69,7 @@ class PaymentMethod:
 @dataclass
 class Subscription:
     """Suscripción de usuario"""
+
     id: str
     user_id: str
     stripe_subscription_id: str
@@ -96,6 +99,7 @@ class Subscription:
 @dataclass
 class Invoice:
     """Factura de suscripción"""
+
     id: str
     stripe_invoice_id: str
     subscription_id: str
@@ -111,6 +115,7 @@ class Invoice:
 @dataclass
 class Payment:
     """Pago realizado"""
+
     id: str
     stripe_payment_intent_id: str
     user_id: str
@@ -126,6 +131,7 @@ class Payment:
 @dataclass
 class StripeWebhookEvent:
     """Evento de webhook de Stripe"""
+
     id: str
     stripe_event_id: str
     event_type: str
@@ -138,6 +144,7 @@ class StripeWebhookEvent:
 @dataclass
 class CheckoutSession:
     """Sesión de checkout de Stripe"""
+
     id: str
     stripe_session_id: str
     user_id: str
@@ -154,6 +161,7 @@ class CheckoutSession:
 @dataclass
 class BillingPortalSession:
     """Sesión del portal de facturación"""
+
     id: str
     stripe_session_id: str
     user_id: str

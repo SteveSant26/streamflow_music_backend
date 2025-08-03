@@ -63,7 +63,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         artists = async_to_sync(get_all_artists.execute)()
 
         # Convertir entidades a DTOs usando el mapper
-        artist_dtos = [self.mapper.entity_to_response_dto(artist) for artist in artists]
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
         serializer = self.get_serializer(artist_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -76,7 +76,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         artist = async_to_sync(get_artist.execute)(pk)
 
         # Convertir entidad a DTO usando el mapper
-        artist_dto = self.mapper.entity_to_response_dto(artist)
+        artist_dto = self.mapper.entity_to_dto(artist)
         serializer = self.get_serializer(artist_dto)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -101,7 +101,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         artists = async_to_sync(get_popular_artists.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        artist_dtos = [self.mapper.entity_to_response_dto(artist) for artist in artists]
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
         serializer = self.get_serializer(artist_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -126,7 +126,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         artists = async_to_sync(get_verified_artists.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        artist_dtos = [self.mapper.entity_to_response_dto(artist) for artist in artists]
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
         serializer = self.get_serializer(artist_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -163,7 +163,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         artists = async_to_sync(search_artists.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        artist_dtos = [self.mapper.entity_to_response_dto(artist) for artist in artists]
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
         serializer = self.get_serializer(artist_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -200,7 +200,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         artists = async_to_sync(get_artists_by_country.execute)(request_dto)
 
         # Convertir entidades a DTOs usando el mapper
-        artist_dtos = [self.mapper.entity_to_response_dto(artist) for artist in artists]
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
         serializer = self.get_serializer(artist_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

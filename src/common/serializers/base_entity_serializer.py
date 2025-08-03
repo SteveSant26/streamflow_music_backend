@@ -2,7 +2,7 @@ from typing import Any, Optional, Type
 
 from rest_framework import serializers
 
-from common.interfaces.imapper.abstract_mapper import AbstractMapper
+from src.common.interfaces.imapper.abstract_mapper import AbstractMapper
 
 from ..utils.logging_config import get_logger
 
@@ -37,7 +37,7 @@ class BaseEntitySerializer(serializers.Serializer):
 
             if isinstance(instance, self.entity_class):
                 logger.debug("Instancia es una entidad, mapeando a DTO")
-                dto = self.mapper_class.entity_to_response_dto(instance)
+                dto = self.mapper_class.entity_to_dto(instance)
                 return self._dto_to_dict(dto)
 
             if getattr(instance, "_meta", None) and getattr(
@@ -47,7 +47,7 @@ class BaseEntitySerializer(serializers.Serializer):
                     "Instancia es un modelo de Django, mapeando a entidad y luego a DTO"
                 )
                 entity = self.mapper_class.model_to_entity(instance)
-                dto = self.mapper_class.entity_to_response_dto(entity)
+                dto = self.mapper_class.entity_to_dto(entity)
                 return self._dto_to_dict(dto)
 
             raise TypeError(
