@@ -1,12 +1,10 @@
-from abc import abstractmethod
-from typing import Any, List, Optional
-
-from common.interfaces.ibase_repository import IBaseRepository
+from abc import ABC, abstractmethod
+from typing import List, Optional
 
 from ..entities import ArtistEntity
 
 
-class IArtistRepository(IBaseRepository[ArtistEntity, Any]):
+class IArtistRepository(ABC):
     """Interface del repositorio de artistas"""
 
     @abstractmethod

@@ -9,7 +9,7 @@ from apps.artists.infrastructure.models import ArtistModel
 from src.common.interfaces.imapper import AbstractEntityModelMapper
 
 
-class ArtistEntityModelMapper(AbstractEntityModelMapper[ArtistModel, ArtistEntity]):
+class ArtistEntityModelMapper(AbstractEntityModelMapper[ArtistEntity, ArtistModel]):
     """Mapper para convertir entre entidades del dominio y modelos de Artist."""
 
     def __init__(self):

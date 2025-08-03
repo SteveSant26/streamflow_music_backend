@@ -9,7 +9,8 @@ from ...infrastructure.models import UserProfileModel
 
 
 class UserRepository(
-    BaseDjangoRepository[UserProfileEntity, UserProfileModel], IUserRepository
+    IUserRepository,
+    BaseDjangoRepository[UserProfileEntity, UserProfileModel],
 ):
     def __init__(self):
         super().__init__(UserProfileModel, UserProfileEntityModelMapper())

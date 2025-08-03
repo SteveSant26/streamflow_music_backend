@@ -1,12 +1,10 @@
-from abc import abstractmethod
-from typing import Any, List
-
-from common.interfaces.ibase_repository import IBaseRepository
+from abc import ABC, abstractmethod
+from typing import List
 
 from ..entities import GenreEntity
 
 
-class IGenreRepository(IBaseRepository[GenreEntity, Any]):
+class IGenreRepository(ABC):
     """Interface del repositorio de géneros"""
 
     @abstractmethod

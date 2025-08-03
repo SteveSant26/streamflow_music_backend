@@ -5,7 +5,7 @@ from apps.songs.infrastructure.models import SongModel
 from common.interfaces.imapper import AbstractEntityModelMapper
 
 
-class SongEntityModelMapper(AbstractEntityModelMapper[SongModel, SongEntity]):
+class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
     """Mapper para convertir entre entidades del dominio y modelos de Song."""
 
     def __init__(self):

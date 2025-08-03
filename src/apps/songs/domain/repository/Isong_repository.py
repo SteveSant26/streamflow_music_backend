@@ -1,12 +1,10 @@
-from abc import abstractmethod
-from typing import Any, List, Optional
-
-from common.interfaces.ibase_repository import IBaseRepository
+from abc import ABC, abstractmethod
+from typing import List, Optional
 
 from ..entities import SongEntity
 
 
-class ISongRepository(IBaseRepository[SongEntity, Any]):
+class ISongRepository(ABC):
     """Interface para el repositorio de canciones"""
 
     # Métodos específicos del dominio de canciones

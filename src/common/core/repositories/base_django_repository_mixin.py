@@ -7,7 +7,7 @@ from src.common.types import EntityType, ModelType
 from ...mixins.logging_mixin import LoggingMixin
 
 
-class BaseDjangoRepositoryMixin(Generic[EntityType, ModelType], LoggingMixin, ABC):
+class BaseDjangoRepositoryMixin(ABC, Generic[EntityType, ModelType], LoggingMixin):
     """
     Mixin base que proporciona funcionalidad común para repositorios Django.
 

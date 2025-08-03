@@ -10,9 +10,9 @@ from src.common.types import EntityType, ModelType
 from ...interfaces import IReadOnlyRepository
 
 
-class BaseReadOnlyDjangoRepository(  # type: ignore
-    BaseDjangoRepositoryMixin[EntityType, ModelType],
+class BaseReadOnlyDjangoRepository(
     IReadOnlyRepository[EntityType, ModelType],
+    BaseDjangoRepositoryMixin[EntityType, ModelType],
 ):
     """
     Implementación base de solo lectura para Django que proporciona

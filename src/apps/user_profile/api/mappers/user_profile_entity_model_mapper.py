@@ -6,7 +6,7 @@ from src.common.interfaces.imapper import AbstractEntityModelMapper
 
 
 class UserProfileEntityModelMapper(
-    AbstractEntityModelMapper[UserProfileModel, UserProfileEntity]
+    AbstractEntityModelMapper[UserProfileEntity, UserProfileModel]
 ):
     """Mapper para convertir entre entidades del dominio y modelos de UserProfile."""
 

@@ -5,7 +5,7 @@ from apps.albums.infrastructure.models import AlbumModel
 from src.common.interfaces.imapper import AbstractEntityModelMapper
 
 
-class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumModel, AlbumEntity]):
+class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel]):
     """Mapper para convertir entre entidades del dominio y modelos de Album."""
 
     def __init__(self):

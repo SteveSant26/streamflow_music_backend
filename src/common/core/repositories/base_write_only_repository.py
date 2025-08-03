@@ -9,9 +9,9 @@ from ...exceptions import NotFoundException
 from ...interfaces import IWriteOnlyRepository
 
 
-class BaseWriteOnlyDjangoRepository(  # type: ignore
-    BaseDjangoRepositoryMixin[EntityType, ModelType],
+class BaseWriteOnlyDjangoRepository(
     IWriteOnlyRepository[EntityType, ModelType],
+    BaseDjangoRepositoryMixin[EntityType, ModelType],
 ):
     """
     Implementación base de solo escritura para Django que proporciona
