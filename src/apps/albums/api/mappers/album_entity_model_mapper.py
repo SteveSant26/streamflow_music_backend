@@ -1,6 +1,4 @@
-"""
-Album entity to model mapper class for converting between AlbumEntity and AlbumModel.
-"""
+from typing import Any, Dict
 
 from apps.albums.domain.entities import AlbumEntity
 from apps.albums.infrastructure.models import AlbumModel
@@ -52,3 +50,20 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumModel, AlbumEntity])
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
+
+    def entity_to_model_data(self, entity: AlbumEntity) -> Dict[str, Any]:
+        """
+        Convierte una entidad AlbumEntity a datos del modelo Django (diccionario).
+        """
+        self.logger.debug(f"Converting entity to model data for album {entity.id}")
+        return {
+            "title": entity.title,
+            "artist_id": entity.artist_id,
+            "artist_name": entity.artist_name,
+            "release_date": entity.release_date,
+            "description": entity.description,
+            "cover_image_url": entity.cover_image_url,
+            "total_tracks": entity.total_tracks,
+            "play_count": entity.play_count,
+            "is_active": entity.is_active,
+        }

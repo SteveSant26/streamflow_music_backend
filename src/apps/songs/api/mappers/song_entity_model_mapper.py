@@ -1,12 +1,8 @@
-"""
-Song entity to model mapper class for converting between SongEntity and SongModel.
-"""
-
 from typing import Any, Dict, List
 
 from apps.songs.domain.entities import SongEntity
 from apps.songs.infrastructure.models import SongModel
-from src.common.interfaces.imapper import AbstractEntityModelMapper
+from common.interfaces.imapper import AbstractEntityModelMapper
 
 
 class SongEntityModelMapper(AbstractEntityModelMapper[SongModel, SongEntity]):
@@ -48,9 +44,6 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongModel, SongEntity]):
             source_type=model.source_type,
             source_id=model.source_id,
             source_url=model.source_url,
-            is_explicit=model.is_explicit,
-            is_active=model.is_active,
-            is_premium=model.is_premium,
             audio_quality=model.audio_quality,
             created_at=model.created_at,
             updated_at=model.updated_at,
@@ -83,9 +76,6 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongModel, SongEntity]):
             source_type=entity.source_type,
             source_id=entity.source_id,
             source_url=entity.source_url,
-            is_explicit=getattr(entity, "is_explicit", False),
-            is_active=entity.is_active,
-            is_premium=getattr(entity, "is_premium", False),
             audio_quality=entity.audio_quality,
             last_played_at=getattr(entity, "last_played_at", None),
             release_date=entity.release_date,
@@ -115,9 +105,6 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongModel, SongEntity]):
             "source_type": entity.source_type,
             "source_id": entity.source_id,
             "source_url": entity.source_url,
-            "is_explicit": getattr(entity, "is_explicit", False),
-            "is_active": entity.is_active,
-            "is_premium": getattr(entity, "is_premium", False),
             "audio_quality": entity.audio_quality,
             "last_played_at": getattr(entity, "last_played_at", None),
             "release_date": entity.release_date,

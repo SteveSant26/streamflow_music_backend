@@ -15,6 +15,14 @@ class IReadOnlyRepository(ABC, Generic[EntityType, ModelType]):
     async def get_all(self) -> list[EntityType]:
         """Obtiene todas las entidades, opcionalmente filtradas."""
 
+    @abstractmethod
+    async def exists(self, entity_id: str) -> bool:
+        """Verifica si una entidad existe."""
+
+    @abstractmethod
+    async def count(self) -> int:
+        """Cuenta el número total de entidades activas."""
+
 
 class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
     """Repositorio de escritura para operaciones de modificación."""

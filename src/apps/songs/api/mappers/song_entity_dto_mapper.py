@@ -1,12 +1,6 @@
-"""
-Song entity to DTO mapper class for converting between SongEntity and DTOs.
-"""
-
 from apps.songs.domain.entities import SongEntity
+from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 from common.mixins.logging_mixin import LoggingMixin
-from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
-    AbstractEntityDtoMapper,
-)
 
 from ..dtos import SongResponseDTO
 
@@ -45,18 +39,12 @@ class SongEntityDTOMapper(
             source_type=entity.source_type,
             source_id=entity.source_id,
             source_url=entity.source_url,
-            is_active=entity.is_active,
             audio_quality=entity.audio_quality,
             created_at=entity.created_at,
             release_date=entity.release_date,
-            audio_downloaded=bool(entity.file_url),  # True si hay URL de archivo
-            # Campos adicionales mapeados desde los campos existentes
-            youtube_video_id=entity.source_id
-            if entity.source_type == "youtube"
-            else None,
-            youtube_url=entity.source_url if entity.source_type == "youtube" else None,
-            is_explicit=getattr(entity, "is_explicit", False),  # Por defecto False
-            published_at=entity.release_date,  # Usamos release_date como published_at
+            audio_downloaded=bool(
+                entity.file_url
+            ),  # True si hay URL de archivo # Usamos release_date como published_at
         )
 
     def dto_to_entity(self, dto: SongResponseDTO) -> SongEntity:
@@ -83,7 +71,6 @@ class SongEntityDTOMapper(
             source_type=dto.source_type or "youtube",
             source_id=dto.source_id,
             source_url=dto.source_url,
-            is_active=dto.is_active,
             audio_quality=dto.audio_quality or "standard",
             created_at=dto.created_at,
             release_date=dto.release_date,

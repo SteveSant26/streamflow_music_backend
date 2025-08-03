@@ -51,7 +51,6 @@ class SaveTrackAsSongUseCase(BaseUseCase[MusicTrackData, Optional[SongEntity]]):
                 source_type="youtube",
                 source_id=track.video_id,
                 source_url=track.url,
-                is_active=True,
                 audio_quality="standard",
                 created_at=datetime.now(),
                 release_date=datetime.now(),

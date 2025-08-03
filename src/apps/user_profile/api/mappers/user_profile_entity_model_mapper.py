@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from apps.user_profile.domain.entities import UserProfileEntity
 from apps.user_profile.infrastructure.models import UserProfileModel
 from src.common.interfaces.imapper import AbstractEntityModelMapper
@@ -32,3 +34,13 @@ class UserProfileEntityModelMapper(
             email=entity.email,
             profile_picture=entity.profile_picture,
         )
+
+    def entity_to_model_data(self, entity: UserProfileEntity) -> Dict[str, Any]:
+        """
+        Convierte una entidad UserProfileEntity a datos del modelo Django (diccionario).
+        """
+        self.logger.debug(f"Converting entity to model data for user {entity.id}")
+        return {
+            "email": entity.email,
+            "profile_picture": entity.profile_picture,
+        }

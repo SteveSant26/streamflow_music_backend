@@ -2,6 +2,8 @@
 Artist entity to model mapper class for converting between ArtistEntity and ArtistModel.
 """
 
+from typing import Any, Dict
+
 from apps.artists.domain.entities import ArtistEntity
 from apps.artists.infrastructure.models import ArtistModel
 from src.common.interfaces.imapper import AbstractEntityModelMapper
@@ -48,3 +50,18 @@ class ArtistEntityModelMapper(AbstractEntityModelMapper[ArtistModel, ArtistEntit
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
+
+    def entity_to_model_data(self, entity: ArtistEntity) -> Dict[str, Any]:
+        """
+        Convierte una entidad ArtistEntity a datos del modelo Django (diccionario).
+        """
+        self.logger.debug(f"Converting entity to model data for artist {entity.id}")
+        return {
+            "name": entity.name,
+            "biography": entity.biography,
+            "country": entity.country,
+            "image_url": entity.image_url,
+            "followers_count": entity.followers_count,
+            "is_verified": entity.is_verified,
+            "is_active": entity.is_active,
+        }

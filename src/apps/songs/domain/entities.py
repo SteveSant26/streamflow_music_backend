@@ -34,9 +34,6 @@ class SongEntity:
     source_url: Optional[str] = None  # URL original
 
     # Estados y configuración
-    is_explicit: bool = False
-    is_active: bool = True
-    is_premium: bool = False  # Si requiere suscripción premium
     audio_quality: str = "standard"  # standard, high, lossless
 
     # Timestamps

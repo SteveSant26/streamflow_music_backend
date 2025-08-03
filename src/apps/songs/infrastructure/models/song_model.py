@@ -75,9 +75,6 @@ class SongModel(models.Model):
     source_url = models.URLField(null=True, blank=True, max_length=500)
 
     # Estados y configuración
-    is_explicit = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True, db_index=True)
-    is_premium = models.BooleanField(default=False)
     audio_quality = models.CharField(
         max_length=20,
         default="standard",
@@ -101,7 +98,6 @@ class SongModel(models.Model):
             models.Index(fields=["source_type", "source_id"]),
             models.Index(fields=["artist_name", "play_count"]),
             models.Index(fields=["album_title", "track_number"]),
-            models.Index(fields=["is_active", "created_at"]),
             models.Index(fields=["play_count"], name="songs_most_played_idx"),
             models.Index(fields=["favorite_count"], name="songs_most_favorited_idx"),
             models.Index(fields=["last_played_at"], name="songs_recently_played_idx"),
@@ -124,29 +120,29 @@ class SongModel(models.Model):
         seconds = self.duration_seconds % 60
         return f"{minutes:02d}:{seconds:02d}"
 
-    def increment_play_count(self):
+    async def increment_play_count(self):
         """Incrementa el contador de reproducciones y actualiza last_played_at"""
         from django.utils import timezone
 
         self.play_count += 1
         self.last_played_at = timezone.now()
-        self.save(update_fields=["play_count", "last_played_at"])
+        await self.asave(update_fields=["play_count", "last_played_at"])
 
-    def increment_favorite_count(self):
+    async def increment_favorite_count(self):
         """Incrementa el contador de favoritos"""
         self.favorite_count += 1
-        self.save(update_fields=["favorite_count"])
+        await self.asave(update_fields=["favorite_count"])
 
-    def increment_download_count(self):
+    async def increment_download_count(self):
         """Incrementa el contador de descargas"""
         self.download_count += 1
-        self.save(update_fields=["download_count"])
+        await self.asave(update_fields=["download_count"])
 
-    def get_primary_genre(self):
+    async def get_primary_genre(self):
         """Retorna el primer género asignado como género principal"""
-        return self.genres.first()
+        return await self.genres.afirst()
 
     @property
-    def genres_display(self):
+    async def genres_display(self):
         """Retorna los géneros como string separado por comas para display"""
-        return ", ".join(self.genre_names) if self.genre_names else "Sin género"
+        return ", ".join(await self.genre_names) if self.genre_names else "Sin género"

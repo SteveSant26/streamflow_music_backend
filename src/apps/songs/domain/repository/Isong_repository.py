@@ -18,12 +18,6 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
         """Obtiene una canción por fuente y ID de fuente"""
 
     @abstractmethod
-    async def get_all_paginated(
-        self, limit: int = 100, offset: int = 0
-    ) -> List[SongEntity]:
-        """Obtiene todas las canciones activas con paginación"""
-
-    @abstractmethod
     async def get_random(self, limit: int = 6) -> List[SongEntity]:
         """Obtiene canciones aleatorias"""
 

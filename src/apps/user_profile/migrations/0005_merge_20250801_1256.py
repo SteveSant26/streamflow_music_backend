@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('user_profile', '0003_rename_userprofile_userprofilemodel'),
-        ('user_profile', '0004_populate_and_require_password'),
+        ("user_profile", "0003_rename_userprofile_userprofilemodel"),
+        ("user_profile", "0004_populate_and_require_password"),
     ]
 
-    operations = [
-    ]
+    operations = []

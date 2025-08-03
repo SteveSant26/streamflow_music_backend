@@ -93,7 +93,7 @@ class SongGenreService(LoggingMixin):
             # Asignar géneros a la canción
             song.genres.set(genre_objects)
             song.genre_names = [genre.name for genre in genre_objects]
-            song.save(update_fields=["genre_names"])
+            await song.asave(update_fields=["genre_names"])
 
             self.logger.info(
                 f"Géneros asignados a '{song.title}': "

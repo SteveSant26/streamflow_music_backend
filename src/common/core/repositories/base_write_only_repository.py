@@ -1,46 +1,30 @@
-from abc import ABC
-from typing import Generic, Type
-
-from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 
-from src.common.interfaces.imapper import AbstractEntityModelMapper
+from src.common.core.repositories.base_django_repository_mixin import (
+    BaseDjangoRepositoryMixin,
+)
+from src.common.types import EntityType, ModelType
 
 from ...exceptions import NotFoundException
 from ...interfaces import IWriteOnlyRepository
-from ...mixins.logging_mixin import LoggingMixin
-from ...types import EntityType, ModelType
 
 
-class BaseWriteOnlyDjangoRepository(
-    Generic[EntityType, ModelType],
+class BaseWriteOnlyDjangoRepository(  # type: ignore
+    BaseDjangoRepositoryMixin[EntityType, ModelType],
     IWriteOnlyRepository[EntityType, ModelType],
-    LoggingMixin,
-    ABC,
 ):
     """
     Implementación base de solo escritura para Django que proporciona
     operaciones de modificación comunes para cualquier modelo de Django.
     """
 
-    def __init__(
-        self,
-        model_class: Type[ModelType],
-        mapper: AbstractEntityModelMapper,
-        *args,
-        **kwargs,
-    ):
-        self.model_class = model_class
-        self.mapper = mapper
-
     async def save(self, entity: EntityType) -> EntityType:
         try:
-            model_data = self.mapper.entity_to_model(entity)
+            model_data = self.mapper.entity_to_model_data(entity)
 
-            # Wrapping the sync ORM call inside sync_to_async
-            model_instance, created = await sync_to_async(
-                self.model_class.objects.update_or_create
-            )(id=getattr(entity, "id", None), defaults=model_data)
+            model_instance, created = await self.model_class.objects.aupdate_or_create(
+                id=getattr(entity, "id", None), defaults=model_data
+            )
 
             action = "created" if created else "updated"
             self.logger.info(
@@ -52,14 +36,14 @@ class BaseWriteOnlyDjangoRepository(
             raise
 
     async def delete(self, entity_id: str) -> bool:
-        """Elimina lógicamente una entidad (soft delete)"""
+        """Elimina completamente una entidad (hard delete)"""
         try:
-            updated_count = self.model_class.objects.filter(id=entity_id).update(
-                is_active=False
-            )
-            if updated_count > 0:
+            deleted_count, _ = await self.model_class.objects.filter(
+                id=entity_id
+            ).adelete()
+            if deleted_count > 0:
                 self.logger.info(
-                    f"{self.model_class.__name__} with id {entity_id} marked as inactive"
+                    f"{self.model_class.__name__} with id {entity_id} was deleted"
                 )
                 return True
             else:
@@ -76,10 +60,10 @@ class BaseWriteOnlyDjangoRepository(
     async def update(self, entity_id: str, entity: EntityType) -> EntityType:
         """Actualiza una entidad específica"""
         try:
-            model_data = self.mapper.entity_to_model(entity)
-            updated_count = await sync_to_async(
-                self.model_class.objects.filter(id=entity_id).update
-            )(**model_data)
+            model_data = self.mapper.entity_to_model_data(entity)
+            updated_count = await self.model_class.objects.filter(id=entity_id).aupdate(
+                **model_data
+            )
 
             if updated_count == 0:
                 self.logger.warning(
@@ -101,25 +85,5 @@ class BaseWriteOnlyDjangoRepository(
         except Exception as e:
             self.logger.error(
                 f"Error updating {self.model_class.__name__} with id {entity_id}: {str(e)}"
-            )
-            raise
-
-    async def hard_delete(self, entity_id: str) -> None:
-        """Elimina físicamente una entidad de la base de datos"""
-        try:
-            deleted_count, _ = await sync_to_async(
-                self.model_class.objects.filter(id=entity_id).delete
-            )()
-            if deleted_count > 0:
-                self.logger.info(
-                    f"{self.model_class.__name__} with id {entity_id} permanently deleted"
-                )
-            else:
-                self.logger.warning(
-                    f"{self.model_class.__name__} with id {entity_id} not found for hard deletion"
-                )
-        except Exception as e:
-            self.logger.error(
-                f"Error hard deleting {self.model_class.__name__} with id {entity_id}: {str(e)}"
             )
             raise

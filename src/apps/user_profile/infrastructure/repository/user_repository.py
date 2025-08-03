@@ -1,8 +1,8 @@
 from typing import Optional
 
+from apps.user_profile.api.mappers import UserProfileEntityModelMapper
 from apps.user_profile.domain.repository import IUserRepository
 from common.core import BaseDjangoRepository
-from src.apps.user_profile.api.mappers import UserProfileEntityModelMapper
 
 from ...domain.entities import UserProfileEntity
 from ...infrastructure.models import UserProfileModel

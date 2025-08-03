@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('user_profile', '0002_userprofile_profile_picture_alter_userprofile_email_and_more'),
+        (
+            "user_profile",
+            "0002_userprofile_profile_picture_alter_userprofile_email_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='password',
+            model_name="userprofile",
+            name="password",
             field=models.CharField(blank=True, max_length=128, null=True),
         ),
     ]

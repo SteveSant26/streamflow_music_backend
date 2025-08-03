@@ -1,4 +1,6 @@
-from django.urls import path
+from typing import List
+
+from django.urls import URLPattern
 
 # from ..presentation.views import (
 #     BillingPortalSessionView,
@@ -13,7 +15,7 @@ from django.urls import path
 # )
 
 # Temporary empty URL patterns for migrations
-urlpatterns = [
+urlpatterns: List[URLPattern] = [
     # path("subscription-plans/", GetSubscriptionPlansView.as_view(), name="subscription-plans"),
     # path("checkout-session/", CheckoutSessionView.as_view(), name="checkout-session"),
     # path("stripe-webhook/", StripeWebhookView.as_view(), name="stripe-webhook"),

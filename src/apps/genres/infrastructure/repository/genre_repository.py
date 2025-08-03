@@ -26,7 +26,7 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
                 ).order_by("name")[:limit]
             )
         )()
-        return [self.mapper.model_to_entity(model) for model in models]
+        return self.mapper.models_to_entities(models)
 
     async def get_popular_genres(self, limit: int = 10) -> List[GenreEntity]:
         """Obtiene géneros populares"""
@@ -38,7 +38,7 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
                 )[:limit]
             )
         )()
-        return [self.mapper.model_to_entity(model) for model in models]
+        return self.mapper.models_to_entities(models)
 
     async def get_active_genres(self, limit: int = 10) -> List[GenreEntity]:
         """Obtiene géneros activos"""
@@ -48,7 +48,7 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
                 self.model_class.objects.filter(is_active=True).order_by("name")[:limit]
             )
         )()
-        return [self.mapper.model_to_entity(model) for model in models]
+        return self.mapper.models_to_entities(models)
 
     async def get_genres_by_popularity_range(
         self, min_score: int, max_score: int
@@ -57,12 +57,16 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         self.logger.debug(
             f"Getting genres by popularity range: {min_score}-{max_score}"
         )
-        models = self.model_class.objects.filter(
-            popularity_score__gte=min_score,
-            popularity_score__lte=max_score,
-            is_active=True,
-        ).order_by("-popularity_score", "name")
-        return [self.mapper.model_to_entity(model) for model in models]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.filter(
+                    popularity_score__gte=min_score,
+                    popularity_score__lte=max_score,
+                    is_active=True,
+                ).order_by("-popularity_score", "name")
+            )
+        )()
+        return self.mapper.models_to_entities(models)
 
     async def get_recent_genres(self, limit: int = 10) -> List[GenreEntity]:
         """Obtiene géneros recientes"""
@@ -74,4 +78,4 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
                 )[:limit]
             )
         )()
-        return [self.mapper.model_to_entity(model) for model in models]
+        return self.mapper.models_to_entities(models)

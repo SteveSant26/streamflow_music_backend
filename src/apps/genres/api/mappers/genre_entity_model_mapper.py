@@ -2,6 +2,8 @@
 Genre entity to model mapper class for converting between GenreEntity and GenreModel.
 """
 
+from typing import Any, Dict
+
 from apps.genres.domain.entities import GenreEntity
 from apps.genres.infrastructure.models import GenreModel
 from src.common.interfaces.imapper import AbstractEntityModelMapper
@@ -46,3 +48,17 @@ class GenreEntityModelMapper(AbstractEntityModelMapper[GenreModel, GenreEntity])
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
+
+    def entity_to_model_data(self, entity: GenreEntity) -> Dict[str, Any]:
+        """
+        Convierte una entidad GenreEntity a datos del modelo Django (diccionario).
+        """
+        self.logger.debug(f"Converting entity to model data for genre {entity.id}")
+        return {
+            "name": entity.name,
+            "description": entity.description,
+            "image_url": entity.image_url,
+            "color_hex": entity.color_hex,
+            "popularity_score": entity.popularity_score,
+            "is_active": entity.is_active,
+        }
