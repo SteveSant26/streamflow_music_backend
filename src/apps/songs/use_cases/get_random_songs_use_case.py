@@ -1,10 +1,10 @@
 import asyncio
 from typing import List
 
+from common.factories.unified_music_service_factory import get_music_service
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.types.media_types import SearchOptions
 from common.utils.logging_decorators import log_execution, log_performance
-from src.common.factories.unified_music_service_factory import get_music_service
 
 from ..api.dtos.song_dtos import RandomSongsRequestDTO
 from ..domain.entities import SongEntity
@@ -103,7 +103,6 @@ class GetRandomSongsUseCase(BaseUseCase[RandomSongsRequestDTO, List[SongEntity]]
                     )
                     return None
 
-        # Procesar tracks de forma concurrente pero limitada
         tasks = [process_single_track(track) for track in tracks]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 

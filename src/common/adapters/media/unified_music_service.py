@@ -24,6 +24,9 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
     - Integración con artistas y álbumes
     """
 
+    # Constante para el límite de tamaño de archivo (50MB)
+    MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50MB
+
     def __init__(
         self,
         config: Optional[MusicServiceConfig] = None,
@@ -49,11 +52,85 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             "audio_downloads": 0,
             "metadata_extractions": 0,
             "errors": 0,
+            "videos_filtered_by_size": 0,
         }
 
     def configure_repositories(self, artist_repository: Any, album_repository: Any):
         self.artist_repository = artist_repository
         self.album_repository = album_repository
+
+    async def _check_file_size_before_processing(self, video_id: str) -> bool:
+        """
+        Verifica el tamaño del archivo antes de procesarlo.
+        Retorna True si el archivo es menor a 50MB, False en caso contrario.
+        """
+        try:
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            audio_info = await self.audio_service.get_audio_info(url)
+
+            if not audio_info:
+                self.logger.warning(
+                    f"No se pudo obtener información del archivo para video {video_id}"
+                )
+                return False
+
+            # Intentar obtener el tamaño del archivo de los formatos de audio
+            audio_formats = audio_info.get("formats", [])
+
+            # Buscar el formato de audio más adecuado
+            for format_info in audio_formats:
+                filesize = format_info.get("filesize")
+                if filesize and filesize > self.MAX_FILE_SIZE_BYTES:
+                    self.logger.info(
+                        f"Video {video_id} excede el límite de tamaño: "
+                        f"{filesize / (1024 * 1024):.2f}MB > {self.MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB"
+                    )
+                    self._metrics["videos_filtered_by_size"] += 1
+                    return False
+
+            # Si llegamos aquí, el archivo es aceptable o no se pudo determinar el tamaño
+            return True
+
+        except Exception as e:
+            self.logger.error(
+                f"Error verificando tamaño del archivo para video {video_id}: {str(e)}"
+            )
+            # En caso de error, permitimos el procesamiento
+            return True
+
+    async def _filter_videos_by_size(
+        self, videos: List[YouTubeVideoInfo]
+    ) -> List[YouTubeVideoInfo]:
+        """
+        Filtra una lista de videos eliminando aquellos que excedan el límite de tamaño.
+
+        Args:
+            videos: Lista de videos a filtrar
+
+        Returns:
+            Lista de videos que pasan el filtro de tamaño
+        """
+        filtered_videos = []
+
+        for video in videos:
+            try:
+                if await self._check_file_size_before_processing(video.video_id):
+                    filtered_videos.append(video)
+                else:
+                    self.logger.info(
+                        f"Video filtrado por tamaño: {video.title} ({video.video_id})"
+                    )
+            except Exception as e:
+                self.logger.error(f"Error filtrando video {video.video_id}: {str(e)}")
+                # En caso de error, incluir el video
+                filtered_videos.append(video)
+
+        if len(filtered_videos) != len(videos):
+            self.logger.info(
+                f"Filtrados {len(videos) - len(filtered_videos)} videos de {len(videos)} por tamaño"
+            )
+
+        return filtered_videos
 
     async def search_and_process_audio(
         self,
@@ -63,7 +140,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         extract_metadata: bool = True,
     ) -> List[AudioTrackData]:
         """
-        Busca música y procesa completamente
+        Busca música y procesa completamente, filtrando por tamaño de archivo
 
         Args:
             query: Consulta de búsqueda
@@ -72,7 +149,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             extract_metadata: Si extraer metadatos de artistas/álbumes
 
         Returns:
-            Lista de pistas de audio procesadas
+            Lista de pistas de audio procesadas que no excedan el límite de tamaño
         """
         try:
             self._metrics["searches_performed"] += 1
@@ -86,12 +163,19 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
                 self.logger.warning(f"No videos found for query: {query}")
                 return []
 
-            # 2. Procesar videos a pistas de audio
+            # 2. Filtrar videos por tamaño antes de procesarlos
+            filtered_videos = await self._filter_videos_by_size(videos)
+
+            if not filtered_videos:
+                self.logger.warning(f"No videos passed size filter for query: {query}")
+                return []
+
+            # 3. Procesar videos filtrados a pistas de audio
             audio_tracks = []
-            for video in videos:
+            for video in filtered_videos:
                 try:
                     track = await self._process_video_to_audio_track(
-                        video, download_audio=download_audio
+                        video, download_audio=download_audio, skip_size_check=True
                     )
                     if track:
                         audio_tracks.append(track)
@@ -104,7 +188,8 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
                     self._metrics["errors"] += 1
 
             self.logger.info(
-                f"Processed {len(audio_tracks)} tracks from query '{query}'"
+                f"Processed {len(audio_tracks)} tracks from query '{query}' "
+                f"({len(videos) - len(filtered_videos)} filtered by size)"
             )
             return audio_tracks
 
@@ -120,7 +205,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         extract_metadata: bool = True,
     ) -> List[AudioTrackData]:
         """
-        Obtiene música aleatoria completamente procesada
+        Obtiene música aleatoria completamente procesada, filtrando por tamaño
 
         Args:
             options: Opciones de búsqueda
@@ -128,7 +213,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             extract_metadata: Si extraer metadatos
 
         Returns:
-            Lista de pistas de audio aleatorias
+            Lista de pistas de audio aleatorias que no excedan el límite de tamaño
         """
         try:
             # 1. Obtener videos aleatorios
@@ -140,12 +225,19 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
                 self.logger.warning("No random videos obtained")
                 return []
 
-            # 2. Procesar a pistas de audio
+            # 2. Filtrar videos por tamaño antes de procesarlos
+            filtered_videos = await self._filter_videos_by_size(videos)
+
+            if not filtered_videos:
+                self.logger.warning("No random videos passed size filter")
+                return []
+
+            # 3. Procesar videos filtrados a pistas de audio
             audio_tracks = []
-            for video in videos:
+            for video in filtered_videos:
                 try:
                     track = await self._process_video_to_audio_track(
-                        video, download_audio=download_audio
+                        video, download_audio=download_audio, skip_size_check=True
                     )
                     if track:
                         audio_tracks.append(track)
@@ -155,6 +247,10 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
                         f"Error processing random video {video.video_id}: {str(e)}"
                     )
 
+            self.logger.info(
+                f"Processed {len(audio_tracks)} random tracks "
+                f"({len(videos) - len(filtered_videos)} filtered by size)"
+            )
             return audio_tracks
 
         except Exception as e:
@@ -165,19 +261,32 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         self, video_id: str, options: Optional[DownloadOptions] = None
     ) -> Optional[bytes]:
         """
-        Descarga audio de un video específico
+        Descarga audio de un video específico con validación de tamaño
 
         Args:
             video_id: ID del video de YouTube
             options: Opciones de descarga
 
         Returns:
-            Datos del audio en bytes o None si falló
+            Datos del audio en bytes o None si falló o excede el límite de tamaño
         """
         try:
+            # Validar tamaño antes de descargar
+            if not await self._check_file_size_before_processing(video_id):
+                self.logger.info(
+                    f"Video {video_id} no descargado: excede límite de tamaño"
+                )
+                return None
+
             self._metrics["audio_downloads"] += 1
             url = f"https://www.youtube.com/watch?v={video_id}"
-            return await self.audio_service.download_audio(url, options)
+
+            # Configurar opciones con límite de tamaño si no se proporcionaron
+            download_options = options or DownloadOptions()
+            if download_options.max_filesize is None:
+                download_options.max_filesize = self.MAX_FILE_SIZE_BYTES
+
+            return await self.audio_service.download_audio(url, download_options)
 
         except Exception as e:
             self.logger.error(f"Error downloading audio for video {video_id}: {str(e)}")
@@ -218,10 +327,21 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
         return videos
 
     async def _process_video_to_audio_track(
-        self, video: YouTubeVideoInfo, download_audio: bool = False
+        self,
+        video: YouTubeVideoInfo,
+        download_audio: bool = False,
+        skip_size_check: bool = False,
     ) -> Optional[AudioTrackData]:
         """Convierte un video a AudioTrackData"""
         try:
+            # Validar tamaño del archivo antes de procesar (solo si no se ha hecho ya)
+            if (
+                not skip_size_check
+                and not await self._check_file_size_before_processing(video.video_id)
+            ):
+                self.logger.info(f"Video {video.video_id} filtrado por tamaño excesivo")
+                return None
+
             # Determinar artista principal
             main_artist = "Unknown Artist"
             if video.extracted_artists:
@@ -234,11 +354,18 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             if video.extracted_albums:
                 album_title = video.extracted_albums[0].title
 
-            # Descargar audio si se solicita
+            # Descargar audio si se solicita (con validación de tamaño incorporada)
             audio_data = None
             audio_filename = None
             if download_audio:
-                audio_data = await self.download_audio_from_video(video.video_id)
+                # Configurar opciones de descarga con límite de tamaño
+                download_options = DownloadOptions(
+                    max_filesize=self.MAX_FILE_SIZE_BYTES
+                )
+                audio_data = await self.audio_service.download_audio(
+                    f"https://www.youtube.com/watch?v={video.video_id}",
+                    download_options,
+                )
                 if audio_data:
                     audio_filename = f"{video.video_id}.mp3"
 
@@ -264,9 +391,10 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             return None
 
     def get_service_metrics(self) -> Dict[str, Any]:
-        """Obtiene métricas del servicio"""
+        """Obtiene métricas del servicio incluyendo filtrado por tamaño"""
         return {
             **self._metrics,
+            "max_file_size_mb": self.MAX_FILE_SIZE_BYTES / (1024 * 1024),
             "youtube_quota_usage": (
                 self.youtube_service.get_quota_usage()
                 if hasattr(self.youtube_service, "get_quota_usage")
@@ -287,6 +415,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
                 "audio_downloads": 0,
                 "metadata_extractions": 0,
                 "errors": 0,
+                "videos_filtered_by_size": 0,
             }
 
             self.logger.info("UnifiedMusicService cleanup completed")
@@ -374,7 +503,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
                 )
 
             return await self._process_video_to_audio_track(
-                youtube_video, download_audio=False
+                youtube_video, download_audio=False, skip_size_check=False
             )
         except Exception as e:
             self.logger.error(f"Error processing video to audio track: {str(e)}")

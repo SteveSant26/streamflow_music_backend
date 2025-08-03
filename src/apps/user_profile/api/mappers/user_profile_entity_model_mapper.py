@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from apps.user_profile.domain.entities import UserProfileEntity
 from apps.user_profile.infrastructure.models import UserProfileModel
-from src.common.interfaces.imapper import AbstractEntityModelMapper
+from common.interfaces.imapper import AbstractEntityModelMapper
 
 
 class UserProfileEntityModelMapper(

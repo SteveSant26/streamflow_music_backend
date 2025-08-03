@@ -3,9 +3,7 @@ Genre entity to DTO mapper class for converting between GenreEntity and DTOs.
 """
 
 from apps.genres.domain.entities import GenreEntity
-from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
-    AbstractEntityDtoMapper,
-)
+from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 
 from ..dtos import GenreResponseDTO
 

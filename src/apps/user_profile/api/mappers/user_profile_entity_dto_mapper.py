@@ -1,9 +1,7 @@
 from apps.user_profile.domain.entities import UserProfileEntity
 from common.factories.storage_service_factory import StorageServiceFactory
+from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 from common.mixins.logging_mixin import LoggingMixin
-from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
-    AbstractEntityDtoMapper,
-)
 
 from ..dtos import UserProfileResponseDTO
 

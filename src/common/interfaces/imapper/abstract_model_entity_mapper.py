@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, Iterable
+from typing import Any, Dict, Generic, Iterable, TypeVar
 
-from src.common.mixins.logging_mixin import LoggingMixin
-from src.common.types import EntityType, ModelType
+from common.mixins.logging_mixin import LoggingMixin
+
+
+EntityType = TypeVar("EntityType")
+ModelType = TypeVar("ModelType")
 
 
 class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC, LoggingMixin):

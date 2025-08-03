@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from apps.genres.domain.entities import GenreEntity
 from apps.genres.infrastructure.models import GenreModel
-from src.common.interfaces.imapper import AbstractEntityModelMapper
+from common.interfaces.imapper import AbstractEntityModelMapper
 
 
 class GenreEntityModelMapper(AbstractEntityModelMapper[GenreEntity, GenreModel]):

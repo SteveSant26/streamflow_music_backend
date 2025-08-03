@@ -42,7 +42,14 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             else:
                 await song_obj.genres.aclear()
 
-            return self.mapper.model_to_entity(song_obj)
+            # Recargar el objeto con las relaciones para el mapper
+            song_obj = (
+                await self.model_class.objects.select_related()
+                .prefetch_related("genres")
+                .aget(id=song_obj.id)
+            )
+
+            return await sync_to_async(self.mapper.model_to_entity)(song_obj)
 
         except Exception as e:
             self.logger.error(f"Error saving song: {str(e)}")
@@ -53,11 +60,15 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     ) -> Optional[SongEntity]:
         """Obtiene una canción por fuente y ID de fuente"""
         try:
-            song = await self.model_class.objects.aget(
-                source_type=source_type,
-                source_id=source_id,
+            song = (
+                await self.model_class.objects.select_related()
+                .prefetch_related("genres")
+                .aget(
+                    source_type=source_type,
+                    source_id=source_id,
+                )
             )
-            return self.mapper.model_to_entity(song)
+            return await sync_to_async(self.mapper.model_to_entity)(song)
         except SongModel.DoesNotExist:
             return None
         except Exception as e:
@@ -70,9 +81,14 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         """Obtiene canciones aleatorias"""
         try:
             songs = await sync_to_async(
-                lambda: list(SongModel.objects.all().order_by("?")[:limit])
+                lambda: list(
+                    SongModel.objects.select_related()
+                    .prefetch_related("genres")
+                    .all()
+                    .order_by("?")[:limit]
+                )
             )()
-            return self.mapper.models_to_entities(songs)
+            return await sync_to_async(self.mapper.models_to_entities)(songs)
         except Exception as e:
             self.logger.error(f"Error getting random songs: {str(e)}")
             return []
@@ -82,14 +98,17 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.filter(
+                    SongModel.objects.select_related()
+                    .prefetch_related("genres")
+                    .filter(
                         Q(title__icontains=query)
                         | Q(artist_name__icontains=query)
                         | Q(album_title__icontains=query),
-                    ).order_by("-play_count", "-created_at")[:limit]
+                    )
+                    .order_by("-play_count", "-created_at")[:limit]
                 )
             )()
-            return self.mapper.models_to_entities(songs)
+            return await sync_to_async(self.mapper.models_to_entities)(songs)
         except Exception as e:
             self.logger.error(f"Error searching songs with query '{query}': {str(e)}")
             return []
@@ -101,14 +120,15 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.filter(
+                    SongModel.objects.select_related()
+                    .prefetch_related("genres")
+                    .filter(
                         artist_name__iexact=artist_name,
-                    ).order_by(
-                        "-play_count", "album_title", "track_number"
-                    )[:limit]
+                    )
+                    .order_by("-play_count", "album_title", "track_number")[:limit]
                 )
             )()
-            return self.mapper.models_to_entities(songs)
+            return await sync_to_async(self.mapper.models_to_entities)(songs)
         except Exception as e:
             self.logger.error(
                 f"Error getting songs by artist '{artist_name}': {str(e)}"
@@ -120,14 +140,15 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.filter(
+                    SongModel.objects.select_related()
+                    .prefetch_related("genres")
+                    .filter(
                         album_title__iexact=album_title,
-                    ).order_by(
-                        "track_number", "title"
-                    )[:limit]
+                    )
+                    .order_by("track_number", "title")[:limit]
                 )
             )()
-            return self.mapper.models_to_entities(songs)
+            return await sync_to_async(self.mapper.models_to_entities)(songs)
         except Exception as e:
             self.logger.error(f"Error getting songs by album '{album_title}': {str(e)}")
             return []
@@ -137,12 +158,13 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.all().order_by("-play_count", "-created_at")[
-                        :limit
-                    ]
+                    SongModel.objects.select_related()
+                    .prefetch_related("genres")
+                    .all()
+                    .order_by("-play_count", "-created_at")[:limit]
                 )
             )()
-            return self.mapper.models_to_entities(songs)
+            return await sync_to_async(self.mapper.models_to_entities)(songs)
         except Exception as e:
             self.logger.error(f"Error getting most played songs: {str(e)}")
             return []
@@ -152,12 +174,13 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.all().order_by("-favorite_count", "-created_at")[
-                        :limit
-                    ]
+                    SongModel.objects.select_related()
+                    .prefetch_related("genres")
+                    .all()
+                    .order_by("-favorite_count", "-created_at")[:limit]
                 )
             )()
-            return self.mapper.models_to_entities(songs)
+            return await sync_to_async(self.mapper.models_to_entities)(songs)
         except Exception as e:
             self.logger.error(f"Error getting most favorited songs: {str(e)}")
             return []
@@ -167,12 +190,13 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.filter(last_played_at__isnull=False).order_by(
-                        "-last_played_at"
-                    )[:limit]
+                    SongModel.objects.select_related()
+                    .prefetch_related("genres")
+                    .filter(last_played_at__isnull=False)
+                    .order_by("-last_played_at")[:limit]
                 )
             )()
-            return self.mapper.models_to_entities(songs)
+            return await sync_to_async(self.mapper.models_to_entities)(songs)
         except Exception as e:
             self.logger.error(f"Error getting recently played songs: {str(e)}")
             return []

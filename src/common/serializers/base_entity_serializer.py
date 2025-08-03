@@ -2,7 +2,7 @@ from typing import Any, Optional, Type
 
 from rest_framework import serializers
 
-from src.common.interfaces.imapper.abstract_mapper import AbstractMapper
+from common.interfaces.imapper.abstract_mapper import AbstractMapper
 
 from ..utils.logging_config import get_logger
 
@@ -23,7 +23,9 @@ class BaseEntitySerializer(serializers.Serializer):
         """
         Convierte automáticamente entidades o modelos a DTOs, y luego a representación JSON.
         """
-        logger.debug(f"[to_representation] instance type: {type(instance)}")
+        logger.debug(
+            f"[DEBUG] Tipo esperado: {self.dto_class}, tipo recibido: {type(instance)}"
+        )
 
         if not self.mapper_class or not self.entity_class or not self.dto_class:
             raise NotImplementedError(

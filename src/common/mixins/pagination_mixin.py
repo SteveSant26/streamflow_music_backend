@@ -1,6 +1,7 @@
+from typing import Any
+
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
 
 from ..core.pagination import CustomPagination
 
@@ -11,28 +12,24 @@ class PaginationMixin:
     Automatically initializes CustomPagination.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not hasattr(self, "paginator"):
-            self.paginator = CustomPagination()
+    @property
+    def paginator(self):
+        if not hasattr(self, "_paginator"):
+            self._paginator = CustomPagination()
+        return self._paginator
 
     def paginate_queryset(self, queryset, request=None):
         """Paginate a queryset using the custom paginator"""
-        if not hasattr(self, "paginator"):
-            self.paginator = CustomPagination()
-
         request = request or getattr(self, "request", None)
         return self.paginator.paginate_queryset(queryset, request, view=self)
 
     def get_paginated_response(self, data) -> Response:
         """Get paginated response using the custom paginator"""
-        if not hasattr(self, "paginator"):
-            self.paginator = CustomPagination()
         return self.paginator.get_paginated_response(data)
 
     def get_serializer_class(
         self,
-    ) -> type[Serializer]:
+    ) -> Any:
         """Override this method in your view to specify the serializer class"""
         raise NotImplementedError("You must implement get_serializer_class method")
 

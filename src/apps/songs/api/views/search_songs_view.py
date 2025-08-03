@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.factories.unified_music_service_factory import get_music_service
 from common.mixins.logging_mixin import LoggingMixin
-from src.common.factories.unified_music_service_factory import get_music_service
 
 from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import SearchSongsUseCase

@@ -6,6 +6,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.user_profile.api.mappers import UserProfileMapper
 from apps.user_profile.api.serializers import (
     RetrieveUserProfileSerializer,
     UploadProfilePictureSerializer,
@@ -13,13 +14,10 @@ from apps.user_profile.api.serializers import (
 from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 from common.factories import StorageServiceFactory
 from common.mixins.logging_mixin import LoggingMixin
-from src.apps.user_profile.api.mappers import UserProfileMapper
 
 from ..api.dtos import UploadProfilePictureRequestDTO
 from ..infrastructure.repository import UserRepository
 from ..use_cases import GetUserProfileUseCase, UploadProfilePicture
-
-# Instancias globales (idealmente esto debería ser inyección de dependencias)
 
 
 @extend_schema_view(

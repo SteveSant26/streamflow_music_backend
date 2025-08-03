@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from apps.albums.domain.entities import AlbumEntity
 from apps.albums.infrastructure.models import AlbumModel
-from src.common.interfaces.imapper import AbstractEntityModelMapper
+from common.interfaces.imapper import AbstractEntityModelMapper
 
 
 class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel]):

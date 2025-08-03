@@ -1,11 +1,10 @@
-from ...types import EntityType, ModelType
 from .base_read_only_repository import BaseReadOnlyDjangoRepository
 from .base_write_only_repository import BaseWriteOnlyDjangoRepository
 
 
 class BaseDjangoRepository(
-    BaseReadOnlyDjangoRepository[EntityType, ModelType],
-    BaseWriteOnlyDjangoRepository[EntityType, ModelType],
+    BaseReadOnlyDjangoRepository,
+    BaseWriteOnlyDjangoRepository,
 ):
     """
     Implementación base completa de repositorio para Django que combina
