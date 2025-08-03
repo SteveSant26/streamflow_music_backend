@@ -100,7 +100,6 @@ def create_mock_album_entity(
         cover_image_url="https://example.com/cover.jpg",
         total_tracks=10,
         play_count=5000,
-        is_active=True,
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
@@ -140,11 +139,11 @@ def test_album_serializer_validation_errors():
     invalid_data = {"artist_id": str(uuid4()), "artist_name": "Pink Floyd"}
 
     serializer = MockAlbumSerializer(data=invalid_data)
-    assert serializer.is_valid( == False)  # nosec B101
+    assert serializer.is_valid() is False  # nosec B101
     invalid_data2 = {"title": "Test Album", "artist_name": "Pink Floyd"}
 
     serializer2 = MockAlbumSerializer(data=invalid_data2)
-    assert serializer2.is_valid( == False)  # nosec B101
+    assert serializer2.is_valid() is False  # nosec B101
 
     print("✅ Validación de errores funciona correctamente")
     print("   - Detecta campos faltantes correctamente")

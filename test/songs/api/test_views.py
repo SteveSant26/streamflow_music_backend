@@ -325,7 +325,9 @@ class TestSongViewsConcepts(TestCase):
 
     @patch("apps.songs.api.views.most_popular_songs_view.SongRepository")
     @patch("apps.songs.api.views.most_popular_songs_view.GetMostPlayedSongsUseCase")
-    def test_most_popular_songs_view_concept(self, mock_use_case_class, mock_repo_class):
+    def test_most_popular_songs_view_concept(
+        self, mock_use_case_class, mock_repo_class
+    ):
         """Test concepto de MostPopularSongsView (sin hacer requests HTTP)"""
         from apps.songs.api.views.most_popular_songs_view import MostPopularSongsView
 
@@ -334,7 +336,9 @@ class TestSongViewsConcepts(TestCase):
         mock_repo_class.return_value = mock_repo
 
         mock_use_case = AsyncMock()
-        mock_use_case.execute = AsyncMock(return_value=self.sample_entities[:3])  # Top 3 most popular
+        mock_use_case.execute = AsyncMock(
+            return_value=self.sample_entities[:3]
+        )  # Top 3 most popular
         mock_use_case_class.return_value = mock_use_case
 
         # Crear vista
@@ -342,7 +346,7 @@ class TestSongViewsConcepts(TestCase):
 
         # Verificar que hereda de LoggingMixin
         self.assertTrue(hasattr(view, "logger"))
-        
+
         # Verificar que tiene los atributos esperados
         self.assertTrue(hasattr(view, "repository"))
         self.assertTrue(hasattr(view, "get_most_played_songs_use_case"))
@@ -350,17 +354,18 @@ class TestSongViewsConcepts(TestCase):
 
         # Verificar que se configuran los permisos correctos
         from rest_framework.permissions import AllowAny
+
         self.assertEqual(view.permission_classes, [AllowAny])
 
     def test_most_popular_songs_api_data_structure(self):
         """Test estructura de datos para API de canciones más populares"""
         # Simular entidades ordenadas por play_count
         popular_entities = sorted(
-            self.sample_entities, 
-            key=lambda x: x.play_count, 
-            reverse=True
-        )[:5]  # Top 5
-        
+            self.sample_entities, key=lambda x: x.play_count, reverse=True
+        )[
+            :5
+        ]  # Top 5
+
         # Simular preparación de datos para serializer
         api_data = []
         for entity in popular_entities:
@@ -377,13 +382,13 @@ class TestSongViewsConcepts(TestCase):
 
         # Verificar estructura
         self.assertEqual(len(api_data), min(5, len(self.sample_entities)))
-        
+
         # Verificar que están ordenadas por play_count descendente
         for i in range(len(api_data) - 1):
             self.assertGreaterEqual(
-                api_data[i]["play_count"], 
+                api_data[i]["play_count"],
                 api_data[i + 1]["play_count"],
-                "Songs should be ordered by play_count descending"
+                "Songs should be ordered by play_count descending",
             )
 
         # Verificar estructura de cada canción
