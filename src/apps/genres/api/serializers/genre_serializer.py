@@ -1,13 +1,24 @@
 from rest_framework import serializers
 
-from common.serializers.base_entity_serializer import BaseEntitySerializer
+from apps.genres.api.mappers import GenreMapper
+from apps.genres.domain.entities import GenreEntity
+from common.serializers import BaseEntitySerializer
 
 from ..dtos import GenreResponseDTO
 
 
-class GenreSerializer(BaseEntitySerializer[GenreResponseDTO]):
-    """Serializer para géneros musicales (solo lectura)"""
+class GenreSerializer(BaseEntitySerializer):
+    """
+    Serializer inteligente que hereda funcionalidad automática de conversión.
+    Solo necesita definir las clases correspondientes.
+    """
 
+    # Configuración para el serializer base
+    mapper_class = GenreMapper()
+    entity_class = GenreEntity
+    dto_class = GenreResponseDTO
+
+    # Definición de campos (opcional, solo para documentación/validación)
     id = serializers.CharField(read_only=True)
     name = serializers.CharField(read_only=True)
     description = serializers.CharField(read_only=True, allow_null=True)
@@ -17,9 +28,6 @@ class GenreSerializer(BaseEntitySerializer[GenreResponseDTO]):
     is_active = serializers.BooleanField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True, allow_null=True)
     updated_at = serializers.DateTimeField(read_only=True, allow_null=True)
-
-    class Meta:
-        dto_class = GenreResponseDTO
 
 
 class GenreSearchSerializer(serializers.Serializer):

@@ -36,7 +36,7 @@ class SongDetailView(APIView, LoggingMixin):
                     {"error": "Song not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
-            song_dto = self.mapper.entity_to_response_dto(song)
+            song_dto = self.mapper.entity_to_dto(song)
             serializer = SongSerializer(song_dto)
 
             return Response(serializer.data, status=status.HTTP_200_OK)

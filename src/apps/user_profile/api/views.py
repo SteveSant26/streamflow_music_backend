@@ -13,15 +13,13 @@ from apps.user_profile.api.serializers import (
 from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 from common.factories import StorageServiceFactory
 from common.mixins.logging_mixin import LoggingMixin
+from src.apps.user_profile.api.mappers import UserProfileMapper
 
 from ..api.dtos import UploadProfilePictureRequestDTO
-from ..api.mappers import UserProfileMapper
 from ..infrastructure.repository import UserRepository
 from ..use_cases import GetUserProfileUseCase, UploadProfilePicture
 
 # Instancias globales (idealmente esto debería ser inyección de dependencias)
-user_repository = UserRepository()
-storage_service = StorageServiceFactory.create_profile_pictures_service()
 
 
 @extend_schema_view(
@@ -43,6 +41,8 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.user_repository = UserRepository()
+        self.storage_service = StorageServiceFactory.create_profile_pictures_service()
         self.mapper = UserProfileMapper()
 
     def get_permissions(self):
@@ -79,11 +79,11 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
         self.logger.info(f"User {request.user.id} is requesting their profile.")
 
         # Usar caso de uso
-        get_user_profile = GetUserProfileUseCase(user_repository)
+        get_user_profile = GetUserProfileUseCase(self.user_repository)
         user_entity = async_to_sync(get_user_profile.execute)(str(request.user.id))
 
         # Convertir entidad a DTO usando el mapper
-        user_dto = self.mapper.entity_to_response_dto(user_entity)
+        user_dto = self.mapper.entity_to_dto(user_entity)
         serializer = self.get_serializer(user_dto)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -108,7 +108,7 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
 
         # Usar caso de uso
         upload_profile_picture_use_case = UploadProfilePicture(
-            user_repository, storage_service
+            self.user_repository, self.storage_service
         )
         user_entity = async_to_sync(upload_profile_picture_use_case.execute)(
             request_dto
@@ -119,7 +119,7 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
         )
 
         # Convertir entidad a DTO usando el mapper
-        user_dto = self.mapper.entity_to_response_dto(user_entity)
+        user_dto = self.mapper.entity_to_dto(user_entity)
         return Response(
             RetrieveUserProfileSerializer(user_dto).data,
             status=status.HTTP_200_OK,

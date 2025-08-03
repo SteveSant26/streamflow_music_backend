@@ -1,55 +1,36 @@
 from rest_framework import serializers
 
+from apps.albums.api.mappers import AlbumMapper
 from apps.albums.domain.entities import AlbumEntity
-from apps.albums.infrastructure.models.album_model import AlbumModel
+from common.serializers import BaseEntitySerializer
+
+from ..dtos import AlbumResponseDTO
 
 
-class AlbumSerializer(serializers.ModelSerializer):
-    """Serializer para álbumes (solo lectura - datos de YouTube)"""
+class AlbumSerializer(BaseEntitySerializer):
+    """
+    Serializer inteligente que hereda funcionalidad automática de conversión.
+    Solo necesita definir las clases correspondientes.
+    """
 
-    class Meta:
-        model = AlbumModel
-        fields = [
-            "id",
-            "title",
-            "artist_id",
-            "artist_name",
-            "release_date",
-            "description",
-            "cover_image_url",
-            "total_tracks",
-            "play_count",
-            "is_active",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["__all__"]  # Todos los campos son de solo lectura
+    # Configuración para el serializer base
+    mapper_class = AlbumMapper()
+    entity_class = AlbumEntity
+    dto_class = AlbumResponseDTO
 
-    def to_representation(self, instance):
-        """Convierte el modelo a representación JSON"""
-        if isinstance(instance, AlbumEntity):
-            # Si recibimos una entidad, convertirla directamente
-            return {
-                "id": str(instance.id),
-                "title": instance.title,
-                "artist_id": str(instance.artist_id),
-                "artist_name": instance.artist_name,
-                "release_date": instance.release_date.isoformat()
-                if instance.release_date
-                else None,
-                "description": instance.description,
-                "cover_image_url": instance.cover_image_url,
-                "total_tracks": instance.total_tracks,
-                "play_count": instance.play_count,
-                "is_active": instance.is_active,
-                "created_at": instance.created_at.isoformat()
-                if instance.created_at
-                else None,
-                "updated_at": instance.updated_at.isoformat()
-                if instance.updated_at
-                else None,
-            }
-        return super().to_representation(instance)
+    # Definición de campos (opcional, solo para documentación/validación)
+    id = serializers.CharField(read_only=True)
+    title = serializers.CharField(read_only=True)
+    artist_id = serializers.CharField(read_only=True)
+    artist_name = serializers.CharField(read_only=True)
+    release_date = serializers.DateField(read_only=True, allow_null=True)
+    description = serializers.CharField(read_only=True, allow_null=True)
+    cover_image_url = serializers.URLField(read_only=True, allow_null=True)
+    total_tracks = serializers.IntegerField(read_only=True)
+    play_count = serializers.IntegerField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True, allow_null=True)
+    updated_at = serializers.DateTimeField(read_only=True, allow_null=True)
 
 
 class AlbumSearchSerializer(serializers.Serializer):

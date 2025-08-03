@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Generic, List, Optional, Type, cast
 
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
+
+from src.common.interfaces.imapper import AbstractEntityModelMapper
 
 from ...interfaces import IReadOnlyRepository
 from ...mixins.logging_mixin import LoggingMixin
@@ -20,8 +22,15 @@ class BaseReadOnlyDjangoRepository(
     operaciones de consulta comunes para cualquier modelo de Django.
     """
 
-    def __init__(self, model_class: Type[ModelType], *args, **kwargs):
+    def __init__(
+        self,
+        model_class: Type[ModelType],
+        mapper: AbstractEntityModelMapper,
+        *args,
+        **kwargs,
+    ):
         self.model_class = model_class
+        self.mapper = mapper
 
     async def get_by_id(self, entity_id: str) -> Optional[EntityType]:
         """Obtiene una entidad por ID"""
@@ -29,7 +38,7 @@ class BaseReadOnlyDjangoRepository(
             model_instance = await self.model_class.objects.aget(
                 id=entity_id, **self._get_active_filter()
             )
-            return self._model_to_entity(model_instance)
+            return self.mapper.model_to_entity(model_instance)
         except ObjectDoesNotExist:
             self.logger.debug(
                 f"{self.model_class.__name__} with id {entity_id} not found"
@@ -48,7 +57,10 @@ class BaseReadOnlyDjangoRepository(
                 **self._get_active_filter()
             )
             queryset = self._apply_default_ordering(queryset)
-            return [self._model_to_entity(cast(ModelType, model)) for model in queryset]
+            return [
+                self.mapper.model_to_entity(cast(ModelType, model))
+                for model in queryset
+            ]
         except Exception as e:
             self.logger.error(
                 f"Error getting all {self.model_class.__name__}: {str(e)}"
@@ -75,8 +87,6 @@ class BaseReadOnlyDjangoRepository(
             self.logger.error(f"Error counting {self.model_class.__name__}: {str(e)}")
             raise
 
-    # Métodos protegidos que pueden ser sobrescritos por las subclases
-
     def _get_active_filter(self) -> dict:
         """
         Retorna el filtro para entidades activas.
@@ -94,9 +104,3 @@ class BaseReadOnlyDjangoRepository(
         if hasattr(self.model_class, "created_at"):
             return queryset.order_by("-created_at")
         return queryset
-
-    # Método abstracto que debe ser implementado por las subclases
-
-    @abstractmethod
-    def _model_to_entity(self, model: ModelType) -> EntityType:
-        """Convierte un modelo a su entidad correspondiente"""

@@ -1,9 +1,9 @@
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
-from django.db import models
 from django.db.models import Count, Q, Sum
 
+from apps.songs.api.mappers import SongEntityModelMapper
 from common.core import BaseDjangoRepository
 
 from ...domain.entities import SongEntity
@@ -15,36 +15,15 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     """Implementación del repositorio de canciones usando Django ORM"""
 
     def __init__(self):
-        super().__init__(SongModel)
+        song_mapper = SongEntityModelMapper()
+        super().__init__(SongModel, song_mapper)
+        # Declarar el tipo específico del mapper para acceder a métodos especializados
+        self.mapper: SongEntityModelMapper = song_mapper
 
     async def save(self, entity: SongEntity) -> SongEntity:
         """Guarda una canción"""
         try:
-            song_data = {
-                "title": entity.title,
-                "album_id": entity.album_id,
-                "artist_id": entity.artist_id,
-                "album_title": entity.album_title,
-                "artist_name": entity.artist_name,
-                "genre_names": entity.genre_names or [],
-                "duration_seconds": entity.duration_seconds,
-                "track_number": entity.track_number,
-                "file_url": entity.file_url,
-                "thumbnail_url": entity.thumbnail_url,
-                "lyrics": entity.lyrics,
-                "play_count": entity.play_count,
-                "favorite_count": entity.favorite_count,
-                "download_count": entity.download_count,
-                "source_type": entity.source_type,
-                "source_id": entity.source_id,
-                "source_url": entity.source_url,
-                "is_explicit": entity.is_explicit,
-                "is_active": entity.is_active,
-                "is_premium": entity.is_premium,
-                "audio_quality": entity.audio_quality,
-                "last_played_at": entity.last_played_at,
-                "release_date": entity.release_date,
-            }
+            song_data = self.mapper.entity_to_model_data(entity)
 
             if entity.id:
                 # Update existing song - first check if it exists
@@ -56,14 +35,9 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
 
                     # Actualizar los géneros (many-to-many)
                     if entity.genre_ids:
-                        from apps.genres.infrastructure.models.genre_model import (
-                            GenreModel,
+                        await self.mapper.set_entity_genres_to_model(
+                            song_obj, entity.genre_ids
                         )
-
-                        genre_objects = await sync_to_async(list)(
-                            GenreModel.objects.filter(id__in=entity.genre_ids)
-                        )
-                        await sync_to_async(song_obj.genres.set)(genre_objects)
                     else:
                         await sync_to_async(song_obj.genres.clear)()
 
@@ -77,25 +51,17 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
                     )
                     # Asignar géneros para nueva canción
                     if entity.genre_ids:
-                        from apps.genres.infrastructure.models.genre_model import (
-                            GenreModel,
+                        await self.mapper.set_entity_genres_to_model(
+                            song_obj, entity.genre_ids
                         )
-
-                        genre_objects = await sync_to_async(list)(
-                            GenreModel.objects.filter(id__in=entity.genre_ids)
-                        )
-                        await sync_to_async(song_obj.genres.set)(genre_objects)
             else:
                 # Create new song
                 song_obj = await sync_to_async(SongModel.objects.create)(**song_data)
                 # Asignar géneros para nueva canción
                 if entity.genre_ids:
-                    from apps.genres.infrastructure.models.genre_model import GenreModel
-
-                    genre_objects = await sync_to_async(list)(
-                        GenreModel.objects.filter(id__in=entity.genre_ids)
+                    await self.mapper.set_entity_genres_to_model(
+                        song_obj, entity.genre_ids
                     )
-                    await sync_to_async(song_obj.genres.set)(genre_objects)
 
             return self._model_to_entity(song_obj)
 
@@ -103,18 +69,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             self.logger.error(f"Error saving song: {str(e)}")
             raise
 
-    async def get_by_id(self, entity_id: str) -> Optional[SongEntity]:
-        """Obtiene una canción por ID"""
-        try:
-            song = await sync_to_async(SongModel.objects.get)(
-                id=entity_id, is_active=True
-            )
-            return self._model_to_entity(song)
-        except SongModel.DoesNotExist:
-            return None
-        except Exception as e:
-            self.logger.error(f"Error getting song by id {entity_id}: {str(e)}")
-            return None
+    # get_by_id ya está implementado en BaseReadOnlyDjangoRepository
 
     async def get_by_source(
         self, source_type: str, source_id: str
@@ -133,8 +88,10 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             )
             return None
 
-    async def get_all(self, limit: int = 100, offset: int = 0) -> List[SongEntity]:
-        """Obtiene todas las canciones activas"""
+    async def get_all_paginated(
+        self, limit: int = 100, offset: int = 0
+    ) -> List[SongEntity]:
+        """Obtiene todas las canciones activas con paginación"""
         try:
             songs = await sync_to_async(list)(
                 SongModel.objects.filter(is_active=True).order_by("-created_at")[
@@ -281,12 +238,14 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     async def increment_play_count(self, song_id: str) -> bool:
         """Incrementa el contador de reproducciones"""
         try:
-            from django.utils import timezone
-
-            rows_updated = await sync_to_async(
-                SongModel.objects.filter(id=song_id, is_active=True).update
-            )(play_count=models.F("play_count") + 1, last_played_at=timezone.now())
-            return rows_updated > 0
+            song = await sync_to_async(SongModel.objects.get)(
+                id=song_id, is_active=True
+            )
+            await sync_to_async(song.increment_play_count)()
+            return True
+        except SongModel.DoesNotExist:
+            self.logger.warning(f"Song with id {song_id} not found")
+            return False
         except Exception as e:
             self.logger.error(
                 f"Error incrementing play count for song {song_id}: {str(e)}"
@@ -296,10 +255,14 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     async def increment_favorite_count(self, song_id: str) -> bool:
         """Incrementa el contador de favoritos"""
         try:
-            rows_updated = await sync_to_async(
-                SongModel.objects.filter(id=song_id, is_active=True).update
-            )(favorite_count=models.F("favorite_count") + 1)
-            return rows_updated > 0
+            song = await sync_to_async(SongModel.objects.get)(
+                id=song_id, is_active=True
+            )
+            await sync_to_async(song.increment_favorite_count)()
+            return True
+        except SongModel.DoesNotExist:
+            self.logger.warning(f"Song with id {song_id} not found")
+            return False
         except Exception as e:
             self.logger.error(
                 f"Error incrementing favorite count for song {song_id}: {str(e)}"
@@ -309,25 +272,18 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     async def increment_download_count(self, song_id: str) -> bool:
         """Incrementa el contador de descargas"""
         try:
-            rows_updated = await sync_to_async(
-                SongModel.objects.filter(id=song_id, is_active=True).update
-            )(download_count=models.F("download_count") + 1)
-            return rows_updated > 0
+            song = await sync_to_async(SongModel.objects.get)(
+                id=song_id, is_active=True
+            )
+            await sync_to_async(song.increment_download_count)()
+            return True
+        except SongModel.DoesNotExist:
+            self.logger.warning(f"Song with id {song_id} not found")
+            return False
         except Exception as e:
             self.logger.error(
                 f"Error incrementing download count for song {song_id}: {str(e)}"
             )
-            return False
-
-    async def delete(self, entity_id: str) -> bool:
-        """Elimina una canción (soft delete)"""
-        try:
-            rows_updated = await sync_to_async(
-                SongModel.objects.filter(id=entity_id).update
-            )(is_active=False)
-            return rows_updated > 0
-        except Exception as e:
-            self.logger.error(f"Error deleting song {entity_id}: {str(e)}")
             return False
 
     async def exists_by_source(self, source_type: str, source_id: str) -> bool:
@@ -346,32 +302,8 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
 
     def _model_to_entity(self, model: SongModel) -> SongEntity:
         """Convierte un modelo de Django a una entidad"""
-        return SongEntity(
-            id=str(model.id),
-            title=model.title,
-            album_id=str(model.album_id) if model.album_id else None,
-            artist_id=str(model.artist_id) if model.artist_id else None,
-            genre_ids=[],  # Se puede cargar por separado si es necesario
-            album_title=model.album_title,
-            artist_name=model.artist_name,
-            genre_names=model.genre_names if model.genre_names else [],
-            duration_seconds=model.duration_seconds,
-            track_number=model.track_number,
-            file_url=model.file_url,
-            thumbnail_url=model.thumbnail_url,
-            lyrics=model.lyrics,
-            play_count=model.play_count,
-            favorite_count=model.favorite_count,
-            download_count=model.download_count,
-            source_type=model.source_type,
-            source_id=model.source_id,
-            source_url=model.source_url,
-            is_explicit=model.is_explicit,
-            is_active=model.is_active,
-            is_premium=model.is_premium,
-            audio_quality=model.audio_quality,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-            last_played_at=model.last_played_at,
-            release_date=model.release_date,
-        )
+        return self.mapper.model_to_entity(model)
+
+    def _entity_to_model(self, entity: SongEntity) -> dict:
+        """Convierte una entidad a datos del modelo"""
+        return self.mapper.entity_to_model_data(entity)

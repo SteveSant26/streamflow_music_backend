@@ -1,7 +1,3 @@
-"""
-ViewSet principal para búsquedas musicales integradas.
-"""
-
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action

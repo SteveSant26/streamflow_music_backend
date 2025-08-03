@@ -1,6 +1,10 @@
 from abc import ABC
 from typing import Type
 
+from src.common.interfaces.imapper.abstract_model_entity_mapper import (
+    AbstractEntityModelMapper,
+)
+
 from ...interfaces import IBaseRepository
 from ...types import EntityType, ModelType
 from .base_read_only_repository import BaseReadOnlyDjangoRepository
@@ -21,7 +25,7 @@ class BaseDjangoRepository(
     proporcionando una interfaz completa para operaciones CRUD.
     """
 
-    def __init__(self, model_class: Type[ModelType]):
+    def __init__(self, model_class: Type[ModelType], mapper: AbstractEntityModelMapper):
         """
         Inicializa el repositorio con la clase de modelo de Django.
 
@@ -30,3 +34,4 @@ class BaseDjangoRepository(
         """
         # Configurar atributos comunes una sola vez
         self.model_class = model_class
+        self.mapper = mapper

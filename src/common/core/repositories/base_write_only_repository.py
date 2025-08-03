@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Generic, Type
 
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
+
+from src.common.interfaces.imapper import AbstractEntityModelMapper
 
 from ...exceptions import NotFoundException
 from ...interfaces import IWriteOnlyRepository
@@ -21,12 +23,19 @@ class BaseWriteOnlyDjangoRepository(
     operaciones de modificación comunes para cualquier modelo de Django.
     """
 
-    def __init__(self, model_class: Type[ModelType], *args, **kwargs):
+    def __init__(
+        self,
+        model_class: Type[ModelType],
+        mapper: AbstractEntityModelMapper,
+        *args,
+        **kwargs,
+    ):
         self.model_class = model_class
+        self.mapper = mapper
 
     async def save(self, entity: EntityType) -> EntityType:
         try:
-            model_data = self._entity_to_model_data(entity)
+            model_data = self.mapper.entity_to_model(entity)
 
             # Wrapping the sync ORM call inside sync_to_async
             model_instance, created = await sync_to_async(
@@ -37,7 +46,7 @@ class BaseWriteOnlyDjangoRepository(
             self.logger.info(
                 f"{self.model_class.__name__} {action} with id {model_instance.pk}"
             )
-            return self._model_to_entity(model_instance)
+            return self.mapper.model_to_entity(model_instance)
         except Exception as e:
             self.logger.error(f"Error saving {self.model_class.__name__}: {str(e)}")
             raise
@@ -67,7 +76,7 @@ class BaseWriteOnlyDjangoRepository(
     async def update(self, entity_id: str, entity: EntityType) -> EntityType:
         """Actualiza una entidad específica"""
         try:
-            model_data = self._entity_to_model_data(entity)
+            model_data = self.mapper.entity_to_model(entity)
             updated_count = await sync_to_async(
                 self.model_class.objects.filter(id=entity_id).update
             )(**model_data)
@@ -84,7 +93,7 @@ class BaseWriteOnlyDjangoRepository(
             self.logger.info(
                 f"{self.model_class.__name__} with id {entity_id} updated successfully"
             )
-            return self._model_to_entity(updated_model)
+            return self.mapper.model_to_entity(updated_model)
         except ObjectDoesNotExist:
             raise NotFoundException(
                 f"{self.model_class.__name__} with id {entity_id} does not exist"
@@ -114,22 +123,3 @@ class BaseWriteOnlyDjangoRepository(
                 f"Error hard deleting {self.model_class.__name__} with id {entity_id}: {str(e)}"
             )
             raise
-
-    def _entity_to_model_data(self, entity: EntityType) -> dict:
-        """
-        Convierte una entidad a datos del modelo.
-        Este método debe ser implementado por las subclases.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement _entity_to_model_data method"
-        )
-
-    # Métodos abstractos que deben ser implementados por las subclases
-
-    @abstractmethod
-    def _model_to_entity(self, model: ModelType) -> EntityType:
-        """Convierte un modelo a su entidad correspondiente - requerido para operaciones de escritura"""
-
-    @abstractmethod
-    def _entity_to_model(self, entity: EntityType) -> ModelType:
-        """Convierte una entidad a su modelo correspondiente"""

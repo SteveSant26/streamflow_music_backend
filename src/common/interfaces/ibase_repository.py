@@ -15,10 +15,6 @@ class IReadOnlyRepository(ABC, Generic[EntityType, ModelType]):
     async def get_all(self) -> list[EntityType]:
         """Obtiene todas las entidades, opcionalmente filtradas."""
 
-    @abstractmethod
-    def _model_to_entity(self, model: ModelType) -> EntityType:
-        """Convierte un modelo a su entidad correspondiente."""
-
 
 class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
     """Repositorio de escritura para operaciones de modificación."""
@@ -34,10 +30,6 @@ class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
     @abstractmethod
     async def update(self, entity_id: str, entity: EntityType) -> EntityType:
         """Actualiza una entidad."""
-
-    @abstractmethod
-    def _entity_to_model(self, entity: EntityType) -> ModelType:
-        """Convierte una entidad a su modelo correspondiente."""
 
 
 class IBaseRepository(

@@ -58,7 +58,7 @@ class RandomSongsView(PaginatedAPIView):
             # Ejecutar función async directamente sin asyncio.run()
             songs = async_to_sync(self.get_random_songs_use_case.execute)(request_dto)
 
-            songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
+            songs_dtos = [self.mapper.entity_to_dto(song) for song in songs]
 
             # Usar el método heredado del PaginationMixin
             return self.paginate_and_respond(songs_dtos, request)

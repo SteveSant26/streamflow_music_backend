@@ -53,7 +53,7 @@ class MostPopularSongsView(PaginatedAPIView):
             songs = async_to_sync(self.get_most_played_songs_use_case.execute)(limit)
 
             # Convertir a DTOs
-            songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
+            songs_dtos = [self.mapper.entity_to_dto(song) for song in songs]
 
             # Usar el método heredado del PaginationMixin para paginar y responder
             self.logger.info(f"Retrieved {len(songs_dtos)} most popular songs")

@@ -1,14 +1,25 @@
-from .dto_to_entity import DTOToEntityMapper
-from .entity_to_response_dto import EntityToResponseDTOMapper
-from .model_to_entity import ModelToEntityMapper
+from abc import ABC
+
+from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
+    AbstractEntityDtoMapper,
+)
+from src.common.interfaces.imapper.abstract_model_entity_mapper import (
+    AbstractEntityModelMapper,
+)
+from src.common.mixins.logging_mixin import LoggingMixin
+from src.common.types import DTOType, EntityType, ModelType
 
 
 class AbstractMapper(
-    ModelToEntityMapper,
-    EntityToResponseDTOMapper,
-    DTOToEntityMapper,
+    AbstractEntityDtoMapper[EntityType, DTOType],
+    AbstractEntityModelMapper[ModelType, EntityType],
+    LoggingMixin,
+    ABC,
 ):
     """
     Mapper completo que combina las operaciones de transformación
     entre modelo, entidad y DTO.
     """
+
+    def __init__(self):
+        super().__init__()

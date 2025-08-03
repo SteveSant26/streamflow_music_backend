@@ -72,7 +72,7 @@ class SearchSongsView(APIView, LoggingMixin):
             # Ejecutar función async directamente sin asyncio.run()
             songs = await self.search_songs_use_case.execute(request_dto)
 
-            songs_dtos = [self.mapper.entity_to_response_dto(song) for song in songs]
+            songs_dtos = [self.mapper.entity_to_dto(song) for song in songs]
             serializer = SongListSerializer(songs_dtos, many=True)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
