@@ -5,7 +5,7 @@ from .user_profile_entity_model_mapper import UserProfileEntityModelMapper
 
 
 class UserProfileMapper(
-    AbstractMapper, UserProfileEntityModelMapper, UserProfileEntityDTOMapper
+    UserProfileEntityModelMapper, UserProfileEntityDTOMapper, AbstractMapper
 ):
     """Mapper para convertir entre entidades del dominio y DTOs de la API."""
 

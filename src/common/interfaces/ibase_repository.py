@@ -43,6 +43,5 @@ class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
 class IBaseRepository(
     IReadOnlyRepository[EntityType, ModelType],
     IWriteOnlyRepository[EntityType, ModelType],
-    ABC,
 ):
     """Repositorio base que combina operaciones de lectura y escritura."""

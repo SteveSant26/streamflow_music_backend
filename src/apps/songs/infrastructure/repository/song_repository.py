@@ -11,7 +11,7 @@ from ...domain.repository.Isong_repository import ISongRepository
 from ..models.song_model import SongModel
 
 
-class SongRepository(ISongRepository, BaseDjangoRepository[SongEntity, SongModel]):
+class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepository):
     """Implementación del repositorio de canciones usando Django ORM"""
 
     def __init__(self):

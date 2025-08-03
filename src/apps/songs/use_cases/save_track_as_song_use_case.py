@@ -38,7 +38,13 @@ class SaveTrackAsSongUseCase(BaseUseCase[MusicTrackData, Optional[SongEntity]]):
             file_url = None
             if track.audio_file_name:
                 file_url = self.music_storage.get_item_url(track.audio_file_name)
-
+            print()
+            print()
+            print()
+            print()
+            print()
+            print()
+            print(track)
             song_entity = SongEntity(
                 id=str(uuid.uuid4()),
                 title=track.title,

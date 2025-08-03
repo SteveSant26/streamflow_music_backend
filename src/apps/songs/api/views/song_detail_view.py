@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
@@ -26,10 +27,10 @@ class SongDetailView(APIView, LoggingMixin):
         self.mapper = SongMapper()
 
     @extend_schema(responses={200: SongSerializer})
-    async def get(self, request, song_id):
+    def get(self, request, song_id):
         """Obtiene detalles de una canción"""
         try:
-            song = await self.get_song_by_id_use_case.execute(song_id)
+            song = async_to_sync(self.get_song_by_id_use_case.execute)(song_id)
 
             if not song:
                 return Response(

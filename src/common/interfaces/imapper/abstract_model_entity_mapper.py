@@ -5,7 +5,7 @@ from src.common.mixins.logging_mixin import LoggingMixin
 from src.common.types import EntityType, ModelType
 
 
-class AbstractEntityModelMapper(LoggingMixin, ABC, Generic[EntityType, ModelType]):
+class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC, LoggingMixin):
     @abstractmethod
     def model_to_entity(self, model: ModelType) -> EntityType:
         """

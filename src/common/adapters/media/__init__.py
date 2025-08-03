@@ -1,13 +1,9 @@
-"""
-Servicios de medios reutilizables
-"""
-
 from .audio_download_service import AudioDownloadService
-from .music_service import MusicService
+from .unified_music_service import UnifiedMusicService
 from .youtube_service import YouTubeAPIService
 
 __all__ = [
     "AudioDownloadService",
-    "MusicService",
+    "UnifiedMusicService",
     "YouTubeAPIService",
 ]

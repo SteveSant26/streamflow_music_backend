@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
@@ -5,12 +6,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.mixins.logging_mixin import LoggingMixin
+from src.common.factories.unified_music_service_factory import get_music_service
 
 from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import SearchSongsUseCase
 from ..dtos import SongSearchRequestDTO
 from ..mappers import SongMapper
-from ..serializers.song_serializers import SongListSerializer
+from ..serializers import SongListSerializer
 
 
 @extend_schema_view(
@@ -25,10 +27,8 @@ class SearchSongsView(APIView, LoggingMixin):
     def __init__(self):
         super().__init__()
         self.repository = SongRepository()
-        # Usar la factory para obtener el servicio de música
-        from common.factories import MediaServiceFactory
 
-        self.music_service = MediaServiceFactory.create_music_service()
+        self.music_service = get_music_service()
         self.search_songs_use_case = SearchSongsUseCase(
             self.repository, self.music_service
         )
@@ -50,7 +50,7 @@ class SearchSongsView(APIView, LoggingMixin):
             ),
         ],
     )
-    async def get(self, request):
+    def get(self, request):
         """Busca canciones"""
         try:
             query = request.GET.get("q")
@@ -69,8 +69,8 @@ class SearchSongsView(APIView, LoggingMixin):
                 query=query, limit=limit, include_youtube=include_youtube
             )
 
-            # Ejecutar función async directamente sin asyncio.run()
-            songs = await self.search_songs_use_case.execute(request_dto)
+            # Ejecutar función async usando async_to_sync
+            songs = async_to_sync(self.search_songs_use_case.execute)(request_dto)
 
             songs_dtos = [self.mapper.entity_to_dto(song) for song in songs]
             serializer = SongListSerializer(songs_dtos, many=True)

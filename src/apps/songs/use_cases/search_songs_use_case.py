@@ -1,6 +1,6 @@
 from typing import List
 
-from common.factories import MediaServiceFactory
+from common.factories import UnifiedMusicServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
 
@@ -15,7 +15,9 @@ class SearchSongsUseCase(BaseUseCase[SongSearchRequestDTO, List[SongEntity]]):
     def __init__(self, song_repository: ISongRepository, music_service=None):
         super().__init__()
         self.song_repository = song_repository
-        self.music_service = music_service or MediaServiceFactory.create_music_service()
+        self.music_service = (
+            music_service or UnifiedMusicServiceFactory.create_music_service()
+        )
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=3.0)  # Búsqueda puede incluir consultas externas

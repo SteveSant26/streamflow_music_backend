@@ -21,9 +21,9 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         self.logger.debug(f"Searching genres by name: {name} with limit: {limit}")
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.filter(
-                    name__icontains=name, is_active=True
-                ).order_by("name")[:limit]
+                self.model_class.objects.filter(name__icontains=name).order_by("name")[
+                    :limit
+                ]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -33,9 +33,9 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         self.logger.debug(f"Getting popular genres with limit: {limit}")
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.filter(is_active=True).order_by(
-                    "-popularity_score", "name"
-                )[:limit]
+                self.model_class.objects.all().order_by("-popularity_score", "name")[
+                    :limit
+                ]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -44,9 +44,7 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         """Obtiene géneros activos"""
         self.logger.debug(f"Getting active genres with limit: {limit}")
         models = await sync_to_async(
-            lambda: list(
-                self.model_class.objects.filter(is_active=True).order_by("name")[:limit]
-            )
+            lambda: list(self.model_class.objects.all().order_by("name")[:limit])
         )()
         return self.mapper.models_to_entities(models)
 
@@ -60,9 +58,7 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         models = await sync_to_async(
             lambda: list(
                 self.model_class.objects.filter(
-                    popularity_score__gte=min_score,
-                    popularity_score__lte=max_score,
-                    is_active=True,
+                    popularity_score__gte=min_score, popularity_score__lte=max_score
                 ).order_by("-popularity_score", "name")
             )
         )()
@@ -73,9 +69,7 @@ class GenreRepository(BaseDjangoRepository[GenreEntity, GenreModel], IGenreRepos
         self.logger.debug(f"Getting recent genres with limit: {limit}")
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.filter(is_active=True).order_by(
-                    "-created_at", "name"
-                )[:limit]
+                self.model_class.objects.all().order_by("-created_at", "name")[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)

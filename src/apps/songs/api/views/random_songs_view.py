@@ -5,9 +5,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
-from common.factories import MediaServiceFactory
 from common.mixins.paginated_api_view import PaginatedAPIView
 from common.utils.schema_decorators import paginated_list_endpoint
+from src.common.factories.unified_music_service_factory import get_music_service
 
 from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import GetRandomSongsUseCase
@@ -30,7 +30,7 @@ class RandomSongsView(PaginatedAPIView):
     def __init__(self):
         super().__init__()
         self.repository = SongRepository()
-        self.music_service = MediaServiceFactory.create_music_service()
+        self.music_service = get_music_service()
         self.get_random_songs_use_case = GetRandomSongsUseCase(
             self.repository, self.music_service
         )
@@ -48,11 +48,11 @@ class RandomSongsView(PaginatedAPIView):
     def get(self, request):
         """Obtiene canciones aleatorias"""
         try:
-            count = int(request.GET.get("count", 6))
+            page_size = int(request.GET.get("page_size", self.paginator.page_size))
             force_refresh = request.GET.get("force_refresh", "false").lower() == "true"
 
             request_dto = RandomSongsRequestDTO(
-                count=count, force_refresh=force_refresh
+                count=page_size, force_refresh=force_refresh
             )
 
             # Ejecutar función async directamente sin asyncio.run()

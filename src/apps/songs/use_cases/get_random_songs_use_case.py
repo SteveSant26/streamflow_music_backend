@@ -1,10 +1,10 @@
 import asyncio
 from typing import List
 
-from common.factories import MediaServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.types.media_types import SearchOptions
 from common.utils.logging_decorators import log_execution, log_performance
+from src.common.factories.unified_music_service_factory import get_music_service
 
 from ..api.dtos.song_dtos import RandomSongsRequestDTO
 from ..domain.entities import SongEntity
@@ -18,7 +18,7 @@ class GetRandomSongsUseCase(BaseUseCase[RandomSongsRequestDTO, List[SongEntity]]
     def __init__(self, song_repository: ISongRepository, music_service=None):
         super().__init__()
         self.song_repository = song_repository
-        self.music_service = music_service or MediaServiceFactory.create_music_service()
+        self.music_service = music_service or get_music_service()
         # Semáforo para limitar concurrencia en descargas
         self.download_semaphore = asyncio.Semaphore(2)  # Máximo 2 descargas simultáneas
 

@@ -7,7 +7,7 @@ from src.common.mixins.logging_mixin import LoggingMixin
 from src.common.types import DTOType, EntityType
 
 
-class AbstractEntityDtoMapper(LoggingMixin, ABC, Generic[EntityType, DTOType]):
+class AbstractEntityDtoMapper(Generic[EntityType, DTOType], ABC, LoggingMixin):
     """
     Mapper completo que combina las operaciones de transformación
     entre modelo, entidad y DTO.

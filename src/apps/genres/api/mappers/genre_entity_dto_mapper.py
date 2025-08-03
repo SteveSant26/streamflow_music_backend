@@ -3,7 +3,6 @@ Genre entity to DTO mapper class for converting between GenreEntity and DTOs.
 """
 
 from apps.genres.domain.entities import GenreEntity
-from common.mixins.logging_mixin import LoggingMixin
 from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
     AbstractEntityDtoMapper,
 )
@@ -11,9 +10,7 @@ from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
 from ..dtos import GenreResponseDTO
 
 
-class GenreEntityDTOMapper(
-    AbstractEntityDtoMapper[GenreEntity, GenreResponseDTO], LoggingMixin
-):
+class GenreEntityDTOMapper(AbstractEntityDtoMapper[GenreEntity, GenreResponseDTO]):
     """Mapper para convertir entre entidades del dominio y DTOs de la API."""
 
     def __init__(self):

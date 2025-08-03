@@ -49,3 +49,7 @@ Get-ChildItem -Recurse -Path . -Filter "*.py" -Exclude "__init__.py" | Where-Obj
 
 //Colect static
 python manage.py collectstatic --noinput
+
+
+// Watch for problems in drf schema
+python manage.py spectacular --file schema.yaml

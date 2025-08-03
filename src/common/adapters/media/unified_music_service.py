@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -52,8 +51,7 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             "errors": 0,
         }
 
-    def configure_repositories(self, artist_repository=None, album_repository=None):
-        """Configura los repositorios para integración con BD"""
+    def configure_repositories(self, artist_repository: Any, album_repository: Any):
         self.artist_repository = artist_repository
         self.album_repository = album_repository
 
@@ -163,67 +161,6 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             self.logger.error(f"Error getting random music: {str(e)}")
             return []
 
-    async def get_music_with_full_metadata(
-        self,
-        query: Optional[str] = None,
-        options: Optional[SearchOptions] = None,
-        # create_missing_entities: bool = False,
-    ) -> Dict[str, Any]:
-        """
-        Obtiene música con metadatos completos y análisis de BD
-
-        Args:
-            query: Consulta (None para música aleatoria)
-            options: Opciones de búsqueda
-            create_missing_entities: Si crear artistas/álbumes faltantes
-
-        Returns:
-            Diccionario con música, artistas, álbumes y estadísticas
-        """
-        try:
-            # 1. Obtener videos con metadatos
-            if query:
-                videos = await self._search_videos_with_metadata(query, options, True)
-            else:
-                videos = await self._get_random_videos_with_metadata(options, True)
-
-            if not videos:
-                return self._empty_metadata_result()
-
-            # 2. Procesar artistas y álbumes
-            artists_info = await self._process_extracted_artists(
-                videos,
-                # create_missing_entities
-            )
-            albums_info = await self._process_extracted_albums(
-                videos,
-                # create_missing_entities
-            )
-
-            # 3. Convertir a audio tracks
-            audio_tracks = []
-            for video in videos:
-                track = self._video_to_audio_track(video)
-                if track:
-                    audio_tracks.append(track)
-
-            # 4. Generar estadísticas
-            stats = self._generate_integration_stats(videos, artists_info, albums_info)
-
-            return {
-                "query": query,
-                "audio_tracks": audio_tracks,
-                "videos": videos,
-                "artists": artists_info,
-                "albums": albums_info,
-                "statistics": stats,
-                "timestamp": datetime.now().isoformat(),
-            }
-
-        except Exception as e:
-            self.logger.error(f"Error getting music with full metadata: {str(e)}")
-            return self._empty_metadata_result()
-
     async def download_audio_from_video(
         self, video_id: str, options: Optional[DownloadOptions] = None
     ) -> Optional[bytes]:
@@ -326,108 +263,6 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
             self.logger.error(f"Error converting video to audio track: {str(e)}")
             return None
 
-    def _video_to_audio_track(
-        self, video: YouTubeVideoInfo
-    ) -> Optional[AudioTrackData]:
-        """Convierte video a audio track sin descarga"""
-        return asyncio.run(
-            self._process_video_to_audio_track(video, download_audio=False)
-        )
-
-    async def _process_extracted_artists(
-        self,
-        videos: List[YouTubeVideoInfo],
-        # create_missing: bool
-    ) -> Dict[str, Any]:
-        """Procesa artistas extraídos (solo si hay repositorios configurados)"""
-        if not self.artist_repository:
-            return {"extracted_only": True, "artists": self._get_unique_artists(videos)}
-
-        # Implementación completa con BD (similar a MusicIntegrationService)
-        # Se implementaría aquí si hay repositorios configurados
-        return {"extracted_only": True, "artists": self._get_unique_artists(videos)}
-
-    async def _process_extracted_albums(
-        self,
-        videos: List[YouTubeVideoInfo],
-        # create_missing: bool
-    ) -> Dict[str, Any]:
-        """Procesa álbumes extraídos (solo si hay repositorios configurados)"""
-        if not self.album_repository:
-            return {"extracted_only": True, "albums": self._get_unique_albums(videos)}
-
-        # Implementación completa con BD (similar a MusicIntegrationService)
-        return {"extracted_only": True, "albums": self._get_unique_albums(videos)}
-
-    def _get_unique_artists(
-        self, videos: List[YouTubeVideoInfo]
-    ) -> List[Dict[str, Any]]:
-        """Obtiene artistas únicos de los videos"""
-        unique_artists: Dict[str, Dict[str, Any]] = {}
-        for video in videos:
-            if video.extracted_artists:
-                for artist in video.extracted_artists:
-                    key = artist.name.lower()
-                    if (
-                        key not in unique_artists
-                        or unique_artists[key]["confidence"] < artist.confidence_score
-                    ):
-                        unique_artists[key] = {
-                            "name": artist.name,
-                            "confidence": artist.confidence_score,
-                            "source": artist.extracted_from,
-                            "channel_id": artist.channel_id,
-                        }
-        return list(unique_artists.values())
-
-    def _get_unique_albums(
-        self, videos: List[YouTubeVideoInfo]
-    ) -> List[Dict[str, Any]]:
-        """Obtiene álbumes únicos de los videos"""
-        unique_albums: Dict[str, Dict[str, Any]] = {}
-        for video in videos:
-            if video.extracted_albums:
-                for album in video.extracted_albums:
-                    key = f"{album.title}_{album.artist_name}".lower()
-                    if (
-                        key not in unique_albums
-                        or unique_albums[key]["confidence"] < album.confidence_score
-                    ):
-                        unique_albums[key] = {
-                            "title": album.title,
-                            "artist_name": album.artist_name,
-                            "confidence": album.confidence_score,
-                            "source": album.extracted_from,
-                            "release_year": album.release_year,
-                        }
-        return list(unique_albums.values())
-
-    def _generate_integration_stats(
-        self, videos: List[YouTubeVideoInfo], artists_info: Dict, albums_info: Dict
-    ) -> Dict[str, Any]:
-        """Genera estadísticas de la integración"""
-        return {
-            "videos_processed": len(videos),
-            "videos_with_artists": len([v for v in videos if v.extracted_artists]),
-            "videos_with_albums": len([v for v in videos if v.extracted_albums]),
-            "unique_artists_found": len(artists_info.get("artists", [])),
-            "unique_albums_found": len(albums_info.get("albums", [])),
-            "metadata_extraction_enabled": True,
-            "database_integration_enabled": self.artist_repository is not None,
-        }
-
-    def _empty_metadata_result(self) -> Dict[str, Any]:
-        """Resultado vacío para metadatos"""
-        return {
-            "query": None,
-            "audio_tracks": [],
-            "videos": [],
-            "artists": {"extracted_only": True, "artists": []},
-            "albums": {"extracted_only": True, "albums": []},
-            "statistics": {},
-            "timestamp": datetime.now().isoformat(),
-        }
-
     def get_service_metrics(self) -> Dict[str, Any]:
         """Obtiene métricas del servicio"""
         return {
@@ -444,14 +279,21 @@ class UnifiedMusicService(IMusicService, LoggingMixin):
     async def cleanup(self):
         """Limpia recursos del servicio"""
         try:
-            # Limpiar archivos temporales si los hay
-            # El AudioDownloadService no tiene método cleanup, pero podríamos implementarlo
+            await self.audio_service.cleanup()
+            # Limpiar métricas
+            self._metrics = {
+                "searches_performed": 0,
+                "videos_processed": 0,
+                "audio_downloads": 0,
+                "metadata_extractions": 0,
+                "errors": 0,
+            }
+
             self.logger.info("UnifiedMusicService cleanup completed")
 
         except Exception as e:
             self.logger.error(f"Error during cleanup: {str(e)}")
 
-    # Implementar métodos requeridos por IMusicService
     async def get_random_music_tracks(
         self, max_results: int = 6
     ) -> List[AudioTrackData]:
