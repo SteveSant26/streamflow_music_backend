@@ -1,7 +1,3 @@
-"""
-Mixin para ViewSets que utilizan casos de uso y necesitan operaciones CRUD completas.
-Extiende FilteredViewSetMixin para vistas que no son de solo lectura.
-"""
 from typing import Any, List
 
 from rest_framework import viewsets
