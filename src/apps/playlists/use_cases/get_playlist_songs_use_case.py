@@ -3,7 +3,7 @@ from uuid import UUID
 
 from apps.playlists.api.dtos.playlist_dtos import PlaylistSongResponseDTO
 from apps.playlists.infrastructure.repository import PlaylistRepository
-from apps.songs.infrastructure.repository import SongRepository
+from apps.songs.infrastructure.repository.song_repository import SongRepository
 from common.interfaces.ibase_use_case import BaseUseCase
 
 

@@ -17,7 +17,7 @@ from apps.playlists.use_cases import (
     GetPlaylistSongsUseCase,
     RemoveSongFromPlaylistUseCase,
 )
-from apps.songs.infrastructure.repository import SongRepository
+from apps.songs.infrastructure.repository.song_repository import SongRepository
 from common.mixins.use_case_api_view_mixin import UseCaseAPIViewMixin
 
 
