@@ -26,6 +26,23 @@ class PlaylistEntityModelMapper(AbstractEntityModelMapper[PlaylistEntity, Playli
             updated_at=model.updated_at,
         )
     
+    def entity_to_model(self, entity: PlaylistEntity) -> PlaylistModel:
+        """Convierte una PlaylistEntity a PlaylistModel"""
+        self.logger.debug(f"Converting entity to model for playlist {entity.id}")
+        
+        from apps.user_profile.infrastructure.models import UserProfileModel
+        
+        return PlaylistModel(
+            id=entity.id,
+            name=entity.name,
+            description=entity.description,
+            user_id=entity.user_id,
+            is_default=entity.is_default,
+            is_public=entity.is_public,
+            created_at=entity.created_at,
+            updated_at=entity.updated_at,
+        )
+    
     def entity_to_model_data(self, entity: PlaylistEntity) -> Dict[str, Any]:
         """Convierte una PlaylistEntity a datos para PlaylistModel"""
         self.logger.debug(f"Converting entity to model data for playlist {entity.id}")
@@ -58,6 +75,18 @@ class PlaylistSongEntityModelMapper(AbstractEntityModelMapper[PlaylistSongEntity
             song_id=model.song.id,
             position=model.position,
             added_at=model.added_at,
+        )
+    
+    def entity_to_model(self, entity: PlaylistSongEntity) -> PlaylistSongModel:
+        """Convierte una PlaylistSongEntity a PlaylistSongModel"""
+        self.logger.debug(f"Converting entity to model for playlist song {entity.id}")
+        
+        return PlaylistSongModel(
+            id=entity.id,
+            playlist_id=entity.playlist_id,
+            song_id=entity.song_id,
+            position=entity.position,
+            added_at=entity.added_at,
         )
     
     def entity_to_model_data(self, entity: PlaylistSongEntity) -> Dict[str, Any]:
