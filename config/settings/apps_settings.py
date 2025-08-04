@@ -18,14 +18,14 @@ THIRD_PARTY_APPS = [
     "django_filters",
 ]
 LOCAL_APPS = [
-    "apps.user_profile",
-    "apps.artists",
-    "apps.albums",
-    "apps.songs",
-    "apps.genres",
-    "apps.music_search",
-    "apps.payments",
-    "apps.playlists",
+    "src.apps.user_profile",
+    "src.apps.artists",
+    "src.apps.albums",
+    "src.apps.songs",
+    "src.apps.genres",
+    "src.apps.music_search",
+    "src.apps.payments",
+    "src.apps.playlists",
 ]
 
 INSTALLED_APPS = THEME_APPLICATION + DEFAULT_DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
