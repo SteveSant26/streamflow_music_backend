@@ -19,11 +19,10 @@ from apps.playlists.use_cases import (
     GetUserPlaylistsUseCase,
     UpdatePlaylistUseCase,
 )
-from common.mixins.use_case_api_view_mixin import UseCaseAPIViewMixin
 from common.mixins.crud_viewset_mixin import CRUDViewSetMixin
 
 
-class PlaylistViewSet(CRUDViewSetMixin, UseCaseAPIViewMixin):
+class PlaylistViewSet(CRUDViewSetMixin):
     """ViewSet para gestionar playlists"""
     
     serializer_class = PlaylistResponseSerializer

@@ -18,10 +18,9 @@ from apps.playlists.use_cases import (
     RemoveSongFromPlaylistUseCase,
 )
 from apps.songs.infrastructure.repository.song_repository import SongRepository
-from common.mixins.use_case_api_view_mixin import UseCaseAPIViewMixin
 
 
-class PlaylistSongViewSet(GenericViewSet, UseCaseAPIViewMixin):
+class PlaylistSongViewSet(GenericViewSet):
     """ViewSet para gestionar canciones en playlists"""
     
     permission_classes = [IsAuthenticated]
