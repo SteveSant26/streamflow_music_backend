@@ -11,6 +11,7 @@ from apps.user_profile.api.serializers import (
     RetrieveUserProfileSerializer,
     UploadProfilePictureSerializer,
 )
+from apps.user_profile.infrastructure.filters import UserProfileFilter
 from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 from common.factories import StorageServiceFactory
 from common.mixins.logging_mixin import LoggingMixin
@@ -36,6 +37,7 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     http_method_names = ["get", "post", "delete"]
+    filterset_class = UserProfileFilter
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

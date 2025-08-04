@@ -24,11 +24,11 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         """Busca álbumes por ID del artista"""
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.filter(
-                    artist_id=artist_id,
-                ).order_by(
-                    "-release_date"
-                )[:limit]
+                self.model_class.objects.select_related("artist")
+                .filter(
+                    artist__id=artist_id,
+                )
+                .order_by("-release_date")[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -37,11 +37,11 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         """Busca álbumes por título"""
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.filter(
+                self.model_class.objects.select_related("artist")
+                .filter(
                     title__icontains=title,
-                ).order_by(
-                    "-play_count"
-                )[:limit]
+                )
+                .order_by("-play_count")[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -49,14 +49,22 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
     async def get_recent_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes recientes"""
         models = await sync_to_async(
-            lambda: list(self.model_class.objects.all().order_by("-created_at")[:limit])
+            lambda: list(
+                self.model_class.objects.select_related("artist")
+                .all()
+                .order_by("-created_at")[:limit]
+            )
         )()
         return self.mapper.models_to_entities(models)
 
     async def get_popular_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes populares"""
         models = await sync_to_async(
-            lambda: list(self.model_class.objects.all().order_by("-play_count")[:limit])
+            lambda: list(
+                self.model_class.objects.select_related("artist")
+                .all()
+                .order_by("-play_count")[:limit]
+            )
         )()
         return self.mapper.models_to_entities(models)
 
@@ -66,11 +74,11 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         """Busca álbumes por año de lanzamiento"""
         models = await sync_to_async(
             lambda: list(
-                self.model_class.objects.filter(
+                self.model_class.objects.select_related("artist")
+                .filter(
                     release_date__year=year,
-                ).order_by(
-                    "-play_count"
-                )[:limit]
+                )
+                .order_by("-play_count")[:limit]
             )
         )()
         return self.mapper.models_to_entities(models)
@@ -85,8 +93,8 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         """Busca un álbum por título y artista, si no existe lo crea"""
         # Primero intentar encontrar por título y artista
         try:
-            model = await self.model_class.objects.aget(
-                title__iexact=title, artist_id=artist_id
+            model = await self.model_class.objects.select_related("artist").aget(
+                title__iexact=title, artist__id=artist_id
             )
             return self.mapper.model_to_entity(model)
         except self.model_class.DoesNotExist:
@@ -110,7 +118,7 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
     ) -> Optional[AlbumEntity]:
         """Busca un álbum por fuente externa"""
         try:
-            model = await self.model_class.objects.aget(
+            model = await self.model_class.objects.select_related("artist").aget(
                 source_type=source_type, source_id=source_id
             )
             return self.mapper.model_to_entity(model)

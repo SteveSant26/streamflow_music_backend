@@ -27,12 +27,14 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         return SongEntity(
             id=str(model.id),
             title=model.title,
-            album_id=str(model.album_id) if model.album_id else None,
-            artist_id=str(model.artist_id) if model.artist_id else None,
+            album_id=str(model.album.id) if model.album else None,
+            artist_id=str(model.artist.id) if model.artist else None,
             genre_ids=genre_ids,
             duration_seconds=model.duration_seconds,
-            album_title=model.album_title,
-            artist_name=getattr(model, "artist_name", None),  # Backwards compatible
+            album_title=model.album.title if model.album else None,
+            artist_name=model.artist.name
+            if model.artist
+            else None,  # Obtener del objeto relacionado
             track_number=model.track_number,
             file_url=model.file_url,
             thumbnail_url=model.thumbnail_url,
@@ -59,10 +61,8 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         model_instance = SongModel(
             id=entity.id if hasattr(entity, "id") and entity.id is not None else None,
             title=entity.title,
-            album_id=entity.album_id,
-            artist_id=entity.artist_id,
+            # Las relaciones ForeignKey se asignarán después si es necesario
             duration_seconds=entity.duration_seconds,
-            album_title=entity.album_title,
             track_number=entity.track_number,
             file_url=entity.file_url,
             thumbnail_url=entity.thumbnail_url,
@@ -88,10 +88,8 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
 
         model_data = {
             "title": entity.title,
-            "album_id": entity.album_id,
-            "artist_id": entity.artist_id,
+            # Las relaciones ForeignKey se asignarán después si es necesario
             "duration_seconds": entity.duration_seconds,
-            "album_title": entity.album_title,
             "track_number": entity.track_number,
             "file_url": entity.file_url,
             "thumbnail_url": entity.thumbnail_url,

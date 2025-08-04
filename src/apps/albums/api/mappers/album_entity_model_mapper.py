@@ -19,8 +19,8 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
         return AlbumEntity(
             id=str(model.id),
             title=model.title,
-            artist_id=str(model.artist_id),
-            artist_name=getattr(model, "artist_name", ""),
+            artist_id=str(model.artist.id) if model.artist else None,
+            artist_name=model.artist.name if model.artist else "",
             release_date=model.release_date,
             description=model.description,
             cover_image_url=model.cover_image_url,

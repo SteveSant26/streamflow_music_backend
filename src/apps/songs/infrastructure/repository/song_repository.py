@@ -45,7 +45,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
 
             # Recargar el objeto con las relaciones para el mapper
             song_obj = (
-                await self.model_class.objects.select_related()
+                await self.model_class.objects.select_related("artist", "album")
                 .prefetch_related("genres")
                 .aget(id=song_obj.id)
             )
@@ -62,7 +62,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         """Obtiene una canción por fuente y ID de fuente"""
         try:
             song = (
-                await self.model_class.objects.select_related()
+                await self.model_class.objects.select_related("artist", "album")
                 .prefetch_related("genres")
                 .aget(
                     source_type=source_type,
@@ -83,7 +83,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.select_related()
+                    SongModel.objects.select_related("artist", "album")
                     .prefetch_related("genres")
                     .all()
                     .order_by("?")[:limit]
@@ -109,12 +109,12 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             # Construir la consulta para canciones
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.select_related()
+                    SongModel.objects.select_related("artist", "album")
                     .prefetch_related("genres")
                     .filter(
                         Q(title__icontains=query)
-                        | Q(artist_id__in=matching_artist_ids)
-                        | Q(album_title__icontains=query),
+                        | Q(artist__in=matching_artist_ids)
+                        | Q(album__title__icontains=query),
                     )
                     .order_by("-play_count", "-created_at")[:limit]
                 )
@@ -140,12 +140,12 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
 
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.select_related()
+                    SongModel.objects.select_related("artist", "album")
                     .prefetch_related("genres")
                     .filter(
-                        artist_id__in=artist_ids,
+                        artist__in=artist_ids,
                     )
-                    .order_by("-play_count", "album_title", "track_number")[:limit]
+                    .order_by("-play_count", "album__title", "track_number")[:limit]
                 )
             )()
             return await sync_to_async(self.mapper.models_to_entities)(songs)
@@ -160,10 +160,10 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.select_related()
+                    SongModel.objects.select_related("artist", "album")
                     .prefetch_related("genres")
                     .filter(
-                        album_title__iexact=album_title,
+                        album__title__iexact=album_title,
                     )
                     .order_by("track_number", "title")[:limit]
                 )
@@ -178,7 +178,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.select_related()
+                    SongModel.objects.select_related("artist", "album")
                     .prefetch_related("genres")
                     .all()
                     .order_by("-play_count", "-created_at")[:limit]
@@ -194,7 +194,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.select_related()
+                    SongModel.objects.select_related("artist", "album")
                     .prefetch_related("genres")
                     .all()
                     .order_by("-favorite_count", "-created_at")[:limit]
@@ -210,7 +210,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.select_related()
+                    SongModel.objects.select_related("artist", "album")
                     .prefetch_related("genres")
                     .filter(last_played_at__isnull=False)
                     .order_by("-last_played_at")[:limit]
@@ -246,8 +246,8 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             result = await sync_to_async(
                 lambda: list(
-                    SongModel.objects.filter(album_title__isnull=False)
-                    .values("album_title", "artist_name")
+                    SongModel.objects.filter(album__isnull=False)
+                    .values("album__title", "artist__name")
                     .annotate(
                         total_plays=Sum("play_count"),
                         total_songs=Count("id"),

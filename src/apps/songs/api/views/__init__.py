@@ -3,6 +3,7 @@ from .most_popular_songs_view import MostPopularSongsView
 from .random_songs_view import RandomSongsView
 from .search_songs_view import SearchSongsView
 from .song_detail_view import SongDetailView
+from .song_viewset import SongViewSet
 
 __all__ = [
     "RandomSongsView",
@@ -10,4 +11,5 @@ __all__ = [
     "SongDetailView",
     "MostPopularSongsView",
     "increment_play_count_view",
+    "SongViewSet",
 ]

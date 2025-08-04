@@ -7,8 +7,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from apps.artists.api.serializers import ArtistResponseSerializer
+from apps.artists.infrastructure.filters import ArtistModelFilter
 from apps.artists.infrastructure.models import ArtistModel
 from common.mixins.logging_mixin import LoggingMixin
+from src.common.mixins.pagination_mixin import PaginationMixin
+from src.common.utils.schema_decorators import paginated_list_endpoint
 
 from ..api.dtos import (
     GetArtistsByCountryRequestDTO,
@@ -39,12 +42,13 @@ artist_repository = ArtistRepository()
     search=extend_schema(tags=["Artists"], description="Search artists by name"),
     by_country=extend_schema(tags=["Artists"], description="Get artists by country"),
 )
-class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
+class ArtistViewSet(PaginationMixin, viewsets.ReadOnlyModelViewSet, LoggingMixin):
     """ViewSet para gestión de artistas (solo lectura)"""
 
     queryset = ArtistModel.objects.all()
     serializer_class = ArtistResponseSerializer
     permission_classes = [AllowAny]
+    filterset_class = ArtistModelFilter
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -81,19 +85,15 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "limit",
-                OpenApiTypes.INT,
-                description="Number of popular artists to return",
-            ),
-        ],
+    @paginated_list_endpoint(
+        serializer_class=serializer_class,
+        tags=["Artists"],
+        description="Get popular artists from the database",
     )
     @action(detail=False, methods=["get"], url_path="popular")
     def popular(self, request):
         """Obtiene artistas populares"""
-        limit = int(request.query_params.get("limit", 10))
+        limit = self.paginator.page_size
         self.logger.info(f"Getting popular artists with limit: {limit}")
 
         request_dto = GetPopularArtistsRequestDTO(limit=limit)
@@ -106,19 +106,15 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "limit",
-                OpenApiTypes.INT,
-                description="Number of verified artists to return",
-            ),
-        ],
+    @paginated_list_endpoint(
+        serializer_class=serializer_class,
+        tags=["Artists"],
+        description="Get verified artists from the database",
     )
     @action(detail=False, methods=["get"], url_path="verified")
     def verified(self, request):
         """Obtiene artistas verificados"""
-        limit = int(request.query_params.get("limit", 10))
+        limit = self.paginator.page_size
         self.logger.info(f"Getting verified artists with limit: {limit}")
 
         request_dto = GetVerifiedArtistsRequestDTO(limit=limit)
@@ -131,16 +127,15 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(
+    @paginated_list_endpoint(
+        serializer_class=serializer_class,
+        tags=["Artists"],
+        description="Get popular artists from the database",
         parameters=[
             OpenApiParameter(
                 "name",
                 OpenApiTypes.STR,
-                description="Artist name to search for",
-                required=True,
-            ),
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results to return"
+                description="Search term for artists",
             ),
         ],
     )
@@ -148,7 +143,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
     def search(self, request):
         """Busca artistas por nombre"""
         name = request.query_params.get("name", "")
-        limit = int(request.query_params.get("limit", 10))
+        limit = self.paginator.page_size
 
         if not name:
             return Response(
@@ -168,16 +163,15 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(
+    @paginated_list_endpoint(
+        serializer_class=serializer_class,
+        tags=["Artists"],
+        description="Get popular artists from the database",
         parameters=[
             OpenApiParameter(
                 "country",
                 OpenApiTypes.STR,
                 description="Country to filter artists",
-                required=True,
-            ),
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results to return"
             ),
         ],
     )
@@ -185,7 +179,7 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
     def by_country(self, request):
         """Obtiene artistas por país"""
         country = request.query_params.get("country", "")
-        limit = int(request.query_params.get("limit", 10))
+        limit = self.paginator.page_size
 
         if not country:
             return Response(

@@ -7,8 +7,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from apps.albums.api.serializers import AlbumResponseSerializer
+from apps.albums.infrastructure.filters import AlbumModelFilter
 from apps.albums.infrastructure.models.album_model import AlbumModel
 from common.mixins.logging_mixin import LoggingMixin
+from src.common.mixins.pagination_mixin import PaginationMixin
+from src.common.utils.schema_decorators import paginated_list_endpoint
 
 from ..api.dtos import (
     GetAlbumsByArtistRequestDTO,
@@ -36,12 +39,13 @@ album_repository = AlbumRepository()
     search=extend_schema(tags=["Albums"], description="Search albums by title"),
     by_artist=extend_schema(tags=["Albums"], description="Get albums by artist"),
 )
-class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
+class AlbumViewSet(PaginationMixin, viewsets.ReadOnlyModelViewSet, LoggingMixin):
     """ViewSet para gestión de álbumes (solo lectura)"""
 
-    queryset = AlbumModel.objects.all()
+    queryset = AlbumModel.objects.select_related("artist").all()
     serializer_class = AlbumResponseSerializer
     permission_classes = [AllowAny]
+    filterset_class = AlbumModelFilter
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -78,19 +82,15 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "limit",
-                OpenApiTypes.INT,
-                description="Number of popular albums to return",
-            ),
-        ],
+    @paginated_list_endpoint(
+        serializer_class=serializer_class,
+        tags=["Albums"],
+        description="Get popularalbums from the database",
     )
     @action(detail=False, methods=["get"], url_path="popular")
     def popular(self, request):
         """Obtiene álbumes populares"""
-        limit = int(request.query_params.get("limit", 10))
+        limit = self.paginator.page_size
         self.logger.info(f"Getting popular albums with limit: {limit}")
 
         request_dto = GetPopularAlbumsRequestDTO(limit=limit)
@@ -103,16 +103,15 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(
+    @paginated_list_endpoint(
+        serializer_class=serializer_class,
+        tags=["Albums"],
+        description="Get popular albums from the database",
         parameters=[
             OpenApiParameter(
                 "title",
                 OpenApiTypes.STR,
-                description="Album title to search for",
-                required=True,
-            ),
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results to return"
+                description="Search term for popular albums",
             ),
         ],
     )
@@ -120,7 +119,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
     def search(self, request):
         """Busca álbumes por título"""
         title = request.query_params.get("title", "")
-        limit = int(request.query_params.get("limit", 10))
+        limit = self.paginator.page_size
 
         if not title:
             return Response(
@@ -140,7 +139,10 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(
+    @paginated_list_endpoint(
+        serializer_class=serializer_class,
+        tags=["Albums"],
+        description="Get popular albums from the database",
         parameters=[
             OpenApiParameter(
                 "artist_id",
@@ -148,16 +150,13 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
                 description="Artist ID to filter albums",
                 required=True,
             ),
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results to return"
-            ),
         ],
     )
     @action(detail=False, methods=["get"], url_path="by-artist")
     def by_artist(self, request):
         """Obtiene álbumes por artista"""
         artist_id = request.query_params.get("artist_id", "")
-        limit = int(request.query_params.get("limit", 10))
+        limit = self.paginator.page_size
 
         if not artist_id:
             return Response(

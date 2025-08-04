@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from apps.genres.api.serializers import GenreSerializer
+from apps.genres.infrastructure.filters import GenreModelFilter
 from apps.genres.infrastructure.models import GenreModel
 from common.mixins import LoggingMixin, PaginationMixin
 from src.common.utils.schema_decorators import paginated_list_endpoint
@@ -32,6 +33,7 @@ class GenreViewSet(PaginationMixin, viewsets.ReadOnlyModelViewSet, LoggingMixin)
     queryset = GenreModel.objects.all()
     permission_classes = [AllowAny]
     serializer_class = GenreSerializer
+    filterset_class = GenreModelFilter
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
