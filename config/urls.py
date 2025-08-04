@@ -25,6 +25,7 @@ def home_view(request):
 urlpatterns = [
     path("", home_view, name="home"),  # Página de inicio
     path("admin/", admin.site.urls),
-    path("docs/", include("docs.urls")),
+    # Temporalmente comentado para evitar importación circular
+    # path("docs/", include("docs.urls")),
     path("api/", include("api.urls")),
 ]
