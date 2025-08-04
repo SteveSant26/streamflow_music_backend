@@ -9,19 +9,14 @@ class SongSerializer(serializers.Serializer):
     youtube_video_id = serializers.CharField(max_length=20)
     artist_name = serializers.CharField(max_length=255, allow_null=True)
     album_title = serializers.CharField(max_length=255, allow_null=True)
-    genre_name = serializers.CharField(max_length=100, allow_null=True)
+    genre_names = serializers.CharField(max_length=100, allow_null=True)
     duration_seconds = serializers.IntegerField(min_value=0)
     duration_formatted = serializers.SerializerMethodField()
     file_url = serializers.URLField(allow_null=True)
     thumbnail_url = serializers.URLField(allow_null=True)
     youtube_url = serializers.URLField()
-    tags = serializers.ListField(
-        child=serializers.CharField(max_length=50), allow_empty=True, required=False
-    )
+
     play_count = serializers.IntegerField(min_value=0)
-    youtube_view_count = serializers.IntegerField(min_value=0)
-    youtube_like_count = serializers.IntegerField(min_value=0)
-    is_explicit = serializers.BooleanField()
     audio_downloaded = serializers.BooleanField()
     created_at = serializers.DateTimeField(read_only=True)
     published_at = serializers.DateTimeField(allow_null=True)
@@ -49,6 +44,7 @@ class SongListSerializer(serializers.Serializer):
     thumbnail_url = serializers.URLField(allow_null=True)
     play_count = serializers.IntegerField()
     audio_downloaded = serializers.BooleanField()
+    file_url = serializers.URLField(allow_null=True)
 
     def get_duration_formatted(self, obj) -> str:
         """Retorna la duración en formato MM:SS"""

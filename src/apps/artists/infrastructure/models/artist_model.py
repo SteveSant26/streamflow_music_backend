@@ -15,7 +15,6 @@ class ArtistModel(models.Model):
         default=0, verbose_name="Cantidad de seguidores"
     )
     is_verified = models.BooleanField(default=False, verbose_name="Verificado")
-    is_active = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de creación"
     )

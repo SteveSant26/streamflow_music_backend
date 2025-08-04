@@ -2,6 +2,7 @@
 Configuración de base de datos para testing
 """
 import sys
+
 from .database_settings import DATABASES
 
 # Si estamos ejecutando tests, usar SQLite en memoria
@@ -18,4 +19,4 @@ if "test" in sys.argv or "pytest" in sys.modules:
     print("🧪 Usando SQLite en memoria para tests")
 else:
     # Usar la configuración normal para desarrollo/producción
-    from .database_settings import DATABASES
+    pass

@@ -1,0 +1,182 @@
+{
+  "kind": "youtube#searchListResponse",
+  "etag": "_cwxqR31wmuRokukppPUi88ieLc",
+  "nextPageToken": "CAUQAA",
+  "regionCode": "EC",
+  "pageInfo": {
+    "totalResults": 1000000,
+    "resultsPerPage": 5
+  },
+  "items": [
+    {
+      "kind": "youtube#searchResult",
+      "etag": "tyPNXtXEVbLrY07o2e3MT-ewsqo",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "263Vb6xiifo"
+      },
+      "snippet": {
+        "publishedAt": "2022-02-06T17:47:01Z",
+        "channelId": "UCf4iMeUCDs0NFkJI03aJSbQ",
+        "title": "MUSICA ZEN ULTRA RELAJANTE ❈ Relajación Curativa del Estrés y Ansiedad, Música para Calmar la Mente",
+        "description": "MÚSICA ZEN ULTRA RELAJANTE | Alivio y Curación del Estrés y Ansiedad, Calma para tu Mente Descubre Más en ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/263Vb6xiifo/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/263Vb6xiifo/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/263Vb6xiifo/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Musicoterapia ",
+        "liveBroadcastContent": "none",
+        "publishTime": "2022-02-06T17:47:01Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "OeQnIVFvvvTbnGgHxtHx85fCwGk",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "DNrnDx-KZUY"
+      },
+      "snippet": {
+        "publishedAt": "2017-10-24T15:44:11Z",
+        "channelId": "UCK8QPDq9zKnfSEWQImX5Ebg",
+        "title": "Relajación: Música para Relajarse y Calmar la Mente - Música de la Naturaleza",
+        "description": "Música para relajarse con vídeo relajante de cascada en el bosque, relajación, calmar la mente y alma con música relajante de la ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/DNrnDx-KZUY/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/DNrnDx-KZUY/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/DNrnDx-KZUY/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Cassio Toledo",
+        "liveBroadcastContent": "none",
+        "publishTime": "2017-10-24T15:44:11Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "oHXI5e5pgB8xCcgeiT4bmD3frW0",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "dmSbahgZZ2U"
+      },
+      "snippet": {
+        "publishedAt": "2024-04-09T22:00:20Z",
+        "channelId": "UClRbBQxB7FhDm7ccQpcP3ZQ",
+        "title": "Música Relajante Alivia el Estrés, Ansiedad y Depresión, Sana la Mente, Sueño Profundo",
+        "description": "Música Relajante Alivia el Estrés, Ansiedad y Depresión, Sana la Mente, Sueño Profundo #pazrelajante #musicarlajante ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/dmSbahgZZ2U/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/dmSbahgZZ2U/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/dmSbahgZZ2U/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Balance Life",
+        "liveBroadcastContent": "none",
+        "publishTime": "2024-04-09T22:00:20Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "5-iSYmh0Qez_2OPFkaDLRpfb9a8",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "1ZYbU82GVz4"
+      },
+      "snippet": {
+        "publishedAt": "2016-07-03T17:09:48Z",
+        "channelId": "UCjzHeG1KWoonmf9d5KBvSiw",
+        "title": "Flying: Relaxing Sleep Music for Meditation, Stress Relief &amp; Relaxation by Peder B. Helland",
+        "description": "Relaxing sleep music for deep sleeping and stress relief. Fall asleep to beautiful nature videos and use the relaxing music ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/1ZYbU82GVz4/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/1ZYbU82GVz4/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/1ZYbU82GVz4/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Soothing Relaxation",
+        "liveBroadcastContent": "none",
+        "publishTime": "2016-07-03T17:09:48Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "fO3bowrYVcFdCzu1mmcoS_qyG6w",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "Tvb0iK5aP3Y"
+      },
+      "snippet": {
+        "publishedAt": "2016-08-03T03:11:17Z",
+        "channelId": "UCK8QPDq9zKnfSEWQImX5Ebg",
+        "title": "Música Relajante para Descansar la Mente, Relajarse y Dormir",
+        "description": "Música relajante para descansar la mente y el alma, relajarse y dormir. Relajación profunda con vídeo HD de cascada y guitarra ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/Tvb0iK5aP3Y/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/Tvb0iK5aP3Y/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/Tvb0iK5aP3Y/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Cassio Toledo",
+        "liveBroadcastContent": "none",
+        "publishTime": "2016-08-03T03:11:17Z"
+      }
+    }
+  ]
+}

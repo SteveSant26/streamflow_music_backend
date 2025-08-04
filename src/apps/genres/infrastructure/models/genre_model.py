@@ -13,14 +13,13 @@ class GenreModel(models.Model):
     color_hex = models.CharField(
         max_length=7,
         blank=True,
-        null=True,
+        null=True,  # NOSONAR
         verbose_name="Color representativo",
         help_text="Color en formato hexadecimal (#RRGGBB)",
     )
     popularity_score = models.PositiveIntegerField(
         default=0, verbose_name="Puntuación de popularidad"
     )
-    is_active = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de creación"
     )

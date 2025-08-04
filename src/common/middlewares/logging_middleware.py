@@ -1,80 +1,69 @@
+import asyncio
 import logging
 import time
 import uuid
 
-from django.utils.deprecation import MiddlewareMixin
 
-
-class LoggingMiddleware(MiddlewareMixin):
-    """Middleware para logging automático de requests HTTP"""
-
-    def __init__(self, get_response=None):
-        super().__init__(get_response)
+class LoggingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
         self.logger = logging.getLogger("django.request")
+        self._is_coroutine = asyncio.iscoroutinefunction(get_response)
 
-    def process_request(self, request):
+    def __call__(self, request):
+        if self._is_coroutine:
+            return self.__acall__(request)
+        return self.__sync_call__(request)
+
+    def __sync_call__(self, request):
+        self._process_request(request)
+        try:
+            response = self.get_response(request)
+        except Exception as ex:
+            self._process_exception(request, ex)
+            raise
+        return self._process_response(request, response)
+
+    async def __acall__(self, request):
+        self._process_request(request)
+        try:
+            response = await self.get_response(request)
+        except Exception as ex:
+            self._process_exception(request, ex)
+            raise
+        return self._process_response(request, response)
+
+    def _process_request(self, request):
         request.request_id = str(uuid.uuid4())[:8]
-
-        # Guardar tiempo inicio
         request._start_time = time.time()
-
-        # Datos del request
-        method = request.method
-        url = request.build_absolute_uri()
-        client_ip = self.get_client_ip(request)
-        user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
-
         self.logger.info(
-            f"[{request.request_id}] {method} {url} - IP: {client_ip} - User-Agent: {user_agent[:50]}..."
+            f"[{request.request_id}] {request.method} {request.build_absolute_uri()} - "
+            f"IP: {self.get_client_ip(request)} - User-Agent: {request.META.get('HTTP_USER_AGENT', '')[:50]}..."
         )
 
-    def process_response(self, request, response):
-        # Calcular tiempo transcurrido
-        start_time = getattr(request, "_start_time", None)
-        if start_time:
-            process_time = time.time() - start_time
-        else:
-            process_time = -1
-
-        # Datos básicos
-        method = getattr(request, "method", "unknown")
-        url = getattr(request, "build_absolute_uri", lambda: "unknown")()
+    def _process_response(self, request, response):
+        duration = time.time() - getattr(request, "_start_time", time.time())
         request_id = getattr(request, "request_id", "unknown")
-
         self.logger.info(
-            f"[{request_id}] {method} {url} - Status: {response.status_code} - Time: {process_time:.3f}s"
+            f"[{request_id}] {request.method} {request.build_absolute_uri()} - "
+            f"Status: {response.status_code} - Time: {duration:.3f}s"
         )
-
-        # Añadir headers para debugging
         response["X-Request-ID"] = request_id
-        if process_time >= 0:
-            response["X-Process-Time"] = f"{process_time:.3f}"
-
+        response["X-Process-Time"] = f"{duration:.3f}"
         return response
 
-    def process_exception(self, request, exception):
-        # Calcular tiempo incluso en caso de error
-        start_time = getattr(request, "_start_time", None)
-        if start_time:
-            process_time = time.time() - start_time
-        else:
-            process_time = -1
-
-        method = getattr(request, "method", "unknown")
-        url = getattr(request, "build_absolute_uri", lambda: "unknown")()
+    def _process_exception(self, request, exception):
+        duration = time.time() - getattr(request, "_start_time", time.time())
         request_id = getattr(request, "request_id", "unknown")
-
         self.logger.error(
-            f"[{request_id}] {method} {url} - ERROR: {str(exception)} - Time: {process_time:.3f}s"
+            f"[{request_id}] {request.method} {request.build_absolute_uri()} - "
+            f"ERROR: {str(exception)} - Time: {duration:.3f}s"
         )
-        # Django seguirá el flujo normal de la excepción después
-        return None
 
     def get_client_ip(self, request):
-        # Intentar obtener IP real, incluyendo casos con proxy reverso
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip = request.META.get("REMOTE_ADDR", "unknown")
-        return ip
+        return (
+            x_forwarded_for.split(",")[0].strip()
+            if x_forwarded_for
+            else request.META.get("REMOTE_ADDR", "unknown")
+        )

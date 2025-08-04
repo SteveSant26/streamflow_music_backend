@@ -6,5 +6,6 @@ urlpatterns = [
     path("albums/", include("apps.albums.api.urls")),
     path("songs/", include("apps.songs.api.urls")),
     path("genres/", include("apps.genres.api.urls")),
-    path("search/", include("apps.music_search.api.urls")),
+    # path("search/", include("apps.music_search.api.urls")),
+    # path("payments/", include("src.apps.payments.api.urls")),  # Temporarily disabled
 ]

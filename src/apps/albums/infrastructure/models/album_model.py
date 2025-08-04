@@ -25,7 +25,6 @@ class AlbumModel(models.Model):
     play_count = models.PositiveBigIntegerField(
         default=0, verbose_name="Reproducciones"
     )
-    is_active = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de creación"
     )
@@ -44,6 +43,11 @@ class AlbumModel(models.Model):
             models.Index(fields=["release_date"]),
             models.Index(fields=["play_count"]),
         ]
+
+    async def increase_play_count(self):
+        """Incrementa el contador de reproducciones del álbum"""
+        self.play_count += 1
+        await self.asave(update_fields=["play_count"])
 
     def __str__(self):
         return f"{self.title} - {self.artist_name}"
