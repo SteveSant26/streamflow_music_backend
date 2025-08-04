@@ -15,9 +15,6 @@ class SongEntity:
     duration_seconds: int = 0
     album_title: Optional[str] = None  # Desnormalizado para consultas rápidas
     artist_name: Optional[str] = None  # Desnormalizado para consultas rápidas
-    genre_names: Optional[
-        List[str]
-    ] = None  # Lista de nombres de géneros (desnormalizado)
     track_number: Optional[int] = None
     file_url: Optional[str] = None  # URL del archivo de audio en Supabase
     thumbnail_url: Optional[str] = None  # URL de la imagen en Supabase
@@ -45,5 +42,3 @@ class SongEntity:
     def __post_init__(self):
         if self.genre_ids is None:
             self.genre_ids = []
-        if self.genre_names is None:
-            self.genre_names = []

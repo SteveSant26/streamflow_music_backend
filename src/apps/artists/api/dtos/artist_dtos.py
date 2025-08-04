@@ -50,6 +50,33 @@ class SearchArtistsByNameRequestDTO:
 
 
 @dataclass
+class SaveArtistRequestDTO:
+    """DTO para guardar un artista desde fuentes externas"""
+
+    name: str
+    image_url: Optional[str] = None
+    source_type: str = "manual"
+    source_id: Optional[str] = None
+    source_url: Optional[str] = None
+    biography: Optional[str] = None
+    country: Optional[str] = None
+    channel_id: Optional[str] = None  # Para compatibilidad con YouTube
+    channel_url: Optional[str] = None  # Para compatibilidad con YouTube
+
+
+@dataclass
+class SaveArtistResponseDTO:
+    """DTO de respuesta para guardar un artista"""
+
+    id: str
+    name: str
+    image_url: Optional[str] = None
+    source_type: str = "manual"
+    source_id: Optional[str] = None
+    was_created: bool = False  # Indica si fue creado o ya existía
+
+
+@dataclass
 class GetArtistsByCountryRequestDTO:
     """DTO para obtener artistas por país"""
 

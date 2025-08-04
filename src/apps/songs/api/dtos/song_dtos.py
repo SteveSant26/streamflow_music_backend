@@ -32,6 +32,15 @@ class SongResponseDTO:
     release_date: Optional[datetime] = None
     audio_downloaded: bool = False  # Indica si el audio está descargado
 
+    @property
+    def duration_formatted(self) -> str:
+        """Retorna la duración en formato MM:SS"""
+        if self.duration_seconds <= 0:
+            return "00:00"
+        minutes = self.duration_seconds // 60
+        seconds = self.duration_seconds % 60
+        return f"{minutes:02d}:{seconds:02d}"
+
 
 @dataclass
 class SongSearchRequestDTO:

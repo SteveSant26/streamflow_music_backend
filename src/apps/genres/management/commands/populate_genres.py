@@ -45,7 +45,7 @@ class Command(BaseCommand):
         # este comando ahora gestiona únicamente géneros locales del sistema.
         # Solo usamos YouTube Category ID 10 (Music) para filtrar videos musicales,
         # pero la clasificación de géneros es completamente independiente de YouTube.
-        genres_config = getattr(settings, "YOUTUBE_MUSIC_GENRES", {})
+        genres_config = settings.YOUTUBE_MUSIC_GENRES
 
         if not genres_config:
             self.stdout.write(
@@ -103,7 +103,6 @@ class Command(BaseCommand):
                 name=name,
                 description=self._build_description(keywords),
                 popularity_score=0,
-                is_active=True,
             )
 
             self.stdout.write(f"✅ Creado: {name}")

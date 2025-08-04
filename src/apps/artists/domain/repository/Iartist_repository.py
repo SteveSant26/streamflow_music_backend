@@ -30,3 +30,15 @@ class IArtistRepository(IBaseRepository[ArtistEntity, Any]):
     @abstractmethod
     async def get_verified_artists(self, limit: int = 10) -> List[ArtistEntity]:
         """Obtiene artistas verificados"""
+
+    @abstractmethod
+    async def find_or_create_by_name(
+        self, name: str, image_url: Optional[str] = None
+    ) -> ArtistEntity:
+        """Busca un artista por nombre, si no existe lo crea"""
+
+    @abstractmethod
+    async def get_by_source(
+        self, source_type: str, source_id: str
+    ) -> Optional[ArtistEntity]:
+        """Busca un artista por fuente externa (YouTube channel, etc.)"""

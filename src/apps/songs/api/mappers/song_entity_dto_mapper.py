@@ -1,3 +1,5 @@
+from typing import List
+
 from apps.songs.domain.entities import SongEntity
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 from common.mixins.logging_mixin import LoggingMixin
@@ -16,8 +18,15 @@ class SongEntityDTOMapper(
     def entity_to_dto(self, entity: SongEntity) -> SongResponseDTO:
         """
         Convierte una entidad del dominio a DTO de respuesta.
+        Obtiene nombres de géneros usando los IDs.
         """
         self.logger.debug(f"Converting entity to DTO for song {entity.id}")
+
+        # Obtener nombres de géneros basándose en genre_ids (síncronamente)
+        genre_names = self._get_genre_names_from_ids_sync(entity.genre_ids or [])
+
+        # Por ahora artist_name será None hasta que se implemente artists
+        artist_name = None
 
         return SongResponseDTO(
             id=entity.id,
@@ -27,8 +36,8 @@ class SongEntityDTOMapper(
             genre_ids=entity.genre_ids,
             duration_seconds=entity.duration_seconds,
             album_title=entity.album_title,
-            artist_name=entity.artist_name,
-            genre_names=entity.genre_names,
+            artist_name=artist_name,
+            genre_names=genre_names,
             track_number=entity.track_number,
             file_url=entity.file_url,
             thumbnail_url=entity.thumbnail_url,
@@ -57,8 +66,6 @@ class SongEntityDTOMapper(
             genre_ids=dto.genre_ids,
             duration_seconds=dto.duration_seconds,
             album_title=dto.album_title,
-            artist_name=dto.artist_name,
-            genre_names=dto.genre_names,
             track_number=dto.track_number,
             file_url=dto.file_url,
             thumbnail_url=dto.thumbnail_url,
@@ -73,3 +80,32 @@ class SongEntityDTOMapper(
             created_at=dto.created_at,
             release_date=dto.release_date,
         )
+
+    def _get_genre_names_from_ids_sync(self, genre_ids: List[str]) -> List[str]:
+        """
+        Obtiene nombres de géneros a partir de sus IDs (versión síncrona)
+
+        Args:
+            genre_ids: Lista de IDs de géneros
+
+        Returns:
+            Lista de nombres de géneros
+        """
+        if not genre_ids:
+            return []
+
+        try:
+            from apps.genres.infrastructure.models import GenreModel
+
+            # Buscar los géneros por IDs de forma síncrona
+            genre_names = list(
+                GenreModel.objects.filter(id__in=genre_ids).values_list(
+                    "name", flat=True
+                )
+            )
+
+            return genre_names
+
+        except Exception as e:
+            self.logger.error(f"Error obteniendo nombres de géneros: {str(e)}")
+            return []

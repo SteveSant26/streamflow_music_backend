@@ -49,6 +49,35 @@ class SearchAlbumsByTitleRequestDTO:
 
 
 @dataclass
+class SaveAlbumRequestDTO:
+    """DTO para guardar un álbum desde fuentes externas"""
+
+    title: str
+    artist_id: str
+    artist_name: str
+    cover_image_url: Optional[str] = None
+    source_type: str = "manual"
+    source_id: Optional[str] = None
+    source_url: Optional[str] = None
+    description: Optional[str] = None
+    release_date: Optional[date] = None
+
+
+@dataclass
+class SaveAlbumResponseDTO:
+    """DTO de respuesta para guardar un álbum"""
+
+    id: str
+    title: str
+    artist_id: str
+    artist_name: str
+    cover_image_url: Optional[str] = None
+    source_type: str = "manual"
+    source_id: Optional[str] = None
+    was_created: bool = False  # Indica si fue creado o ya existía
+
+
+@dataclass
 class GetAlbumsByArtistRequestDTO:
     """DTO para obtener álbumes por artista"""
 

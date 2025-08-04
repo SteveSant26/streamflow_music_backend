@@ -17,15 +17,11 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         """
         self.logger.debug(f"Converting model to entity for song {model.id}")
 
-        # Obtener los IDs de géneros de la relación many-to-many
-        # NOTA: Esta operación debería ser llamada desde un contexto sync
         genre_ids = []
         if hasattr(model, "genres"):
-            # Usamos prefetch_related en el repositorio para evitar queries adicionales
             try:
                 genre_ids = [str(genre.id) for genre in model.genres.all()]
             except Exception:
-                # Si falla, dejamos la lista vacía
                 genre_ids = []
 
         return SongEntity(
@@ -36,8 +32,7 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
             genre_ids=genre_ids,
             duration_seconds=model.duration_seconds,
             album_title=model.album_title,
-            artist_name=model.artist_name,
-            genre_names=model.genre_names if model.genre_names else [],
+            artist_name=getattr(model, "artist_name", None),  # Backwards compatible
             track_number=model.track_number,
             file_url=model.file_url,
             thumbnail_url=model.thumbnail_url,
@@ -61,15 +56,13 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         """
         self.logger.debug(f"Converting entity to model instance for song {entity.id}")
 
-        return SongModel(
+        model_instance = SongModel(
             id=entity.id if hasattr(entity, "id") and entity.id is not None else None,
             title=entity.title,
             album_id=entity.album_id,
             artist_id=entity.artist_id,
             duration_seconds=entity.duration_seconds,
             album_title=entity.album_title,
-            artist_name=entity.artist_name,
-            genre_names=entity.genre_names if entity.genre_names else [],
             track_number=entity.track_number,
             file_url=entity.file_url,
             thumbnail_url=entity.thumbnail_url,
@@ -85,20 +78,20 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
             release_date=entity.release_date,
         )
 
+        return model_instance
+
     def entity_to_model_data(self, entity: SongEntity) -> Dict[str, Any]:
         """
         Convierte una entidad SongEntity a datos del modelo Django (diccionario).
         """
         self.logger.debug(f"Converting entity to model data for song {entity.id}")
 
-        return {
+        model_data = {
             "title": entity.title,
             "album_id": entity.album_id,
             "artist_id": entity.artist_id,
             "duration_seconds": entity.duration_seconds,
             "album_title": entity.album_title,
-            "artist_name": entity.artist_name,
-            "genre_names": entity.genre_names if entity.genre_names else [],
             "track_number": entity.track_number,
             "file_url": entity.file_url,
             "thumbnail_url": entity.thumbnail_url,
@@ -113,6 +106,8 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
             "last_played_at": getattr(entity, "last_played_at", None),
             "release_date": entity.release_date,
         }
+
+        return model_data
 
     async def set_entity_genres_to_model(
         self, model: SongModel, genre_ids: List[str]
