@@ -1,6 +1,8 @@
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "common.core.authentication.SupabaseAuthentication",
+        # Temporalmente comentado para evitar importación circular
+        # "common.core.authentication.SupabaseAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",

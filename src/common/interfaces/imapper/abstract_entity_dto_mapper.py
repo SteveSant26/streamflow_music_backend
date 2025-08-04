@@ -3,17 +3,21 @@ from typing import Generic, Iterable, TypeVar
 
 from pyparsing import ABC
 
-from common.mixins.logging_mixin import LoggingMixin
-
 EntityType = TypeVar("EntityType")
 DTOType = TypeVar("DTOType")
 
 
-class AbstractEntityDtoMapper(Generic[EntityType, DTOType], ABC, LoggingMixin):
+class AbstractEntityDtoMapper(Generic[EntityType, DTOType], ABC):
     """
     Mapper completo que combina las operaciones de transformación
     entre modelo, entidad y DTO.
     """
+
+    def __init__(self):
+        # Importación local para evitar importación circular
+        from common.mixins.logging_mixin import LoggingMixin
+        # Aplicar LoggingMixin manualmente
+        LoggingMixin.__init__(self)
 
     @abstractmethod
     def entity_to_dto(self, entity: EntityType) -> DTOType:

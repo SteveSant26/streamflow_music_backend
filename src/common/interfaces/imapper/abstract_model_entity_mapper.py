@@ -1,14 +1,19 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Generic, Iterable, TypeVar
 
-from common.mixins.logging_mixin import LoggingMixin
-
 
 EntityType = TypeVar("EntityType")
 ModelType = TypeVar("ModelType")
 
 
-class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC, LoggingMixin):
+class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC):
+    
+    def __init__(self):
+        # Importación local para evitar importación circular
+        from common.mixins.logging_mixin import LoggingMixin
+        # Aplicar LoggingMixin manualmente
+        LoggingMixin.__init__(self)
+    
     @abstractmethod
     def model_to_entity(self, model: ModelType) -> EntityType:
         """
