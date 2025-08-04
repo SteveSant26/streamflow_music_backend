@@ -16,7 +16,6 @@ class AlbumResponseDTO:
     cover_image_url: Optional[str] = None
     total_tracks: int = 0
     play_count: int = 0
-    is_active: bool = True
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

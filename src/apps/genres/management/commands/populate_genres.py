@@ -136,15 +136,15 @@ class Command(BaseCommand):
         self.stdout.write("\n--- ESTADÍSTICAS DE GÉNEROS ---")
 
         total_genres = GenreModel.objects.count()
-        active_genres = GenreModel.objects.filter(is_active=True).count()
+        active_genres = GenreModel.objects.all().count()
 
         self.stdout.write(f"📊 Total de géneros: {total_genres}")
         self.stdout.write(f"✅ Géneros activos: {active_genres}")
 
         # Top 5 géneros más populares
-        popular_genres = GenreModel.objects.filter(is_active=True).order_by(
-            "-popularity_score", "name"
-        )[:5]
+        popular_genres = GenreModel.objects.all().order_by("-popularity_score", "name")[
+            :5
+        ]
 
         if popular_genres:
             self.stdout.write("\n🔥 Top 5 géneros más populares:")
@@ -154,7 +154,7 @@ class Command(BaseCommand):
                 )
 
         # Mostrar algunos géneros como muestra
-        sample_genres = GenreModel.objects.filter(is_active=True).order_by("name")[:10]
+        sample_genres = GenreModel.objects.all().order_by("name")[:10]
         if sample_genres:
             self.stdout.write("\n🎵 Géneros disponibles (muestra):")
             for genre in sample_genres:
