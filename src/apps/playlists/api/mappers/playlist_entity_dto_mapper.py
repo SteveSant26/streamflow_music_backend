@@ -30,6 +30,21 @@ class PlaylistEntityDtoMapper(AbstractEntityDtoMapper[PlaylistEntity, PlaylistRe
             updated_at=entity.updated_at,
         )
     
+    def dto_to_entity(self, dto: PlaylistResponseDTO) -> PlaylistEntity:
+        """Convierte un PlaylistResponseDTO a PlaylistEntity"""
+        self.logger.debug(f"Converting DTO to entity for playlist {dto.id}")
+        
+        return PlaylistEntity(
+            id=dto.id,
+            name=dto.name,
+            description=dto.description,
+            user_id=dto.user_id,
+            is_default=dto.is_default,
+            is_public=dto.is_public,
+            created_at=dto.created_at,
+            updated_at=dto.updated_at,
+        )
+    
     def entities_to_dtos(self, entities: List[PlaylistEntity]) -> List[PlaylistResponseDTO]:
         """Convierte una lista de PlaylistEntity a PlaylistResponseDTO"""
         return [self.entity_to_dto(entity) for entity in entities]
@@ -56,6 +71,18 @@ class PlaylistSongEntityDtoMapper(AbstractEntityDtoMapper[PlaylistSongEntity, Pl
             thumbnail_url=None,
             position=entity.position,
             added_at=entity.added_at,
+        )
+    
+    def dto_to_entity(self, dto: PlaylistSongResponseDTO) -> PlaylistSongEntity:
+        """Convierte un PlaylistSongResponseDTO a PlaylistSongEntity"""
+        self.logger.debug(f"Converting DTO to entity for playlist song {dto.id}")
+        
+        return PlaylistSongEntity(
+            id=dto.id,
+            playlist_id=None,  # Se debe establecer externamente
+            song_id=None,  # Se debe establecer externamente
+            position=dto.position,
+            added_at=dto.added_at,
         )
     
     def entities_to_dtos(self, entities: List[PlaylistSongEntity]) -> List[PlaylistSongResponseDTO]:

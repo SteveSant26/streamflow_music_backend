@@ -14,7 +14,7 @@ from common.interfaces.ibase_repository import IWriteOnlyRepository
 
 class PlaylistRepository(
     BaseReadOnlyDjangoRepository[PlaylistEntity, PlaylistModel],
-    IWriteOnlyRepository[PlaylistEntity]
+    IWriteOnlyRepository[PlaylistEntity, PlaylistModel]
 ):
     """Repositorio para gestionar playlists"""
     
