@@ -10,9 +10,6 @@ from common.core.repositories.base_django_repository_mixin import (
 
 from ...interfaces import IReadOnlyRepository
 
-# from common.types import EntityType, ModelType
-
-
 EntityType = TypeVar("EntityType")
 ModelType = TypeVar("ModelType", bound=models.Model)
 

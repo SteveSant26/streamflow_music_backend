@@ -1,5 +1,3 @@
-# from abc import ABC
-
 from ...types import EntityType, ModelType
 from .base_read_only_repository import BaseReadOnlyDjangoRepository
 from .base_write_only_repository import BaseWriteOnlyDjangoRepository
@@ -8,7 +6,6 @@ from .base_write_only_repository import BaseWriteOnlyDjangoRepository
 class BaseDjangoRepository(
     BaseReadOnlyDjangoRepository[EntityType, ModelType],
     BaseWriteOnlyDjangoRepository[EntityType, ModelType],
-    # ABC,
 ):
     """
     Implementación base completa de repositorio para Django que combina

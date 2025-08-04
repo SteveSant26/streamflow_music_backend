@@ -7,8 +7,6 @@ from common.core.repositories.base_django_repository_mixin import (
     BaseDjangoRepositoryMixin,
 )
 
-# from common.types import EntityType, ModelType
-
 from ...exceptions import NotFoundException
 from ...interfaces import IWriteOnlyRepository
 
