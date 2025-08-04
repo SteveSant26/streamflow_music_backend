@@ -1,6 +1,8 @@
+import uuid
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 from apps.artists.api.mappers import ArtistEntityModelMapper
 from apps.artists.domain.repository import IArtistRepository
@@ -77,3 +79,35 @@ class ArtistRepository(
             )
         )()
         return self.mapper.models_to_entities(models)
+
+    async def find_or_create_by_name(
+        self, name: str, image_url: Optional[str] = None
+    ) -> ArtistEntity:
+        """Busca un artista por nombre, si no existe lo crea"""
+        # Primero intentar encontrar por nombre
+        existing = await self.find_by_name(name)
+        if existing:
+            return existing
+
+        # Si no existe, crear uno nuevo
+        artist_entity = ArtistEntity(
+            id=str(uuid.uuid4()),
+            name=name,
+            image_url=image_url,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
+
+        return await self.save(artist_entity)
+
+    async def get_by_source(
+        self, source_type: str, source_id: str
+    ) -> Optional[ArtistEntity]:
+        """Busca un artista por fuente externa (YouTube channel, etc.)"""
+        try:
+            model = await self.model_class.objects.aget(
+                source_type=source_type, source_id=source_id
+            )
+            return self.mapper.model_to_entity(model)
+        except self.model_class.DoesNotExist:
+            return None

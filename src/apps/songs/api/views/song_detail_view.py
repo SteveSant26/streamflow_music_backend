@@ -29,22 +29,9 @@ class SongDetailView(APIView, LoggingMixin):
     @extend_schema(responses={200: SongSerializer})
     def get(self, request, song_id):
         """Obtiene detalles de una canción"""
-        try:
-            song = async_to_sync(self.get_song_by_id_use_case.execute)(song_id)
+        song = async_to_sync(self.get_song_by_id_use_case.execute)(song_id)
 
-            if not song:
-                return Response(
-                    {"error": "Song not found"}, status=status.HTTP_404_NOT_FOUND
-                )
+        song_dto = self.mapper.entity_to_dto(song)
+        serializer = SongSerializer(song_dto)
 
-            song_dto = self.mapper.entity_to_dto(song)
-            serializer = SongSerializer(song_dto)
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            self.logger.error(f"Error getting song {song_id}: {str(e)}")
-            return Response(
-                {"error": "Failed to retrieve song"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        return Response(serializer.data, status=status.HTTP_200_OK)

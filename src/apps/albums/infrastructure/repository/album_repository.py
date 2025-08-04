@@ -1,6 +1,8 @@
-from typing import List
+import uuid
+from typing import List, Optional
 
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 from apps.albums.api.mappers import AlbumEntityModelMapper
 from apps.albums.domain.repository import IAlbumRepository
@@ -72,3 +74,45 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
             )
         )()
         return self.mapper.models_to_entities(models)
+
+    async def find_or_create_by_title_and_artist(
+        self,
+        title: str,
+        artist_id: str,
+        artist_name: str,
+        cover_image_url: Optional[str] = None,
+    ) -> AlbumEntity:
+        """Busca un álbum por título y artista, si no existe lo crea"""
+        # Primero intentar encontrar por título y artista
+        try:
+            model = await self.model_class.objects.aget(
+                title__iexact=title, artist_id=artist_id
+            )
+            return self.mapper.model_to_entity(model)
+        except self.model_class.DoesNotExist:
+            pass
+
+        # Si no existe, crear uno nuevo
+        album_entity = AlbumEntity(
+            id=str(uuid.uuid4()),
+            title=title,
+            artist_id=artist_id,
+            artist_name=artist_name,
+            cover_image_url=cover_image_url,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
+
+        return await self.save(album_entity)
+
+    async def get_by_source(
+        self, source_type: str, source_id: str
+    ) -> Optional[AlbumEntity]:
+        """Busca un álbum por fuente externa"""
+        try:
+            model = await self.model_class.objects.aget(
+                source_type=source_type, source_id=source_id
+            )
+            return self.mapper.model_to_entity(model)
+        except self.model_class.DoesNotExist:
+            return None

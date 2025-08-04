@@ -28,16 +28,6 @@ class SongModel(models.Model):
     album_title = models.CharField(
         max_length=255, null=True, blank=True, db_index=True  # NOSONAR
     )  # NOSONAR
-    artist_name = models.CharField(
-        max_length=255, null=True, blank=True, db_index=True  # NOSONAR
-    )  # NOSONAR
-
-    # Géneros desnormalizados para consultas rápidas (se actualiza automáticamente)
-    genre_names = models.JSONField(
-        default=list,
-        blank=True,
-        help_text="Lista de nombres de géneros para búsquedas rápidas",
-    )
 
     # Metadatos de la canción
     duration_seconds = models.IntegerField(
@@ -96,7 +86,6 @@ class SongModel(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["source_type", "source_id"]),
-            models.Index(fields=["artist_name", "play_count"]),
             models.Index(fields=["album_title", "track_number"]),
             models.Index(fields=["play_count"], name="songs_most_played_idx"),
             models.Index(fields=["favorite_count"], name="songs_most_favorited_idx"),
@@ -111,7 +100,7 @@ class SongModel(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.artist_name} - {self.title}" if self.artist_name else self.title
+        return self.title
 
     @property
     def duration_formatted(self) -> str:
@@ -141,8 +130,3 @@ class SongModel(models.Model):
     async def get_primary_genre(self):
         """Retorna el primer género asignado como género principal"""
         return await self.genres.afirst()
-
-    @property
-    async def genres_display(self):
-        """Retorna los géneros como string separado por comas para display"""
-        return ", ".join(await self.genre_names) if self.genre_names else "Sin género"

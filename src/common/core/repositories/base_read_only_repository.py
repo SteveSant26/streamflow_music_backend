@@ -1,19 +1,24 @@
-from typing import List, Optional
+from typing import Generic, List, Optional, TypeVar
 
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 
 from common.core.repositories.base_django_repository_mixin import (
     BaseDjangoRepositoryMixin,
 )
-from common.types import EntityType, ModelType
 
 from ...interfaces import IReadOnlyRepository
+
+EntityType = TypeVar("EntityType")
+ModelType = TypeVar("ModelType", bound=models.Model)
 
 
 class BaseReadOnlyDjangoRepository(
     IReadOnlyRepository[EntityType, ModelType],
     BaseDjangoRepositoryMixin[EntityType, ModelType],
+    Generic[EntityType, ModelType],
+    # ABC
 ):
     """
     Implementación base de solo lectura para Django que proporciona

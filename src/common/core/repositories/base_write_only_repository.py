@@ -1,17 +1,24 @@
+from typing import Generic, TypeVar
+
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 
 from common.core.repositories.base_django_repository_mixin import (
     BaseDjangoRepositoryMixin,
 )
-from common.types import EntityType, ModelType
 
 from ...exceptions import NotFoundException
 from ...interfaces import IWriteOnlyRepository
+
+EntityType = TypeVar("EntityType")
+ModelType = TypeVar("ModelType", bound=models.Model)
 
 
 class BaseWriteOnlyDjangoRepository(
     IWriteOnlyRepository[EntityType, ModelType],
     BaseDjangoRepositoryMixin[EntityType, ModelType],
+    Generic[EntityType, ModelType],
+    # ABC,
 ):
     """
     Implementación base de solo escritura para Django que proporciona

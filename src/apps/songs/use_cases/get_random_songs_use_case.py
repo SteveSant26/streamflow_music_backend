@@ -110,6 +110,12 @@ class GetRandomSongsUseCase(BaseUseCase[RandomSongsRequestDTO, List[SongEntity]]
         for result in results:
             if isinstance(result, SongEntity):
                 saved_songs.append(result)
+                # Log información de la canción guardada
+                self.logger.info(
+                    f"✅ Processed song: {result.title}"
+                    f"{f' by {result.artist_name}' if result.artist_name else ''}"
+                    f"{f' from {result.album_title}' if result.album_title else ''}"
+                )
             elif isinstance(result, Exception):
                 self.logger.warning(f"Task failed with exception: {str(result)}")
 
