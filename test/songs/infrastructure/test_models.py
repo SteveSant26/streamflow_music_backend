@@ -14,7 +14,7 @@ from django.test import TestCase
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR / "src"))
 
-from apps.songs.infrastructure.models.song_model import Song
+from src.apps.songs.infrastructure.models.song_model import Song
 
 
 class TestSongModel(TestCase):

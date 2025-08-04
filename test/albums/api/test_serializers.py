@@ -238,12 +238,12 @@ def test_album_search_serializer():
     search_data = {"q": "rock", "artist_id": str(uuid4()), "artist_name": "Pink Floyd"}
 
     search_serializer = MockAlbumSearchSerializer(data=search_data)
-    assert search_serializer.is_valid( == True)  # nosec B101
+    assert search_serializer.is_valid() == True  # nosec B101
     assert search_serializer.validated_data["q"] == "rock"  # nosec B101
     invalid_search_data = {"artist_name": "Pink Floyd"}
 
     invalid_search_serializer = MockAlbumSearchSerializer(data=invalid_search_data)
-    assert invalid_search_serializer.is_valid( == False)  # nosec B101
+    assert invalid_search_serializer.is_valid() == False  # nosec B101
 
     print("✅ Serializer de búsqueda funciona")
     print(f"   - Query válida: {search_serializer.validated_data['q']}")

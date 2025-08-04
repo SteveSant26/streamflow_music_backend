@@ -6,9 +6,9 @@ from uuid import uuid4
 
 from django.test import TestCase
 
-from apps.user_profile.domain.entities import UserEntity
-from apps.user_profile.infrastructure.models.user_profile import UserProfile
-from apps.user_profile.infrastructure.repository import UserRepository
+from src.apps.user_profile.domain.entities import UserEntity
+from src.apps.user_profile.infrastructure.models.user_profile import UserProfile
+from src.apps.user_profile.infrastructure.repository import UserRepository
 
 
 class TestUserRepository(TestCase):

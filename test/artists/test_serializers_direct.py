@@ -23,12 +23,12 @@ import django
 django.setup()
 
 # Importar después de setup
-from apps.artists.api.serializers.artist_serializers import (
+from src.apps.artists.api.serializers.artist_serializers import (
     ArtistResponseSerializer,
     CreateArtistSerializer,
     UpdateArtistSerializer,
 )
-from apps.artists.domain.entities import ArtistEntity
+from src.apps.artists.domain.entities import ArtistEntity
 
 
 def test_artist_response_serializer():

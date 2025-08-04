@@ -4,9 +4,9 @@ Tests para los casos de uso de user_profile
 import unittest
 from unittest.mock import Mock
 
-from apps.user_profile.domain.entities import UserEntity
-from apps.user_profile.domain.exceptions import UserNotFoundException
-from apps.user_profile.use_cases.get_user_profile import GetUserProfile
+from src.apps.user_profile.domain.entities import UserEntity
+from src.apps.user_profile.domain.exceptions import UserNotFoundException
+from src.apps.user_profile.use_cases.get_user_profile import GetUserProfile
 
 
 class TestGetUserProfile(unittest.TestCase):

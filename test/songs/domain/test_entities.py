@@ -10,7 +10,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR / "src"))
 
-from apps.songs.domain.entities import SongEntity
+from src.apps.songs.domain.entities import SongEntity
 
 
 class TestSongEntity(unittest.TestCase):

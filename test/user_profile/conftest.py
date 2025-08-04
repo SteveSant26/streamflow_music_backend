@@ -49,7 +49,7 @@ def create_test_user_profile(email="test@example.com", **kwargs):
     """Helper para crear un perfil de usuario de prueba"""
     from uuid import uuid4
 
-    from apps.user_profile.infrastructure.models.user_profile import UserProfile
+    from src.apps.user_profile.infrastructure.models.user_profile import UserProfile
 
     defaults = {"id": str(uuid4()), "email": email, "profile_picture": None}
     defaults.update(kwargs)
@@ -61,7 +61,7 @@ def create_test_user_entity(email="test@example.com", **kwargs):
     """Helper para crear una entidad de usuario de prueba"""
     from uuid import uuid4
 
-    from apps.user_profile.domain.entities import UserEntity
+    from src.apps.user_profile.domain.entities import UserEntity
 
     defaults = {"id": str(uuid4()), "email": email, "profile_picture": None}
     defaults.update(kwargs)

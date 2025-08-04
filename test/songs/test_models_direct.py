@@ -28,7 +28,7 @@ django.setup()
 # Importar después de setup
 from django.db import connection
 
-from apps.songs.infrastructure.models.song_model import Song
+from src.apps.songs.infrastructure.models.song_model import Song
 
 
 def setup_test_database():
@@ -133,18 +133,18 @@ def test_song_model_queries():
 
     # Test filtrado por género
     rock_songs = Song.objects.filter(genre_name="Rock")
-    assert rock_songs.count( >= 2)  # nosec B101
+    assert rock_songs.count() >= 2  # nosec B101
 
     pop_songs = Song.objects.filter(genre_name="Pop")
-    assert pop_songs.count( >= 1)  # nosec B101
+    assert pop_songs.count() >= 1  # nosec B101
 
     # Test ordenamiento por play_count
     popular_songs = Song.objects.order_by("-play_count")
-    assert popular_songs.count( >= 3)  # nosec B101
+    assert popular_songs.count() >= 3  # nosec B101
     rock_title_songs = Song.objects.filter(title__icontains="Rock")
-    assert rock_title_songs.count( >= 2)  # nosec B101
+    assert rock_title_songs.count() >= 2  # nosec B101
     active_songs = Song.objects.filter(is_active=True)
-    assert active_songs.count( >= 3)  # nosec B101
+    assert active_songs.count() >= 3  # nosec B101
 
     print("✅ Consultas del modelo Song funcionan correctamente")
     print(f"   - Canciones Rock: {rock_songs.count()}")

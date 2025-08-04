@@ -22,7 +22,7 @@ import django
 django.setup()
 
 # Importar después de setup
-from apps.songs.domain.entities import SongEntity
+from src.apps.songs.domain.entities import SongEntity
 
 
 def test_song_entity_creation():

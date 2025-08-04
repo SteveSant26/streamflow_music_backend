@@ -31,7 +31,7 @@ from django.core.management import call_command
 from django.db import connection
 
 # Importar después de setup
-from apps.artists.infrastructure.models import ArtistModel
+from src.apps.artists.infrastructure.models import ArtistModel
 
 # Ejecutar migraciones para crear las tablas
 try:

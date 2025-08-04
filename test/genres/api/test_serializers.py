@@ -160,7 +160,7 @@ def test_genre_serializer_validation():
 
     assert is_valid == True  # nosec B101
     assert serializer.validated_data["name"] == "Rock"  # nosec B101
-    assert serializer.validated_data["color_hex"] == "  # nosec B101
+    assert serializer.validated_data["color_hex"] == "#FF0000"  # nosec B101
 
     print("✅ Validación con datos válidos funciona")
     print(f"   - Nombre: {serializer.validated_data['name']}")
@@ -214,7 +214,7 @@ def test_genre_serializer_representation():
     assert representation["id"] == "genre-123"  # nosec B101
     assert representation["name"] == "Electronic"  # nosec B101
     assert representation["description"] == "Electronic music"  # nosec B101
-    assert representation["color_hex"] == "  # nosec B101
+    assert representation["color_hex"] == "#00FF00"  # nosec B101
     assert representation["popularity_score"] == 92  # nosec B101
     assert representation["is_active"] == True  # nosec B101
     assert representation["created_at"] is not None  # nosec B101
@@ -284,13 +284,13 @@ def test_genre_serializer_edge_cases():
     # Test con string vacío
     empty_name_data = {"name": ""}
     serializer_empty = MockGenreSerializer(data=empty_name_data)
-    assert serializer_empty.is_valid( == False)  # nosec B101
+    assert serializer_empty.is_valid() == False  # nosec B101
     long_query_data = {"q": "a" * 101}  # Más de 100 caracteres
     search_serializer_long = MockGenreSearchSerializer(data=long_query_data)
-    assert search_serializer_long.is_valid( == False)  # nosec B101
+    assert search_serializer_long.is_valid() == False  # nosec B101
     valid_color_data = {"name": "Test", "color_hex": "#ABCDEF"}
     serializer_color = MockGenreSerializer(data=valid_color_data)
-    assert serializer_color.is_valid( == True)  # nosec B101
+    assert serializer_color.is_valid() == True  # nosec B101
 
     print("✅ Casos extremos funcionan correctamente")
 

@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytest
 
-from apps.artists.domain.entities import ArtistEntity
+from src.apps.artists.domain.entities import ArtistEntity
 
 
 @pytest.fixture

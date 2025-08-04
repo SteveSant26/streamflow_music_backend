@@ -5,10 +5,10 @@ from uuid import uuid4
 
 from django.test import TestCase
 
-from apps.user_profile.api.serializers.retrieve_user_profile_serializer import (
+from src.apps.user_profile.api.serializers.retrieve_user_profile_serializer import (
     RetrieveUserProfileSerializer,
 )
-from apps.user_profile.infrastructure.models.user_profile import UserProfile
+from src.apps.user_profile.infrastructure.models.user_profile import UserProfile
 
 
 class TestUserProfileSerializers(TestCase):

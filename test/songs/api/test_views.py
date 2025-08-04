@@ -15,8 +15,8 @@ from rest_framework.test import APIClient, APITestCase
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR / "src"))
 
-from apps.songs.api.simple_views import TestView, test_function_view
-from apps.songs.domain.entities import SongEntity
+from src.apps.songs.api.simple_views import TestView, test_function_view
+from src.apps.songs.domain.entities import SongEntity
 
 
 class TestSimpleViews(APITestCase):
@@ -92,7 +92,7 @@ class TestSongViewsConcepts(TestCase):
 
     def test_entity_to_dict_conversion(self):
         """Test conversión de entidad a diccionario para serializer"""
-        from apps.songs.api.views.song_views import entity_to_dict
+        from src.apps.songs.api.views.song_views import entity_to_dict
 
         entity = self.sample_entities[0]
         result = entity_to_dict(entity)
@@ -112,7 +112,7 @@ class TestSongViewsConcepts(TestCase):
 
     def test_entity_to_dict_with_none_tags(self):
         """Test conversión con tags None"""
-        from apps.songs.api.views.song_views import entity_to_dict
+        from src.apps.songs.api.views.song_views import entity_to_dict
 
         entity = SongEntity(id="song-no-tags", title="Song Without Tags", tags=None)
 
@@ -123,7 +123,7 @@ class TestSongViewsConcepts(TestCase):
 
     def test_entity_to_dict_all_fields(self):
         """Test que todos los campos de la entidad se incluyen en el dict"""
-        from apps.songs.api.views.song_views import entity_to_dict
+        from src.apps.songs.api.views.song_views import entity_to_dict
 
         entity = SongEntity(
             id="song-complete",
@@ -183,7 +183,7 @@ class TestSongViewsConcepts(TestCase):
     @patch("apps.songs.api.views.song_views.SongRepository")
     def test_random_songs_view_concept(self, mock_repo_class, mock_use_cases_class):
         """Test concepto de RandomSongsView (sin hacer requests HTTP)"""
-        from apps.songs.api.views.song_views import RandomSongsView
+        from src.apps.songs.api.views.song_views import RandomSongsView
 
         # Configurar mocks
         mock_repo = Mock()
@@ -329,7 +329,7 @@ class TestSongViewsConcepts(TestCase):
         self, mock_use_case_class, mock_repo_class
     ):
         """Test concepto de MostPopularSongsView (sin hacer requests HTTP)"""
-        from apps.songs.api.views.most_popular_songs_view import MostPopularSongsView
+        from src.apps.songs.api.views.most_popular_songs_view import MostPopularSongsView
 
         # Configurar mocks
         mock_repo = Mock()

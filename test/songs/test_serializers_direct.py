@@ -24,7 +24,7 @@ import django
 django.setup()
 
 # Importar después de setup
-from apps.songs.api.serializers.song_serializers import (
+from src.apps.songs.api.serializers.song_serializers import (
     SongListSerializer,
     SongSerializer,
 )

@@ -24,9 +24,9 @@ import django
 django.setup()
 
 # Importar después de setup
-from apps.artists.domain.entities import ArtistEntity
-from apps.artists.domain.exceptions import ArtistNotFoundException
-from apps.artists.use_cases import (
+from src.apps.artists.domain.entities import ArtistEntity
+from src.apps.artists.domain.exceptions import ArtistNotFoundException
+from src.apps.artists.use_cases import (
     GetAllArtistsUseCase,
     GetArtistsByCountryUseCase,
     GetArtistUseCase,

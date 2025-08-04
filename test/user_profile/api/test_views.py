@@ -8,7 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
+from src.apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 
 
 @override_settings(

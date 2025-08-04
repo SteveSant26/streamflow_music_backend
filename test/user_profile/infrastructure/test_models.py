@@ -4,7 +4,7 @@ Tests para la capa de infraestructura de user_profile
 from django.db import IntegrityError
 from django.test import TestCase
 
-from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
+from src.apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 
 
 class TestUserProfileModel(TestCase):

@@ -75,9 +75,9 @@ def run_test_file(test_file: str) -> tuple[bool, float]:
 
 def main():
     """Función principal"""
-    print("🎵 SUITE DE TESTS ALBUMS - ARQUITECTURA HEXAGONAL")
+    print("SUITE DE TESTS ALBUMS - ARQUITECTURA HEXAGONAL")
     print("=" * 60)
-    print(f"📅 Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     # Lista de tests a ejecutar (arquitectura hexagonal)
     test_files = [

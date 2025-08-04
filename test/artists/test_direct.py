@@ -23,7 +23,7 @@ import django
 django.setup()
 
 # Importar después de setup
-from apps.artists.domain.entities import ArtistEntity
+from src.apps.artists.domain.entities import ArtistEntity
 
 
 def test_artist_entity_creation():

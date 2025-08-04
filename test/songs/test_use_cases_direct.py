@@ -24,8 +24,8 @@ import django
 django.setup()
 
 # Importar después de setup
-from apps.songs.domain.entities import SongEntity
-from apps.songs.use_cases.song_use_cases import SongUseCases
+from src.apps.songs.domain.entities import SongEntity
+from src.apps.songs.use_cases.song_use_cases import SongUseCases
 
 
 async def test_get_random_songs():

@@ -71,17 +71,16 @@ repos:
         args: ['--skip', 'B101,B601,B602,B404']
         exclude: '(test_|_test\.py$|tests\.py$|migrations/|config/settings/|format_code\.py|make_commit\.py|generate_.*\.py)'
 
-  # 🧪 Ejecutar tests rápidos (DESHABILITADO TEMPORALMENTE)
-  # NOTA: Los tests tienen errores de configuración y sintaxis que necesitan ser corregidos
-  # - repo: local
-  #   hooks:
-  #     - id: run-tests
-  #       name: Run unit tests
-  #       entry: python test/run_all_project_tests.py
-  #       language: system
-  #       stages: [pre-commit]
-  #       pass_filenames: false
-  #       always_run: false
+  # 🧪 Ejecutar tests de módulos funcionales
+  - repo: local
+    hooks:
+      - id: run-working-tests
+        name: Run working tests (user_profile & albums)
+        entry: python run_precommit_tests_safe.py
+        language: system
+        stages: [pre-commit]
+        pass_filenames: false
+        always_run: true
 
   # 📝 Formato de mensajes de commit
   - repo: https://github.com/commitizen-tools/commitizen

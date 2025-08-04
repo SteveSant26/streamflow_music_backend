@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR / "src"))
 
-from apps.songs.domain.entities import SongEntity
+from src.apps.songs.domain.entities import SongEntity
 
 
 class TestMostPopularSongsView(APITestCase):
@@ -68,7 +68,7 @@ class TestMostPopularSongsView(APITestCase):
     @patch("apps.songs.api.views.most_popular_songs_view.GetMostPlayedSongsUseCase")
     def test_view_initialization(self, mock_use_case_class, mock_repo_class):
         """Test inicialización correcta de la vista"""
-        from apps.songs.api.views.most_popular_songs_view import MostPopularSongsView
+        from src.apps.songs.api.views.most_popular_songs_view import MostPopularSongsView
 
         # Configurar mocks
         mock_repo = Mock()
@@ -130,7 +130,7 @@ class TestMostPopularSongsView(APITestCase):
 
     def test_dto_creation_concept(self):
         """Test concepto de creación de DTOs para respuesta"""
-        from apps.songs.api.dtos import MostPopularSongsRequestDTO
+        from src.apps.songs.api.dtos import MostPopularSongsRequestDTO
 
         # Test creación con valores por defecto
         default_dto = MostPopularSongsRequestDTO()
@@ -180,7 +180,7 @@ class TestMostPopularSongsView(APITestCase):
 
     def test_use_case_integration_concept(self):
         """Test concepto de integración con el caso de uso"""
-        from apps.songs.use_cases import GetMostPlayedSongsUseCase
+        from src.apps.songs.use_cases import GetMostPlayedSongsUseCase
 
         # Verificar que el caso de uso existe y tiene el método correcto
         self.assertTrue(hasattr(GetMostPlayedSongsUseCase, "execute"))

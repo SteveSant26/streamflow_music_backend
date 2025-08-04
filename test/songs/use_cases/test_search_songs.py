@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, Mock, patch
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR / "src"))
 
-from apps.songs.domain.entities import SongEntity
-from apps.songs.use_cases.song_use_cases import SongUseCases
+from src.apps.songs.domain.entities import SongEntity
+from src.apps.songs.use_cases.song_use_cases import SongUseCases
 
 
 class TestSearchSongs(unittest.IsolatedAsyncioTestCase):

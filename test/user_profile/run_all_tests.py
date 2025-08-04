@@ -136,10 +136,10 @@ def run_simple_user_profile_tests():
 
 def main():
     """Función principal"""
-    print("👤 SUITE DE TESTS USER PROFILE - ARQUITECTURA HEXAGONAL")
+    print("SUITE DE TESTS USER PROFILE - ARQUITECTURA HEXAGONAL")
     print("=" * 65)
-    print(f"📅 Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("ℹ️  Nota: Ejecutando en modo simplificado sin configuración Django compleja")
+    print(f"Iniciado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("Nota: Ejecutando en modo simplificado sin configuracion Django compleja")
 
     total_start_time = datetime.now()
 

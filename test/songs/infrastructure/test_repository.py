@@ -14,9 +14,9 @@ from django.test import TestCase
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR / "src"))
 
-from apps.songs.domain.entities import SongEntity
-from apps.songs.infrastructure.models.song_model import Song
-from apps.songs.infrastructure.repository.song_repository import SongRepository
+from src.apps.songs.domain.entities import SongEntity
+from src.apps.songs.infrastructure.models.song_model import Song
+from src.apps.songs.infrastructure.repository.song_repository import SongRepository
 
 
 class TestSongRepository(TestCase):
@@ -284,7 +284,7 @@ class TestSongRepository(TestCase):
 
     def test_repository_inheritance(self):
         """Test que el repositorio implementa la interfaz correcta"""
-        from apps.songs.domain.repository.Isong_repository import ISongRepository
+        from src.apps.songs.domain.repository.Isong_repository import ISongRepository
         from common.mixins.logging_mixin import LoggingMixin
 
         # Verificar herencia
