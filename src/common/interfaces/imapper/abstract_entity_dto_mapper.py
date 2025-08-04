@@ -14,10 +14,9 @@ class AbstractEntityDtoMapper(Generic[EntityType, DTOType], ABC):
     """
 
     def __init__(self):
-        # Importación local para evitar importación circular
-        from common.mixins.logging_mixin import LoggingMixin
-        # Aplicar LoggingMixin manualmente
-        LoggingMixin.__init__(self)
+        # Añadir logging sin importación circular
+        from common.utils.logging_helper import add_logging_to_instance
+        add_logging_to_instance(self)
 
     @abstractmethod
     def entity_to_dto(self, entity: EntityType) -> DTOType:

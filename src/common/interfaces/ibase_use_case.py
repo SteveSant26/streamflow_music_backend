@@ -11,11 +11,9 @@ class BaseUseCase(ABC, Generic[InputType, ReturnType]):
 
     def __init__(self):
         super().__init__()
-        # Importación local para evitar importación circular
-        from ..mixins.logging_mixin import LoggingMixin
-        if not hasattr(self, 'logger'):
-            # Aplicar LoggingMixin manualmente
-            LoggingMixin.__init__(self)
+        # Añadir logging sin importación circular
+        from ..utils.logging_helper import add_logging_to_instance
+        add_logging_to_instance(self)
 
     @abstractmethod
     async def execute(self, *args, **kwargs) -> ReturnType:
