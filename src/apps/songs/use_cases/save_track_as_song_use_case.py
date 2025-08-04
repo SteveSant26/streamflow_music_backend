@@ -114,6 +114,11 @@ class SaveTrackAsSongUseCase(
             if album_title:
                 song_entity.album_title = album_title
 
+            # Log para debugging - verificar que los IDs están en la entidad
+            self.logger.debug(
+                f"Song entity created with artist_id: {song_entity.artist_id}, album_id: {song_entity.album_id}"
+            )
+
             self.logger.info(
                 f"🎵 Created song entity '{music_track.title}' with {len(song_entity.genre_ids or [])} genre(s): {song_entity.genre_ids}"
             )

@@ -1,19 +1,5 @@
-from .artist_dtos import (
-    ArtistResponseDTO,
-    CreateArtistRequestDTO,
-    GetArtistsByCountryRequestDTO,
-    GetPopularArtistsRequestDTO,
-    GetVerifiedArtistsRequestDTO,
-    SearchArtistsByNameRequestDTO,
-    UpdateArtistRequestDTO,
-)
+from .artist_dtos import ArtistResponseDTO
 
 __all__ = [
     "ArtistResponseDTO",
-    "CreateArtistRequestDTO",
-    "UpdateArtistRequestDTO",
-    "SearchArtistsByNameRequestDTO",
-    "GetArtistsByCountryRequestDTO",
-    "GetPopularArtistsRequestDTO",
-    "GetVerifiedArtistsRequestDTO",
 ]

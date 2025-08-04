@@ -23,6 +23,11 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             song_data = self.mapper.entity_to_model_data(entity)
 
+            # Log para debugging - verificar que los IDs están en song_data
+            self.logger.debug(
+                f"Saving song with data: artist_id={song_data.get('artist_id')}, album_id={song_data.get('album_id')}"
+            )
+
             if entity.id:
                 try:
                     song_obj = await self.model_class.objects.aget(id=entity.id)

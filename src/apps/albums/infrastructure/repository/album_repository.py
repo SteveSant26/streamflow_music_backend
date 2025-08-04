@@ -98,18 +98,16 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
             )
             return self.mapper.model_to_entity(model)
         except self.model_class.DoesNotExist:
-            pass
-
-        # Si no existe, crear uno nuevo
-        album_entity = AlbumEntity(
-            id=str(uuid.uuid4()),
-            title=title,
-            artist_id=artist_id,
-            artist_name=artist_name,
-            cover_image_url=cover_image_url,
-            created_at=timezone.now(),
-            updated_at=timezone.now(),
-        )
+            # Si no existe, crear uno nuevo
+            album_entity = AlbumEntity(
+                id=str(uuid.uuid4()),
+                title=title,
+                artist_id=artist_id,
+                artist_name=artist_name,
+                cover_image_url=cover_image_url,
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
 
         return await self.save(album_entity)
 

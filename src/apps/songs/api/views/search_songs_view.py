@@ -1,13 +1,11 @@
-from asgiref.sync import async_to_sync
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 from common.factories.unified_music_service_factory import get_music_service
-from common.mixins.paginated_api_view import PaginatedAPIView
+from common.mixins import UseCaseAPIViewMixin
 from common.utils.schema_decorators import paginated_list_endpoint
 
 from ...infrastructure.repository.song_repository import SongRepository
@@ -23,10 +21,8 @@ from ..serializers.song_serializers import SongListSerializer
         description="Search for songs in the database and optionally from YouTube",
     )
 )
-class SearchSongsView(PaginatedAPIView):
+class SearchSongsView(UseCaseAPIViewMixin):
     """Vista para buscar canciones"""
-
-    permission_classes = [AllowAny]
 
     def __init__(self):
         super().__init__()
@@ -71,6 +67,8 @@ class SearchSongsView(PaginatedAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+            self.log_request_info("Search songs", f"query: {query}")
+
             page_size = self.paginator.page_size
 
             include_youtube = (
@@ -81,10 +79,13 @@ class SearchSongsView(PaginatedAPIView):
                 query=query, limit=page_size, include_youtube=include_youtube
             )
 
-            # Ejecutar función async usando async_to_sync
-            songs = async_to_sync(self.search_songs_use_case.execute)(request_dto)
+            # Ejecutar caso de uso usando el método helper
+            songs = self.handle_use_case_execution(
+                self.search_songs_use_case, request_dto
+            )
 
-            songs_dtos = [self.mapper.entity_to_dto(song) for song in songs]
+            # Convertir a DTOs usando el método helper
+            songs_dtos = self.map_entities_to_dtos(songs, self.mapper)
 
             # Usar el método heredado del PaginationMixin
             return self.paginate_and_respond(songs_dtos, request)

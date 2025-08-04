@@ -1,10 +1,8 @@
-from asgiref.sync import async_to_sync
 from rest_framework import status
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
-from common.mixins.paginated_api_view import PaginatedAPIView
+from common.mixins import UseCaseAPIViewMixin
 from common.utils.schema_decorators import paginated_list_endpoint
 
 from ...infrastructure.repository.song_repository import SongRepository
@@ -13,10 +11,8 @@ from ..mappers import SongMapper
 from ..serializers.song_serializers import SongListSerializer
 
 
-class MostPopularSongsView(PaginatedAPIView):
+class MostPopularSongsView(UseCaseAPIViewMixin):
     """Vista para obtener las canciones más populares/reproducidas"""
-
-    permission_classes = [AllowAny]
 
     def __init__(self):
         super().__init__()
@@ -36,25 +32,25 @@ class MostPopularSongsView(PaginatedAPIView):
     def get(self, request):
         """Obtiene las canciones más populares/reproducidas"""
         try:
-            # Ejecutar caso de uso
-            songs = async_to_sync(self.get_most_played_songs_use_case.execute)()
+            self.log_request_info("Get most popular songs")
 
-            # Convertir a DTOs
-            songs_dtos = [self.mapper.entity_to_dto(song) for song in songs]
+            # Ejecutar caso de uso usando el método helper
+            songs = self.handle_use_case_execution(self.get_most_played_songs_use_case)
 
-            # Usar el método heredado del PaginationMixin para paginar y responder
+            # Convertir a DTOs usando el método helper
+            songs_dtos = self.map_entities_to_dtos(songs, self.mapper)
+
             self.logger.info(f"Retrieved {len(songs_dtos)} most popular songs")
             return self.paginate_and_respond(songs_dtos, request)
 
         except ValueError:
             self.logger.warning("Invalid limit parameter")
             return Response(
-                {"error": "Invalid limit parameter. Must be an integer."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"error": "Invalid limit parameter"}, status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
             self.logger.error(f"Error getting most popular songs: {str(e)}")
             return Response(
-                {"error": "Failed to retrieve most popular songs"},
+                {"error": "Internal server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

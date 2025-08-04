@@ -3,14 +3,13 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet
 
 from apps.music_search.api.serializers import (
     QuickSearchSerializer,
     SearchHistorySerializer,
     SearchRequestSerializer,
 )
-from common.mixins.logging_mixin import LoggingMixin
+from common.mixins import SimpleViewSetMixin
 
 
 @extend_schema_view(
@@ -27,7 +26,7 @@ from common.mixins.logging_mixin import LoggingMixin
         tags=["Music Search"], description="Importar contenido específico desde YouTube"
     ),
 )
-class MusicSearchViewSet(ViewSet, LoggingMixin):
+class MusicSearchViewSet(SimpleViewSetMixin):
     """ViewSet para búsquedas musicales integradas con YouTube"""
 
     def get_permissions(self):
@@ -79,44 +78,22 @@ class MusicSearchViewSet(ViewSet, LoggingMixin):
             "sources": {"local_cache": True, "youtube_api": False},
         }
 
-        local_results_found = False
+        # Buscar directamente en YouTube API ya que la búsqueda local no está implementada
+        self.logger.info(f"Searching YouTube for '{query}' with types: {search_types}")
+        response_data["sources"]["youtube_api"] = True
 
-        # 1. Buscar en caché local primero
-        if "songs" in search_types:
-            # TODO: Buscar en modelo Song local
-            pass
-
-        if "artists" in search_types:
-            # TODO: Buscar en modelo Artist local
-            pass
-
-        if "albums" in search_types:
-            # TODO: Buscar en modelo Album local
-            pass
-
-        if "genres" in search_types:
-            # TODO: Buscar en modelo Genre local
-            pass
-
-        # 2. Si no encuentra suficientes resultados localmente, buscar en YouTube
-        if not local_results_found:
-            self.logger.info(
-                f"No sufficient local results for '{query}', searching YouTube..."
-            )
-            response_data["sources"]["youtube_api"] = True
-
-            # Simulación de resultados de YouTube
-            if query.strip():
-                response_data["songs"] = [
-                    {
-                        "id": "yt-song-123",
-                        "title": f"YouTube Song: {query}",
-                        "artist_name": "YouTube Artist",
-                        "youtube_video_id": "abc123def456",
-                        "audio_downloaded": False,
-                        "source": "youtube_api",
-                    }
-                ]
+        # Simulación de resultados de YouTube
+        if query.strip():
+            response_data["songs"] = [
+                {
+                    "id": "yt-song-123",
+                    "title": f"YouTube Song: {query}",
+                    "artist_name": "YouTube Artist",
+                    "youtube_video_id": "abc123def456",
+                    "audio_downloaded": False,
+                    "source": "youtube_api",
+                }
+            ]
 
         # Calcular total de resultados
         response_data["total_results"] = sum(

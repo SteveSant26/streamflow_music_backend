@@ -4,6 +4,8 @@ Use cases for payment domain
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from common.utils.logging_config import get_logger
+
 from ..domain.entities import Invoice, PaymentMethod, Subscription, SubscriptionPlan
 from ..domain.interfaces import (
     IInvoiceRepository,
@@ -13,6 +15,8 @@ from ..domain.interfaces import (
     ISubscriptionPlanRepository,
     ISubscriptionRepository,
 )
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -253,7 +257,7 @@ class ProcessStripeWebhookUseCase:
             return True
 
         except Exception as e:
-            print(f"Error procesando webhook: {e}")
+            logger.error(f"Error procesando webhook: {e}")
             return False
 
     async def _handle_subscription_created(self, subscription_data: Dict[str, Any]):
