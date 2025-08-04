@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.playlists.infrastructure.models import PlaylistModel, PlaylistSongModel
+from src.apps.playlists.infrastructure.models import PlaylistModel, PlaylistSongModel
 
 
 @admin.register(PlaylistModel)
