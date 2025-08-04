@@ -25,7 +25,30 @@ class AlbumModel(models.Model):
     play_count = models.PositiveBigIntegerField(
         default=0, verbose_name="Reproducciones"
     )
-    is_active = models.BooleanField(default=True, verbose_name="Activo")
+
+    # # Metadatos de origen
+    source_type = models.CharField(
+        max_length=20,
+        default="manual",
+        choices=[
+            ("manual", "Manual"),
+            ("youtube", "YouTube"),
+            ("spotify", "Spotify"),
+            ("soundcloud", "SoundCloud"),
+        ],
+        verbose_name="Tipo de fuente",
+    )
+    source_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        db_index=True,  # noqa
+        verbose_name="ID de fuente externa",
+    )
+    source_url = models.URLField(
+        blank=True, null=True, verbose_name="URL de fuente externa"
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de creación"
     )
@@ -43,7 +66,20 @@ class AlbumModel(models.Model):
             models.Index(fields=["artist_id"]),
             models.Index(fields=["release_date"]),
             models.Index(fields=["play_count"]),
+            models.Index(fields=["source_type", "source_id"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_type", "source_id"],
+                condition=models.Q(source_id__isnull=False),
+                name="unique_album_source_per_type",
+            ),
+        ]
+
+    async def increase_play_count(self):
+        """Incrementa el contador de reproducciones del álbum"""
+        self.play_count += 1
+        await self.asave(update_fields=["play_count"])
 
     def __str__(self):
         return f"{self.title} - {self.artist_name}"

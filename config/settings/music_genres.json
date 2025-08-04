@@ -1,0 +1,271 @@
+{
+    "pop": {
+        "name": "Pop",
+        "category": "Pop",
+        "keywords": [
+            "pop",
+            "mainstream",
+            "chart",
+            "radio hits",
+            "billboard",
+            "top 40",
+            "commercial",
+            "dance pop",
+            "teen pop",
+            "bubblegum pop",
+            "catchy"
+        ]
+    },
+    "kpop": {
+        "name": "K-Pop",
+        "category": "Pop",
+        "keywords": [
+            "kpop",
+            "k-pop",
+            "korean pop",
+            "k idols",
+            "boy groups",
+            "girl groups",
+            "bts",
+            "blackpink",
+            "korean music",
+            "hallyu",
+            "jyp",
+            "yg",
+            "smtown"
+        ]
+    },
+    "jpop": {
+        "name": "J-Pop",
+        "category": "Pop",
+        "keywords": [
+            "jpop",
+            "j-pop",
+            "japanese pop",
+            "anime music",
+            "j-idol",
+            "japanese idol",
+            "j-music",
+            "japan pop",
+            "jrock",
+            "vocaloid"
+        ]
+    },
+    "dance_pop": {
+        "name": "Dance Pop",
+        "category": "Pop",
+        "keywords": [
+            "dance pop",
+            "club pop",
+            "upbeat",
+            "party pop",
+            "pop edm",
+            "dancefloor",
+            "dance hits",
+            "electro pop",
+            "disco pop"
+        ]
+    },
+    "rock": {
+        "name": "Rock",
+        "category": "Rock",
+        "keywords": [
+            "rock",
+            "rock music",
+            "electric guitar",
+            "classic rock",
+            "rock and roll",
+            "live band",
+            "power chords",
+            "garage rock"
+        ]
+    },
+    "alternative": {
+        "name": "Alternative Rock",
+        "category": "Rock",
+        "keywords": [
+            "alternative",
+            "alt rock",
+            "indie rock",
+            "college rock",
+            "modern rock",
+            "alternative music",
+            "post-punk revival"
+        ]
+    },
+    "punk": {
+        "name": "Punk",
+        "category": "Rock",
+        "keywords": [
+            "punk",
+            "punk rock",
+            "hardcore",
+            "anarcho punk",
+            "skate punk",
+            "street punk",
+            "diy punk",
+            "fast tempo"
+        ]
+    },
+    "metal": {
+        "name": "Metal",
+        "category": "Rock",
+        "keywords": [
+            "metal",
+            "heavy metal",
+            "metalcore",
+            "thrash",
+            "death metal",
+            "black metal",
+            "doom metal",
+            "guitar solos",
+            "double bass",
+            "headbang"
+        ]
+    },
+    "hard_rock": {
+        "name": "Hard Rock",
+        "category": "Rock",
+        "keywords": [
+            "hard rock",
+            "classic rock",
+            "arena rock",
+            "rock anthems",
+            "guitar riffs",
+            "loud rock",
+            "70s rock",
+            "power rock"
+        ]
+    },
+    "grunge": {
+        "name": "Grunge",
+        "category": "Rock",
+        "keywords": [
+            "grunge",
+            "90s rock",
+            "seattle",
+            "distorted guitar",
+            "nirvana",
+            "soundgarden",
+            "post-grunge",
+            "alternative grunge"
+        ]
+    },
+    "electronic": {
+        "name": "Electronic",
+        "category": "Electronic",
+        "keywords": [
+            "electronic",
+            "synth",
+            "digital",
+            "electronica",
+            "electro",
+            "electro music",
+            "electronic beats",
+            "synth-based"
+        ]
+    },
+    "edm": {
+        "name": "EDM",
+        "category": "Electronic",
+        "keywords": [
+            "edm",
+            "electronic dance music",
+            "festival music",
+            "club",
+            "dj mix",
+            "big room",
+            "electro house",
+            "edm drops",
+            "plur"
+        ]
+    },
+    "lofi": {
+        "name": "Lo-Fi",
+        "category": "Chill",
+        "keywords": [
+            "lofi",
+            "lo-fi",
+            "study beats",
+            "chillhop",
+            "instrumental hip hop",
+            "jazzy beats",
+            "relaxing music",
+            "background music",
+            "aesthetic"
+        ]
+    },
+    "hip_hop": {
+        "name": "Hip Hop",
+        "category": "Hip Hop",
+        "keywords": [
+            "hip hop",
+            "rap",
+            "beats",
+            "freestyle",
+            "bars",
+            "boom bap",
+            "golden age",
+            "flow",
+            "dj",
+            "breakdance"
+        ]
+    },
+    "trap": {
+        "name": "Trap",
+        "category": "Hip Hop",
+        "keywords": [
+            "trap",
+            "trap beats",
+            "808",
+            "hi-hats",
+            "southern rap",
+            "auto-tune",
+            "club trap",
+            "trap music",
+            "trap artist"
+        ]
+    },
+    "old_school": {
+        "name": "Old School Hip Hop",
+        "category": "Hip Hop",
+        "keywords": [
+            "old school",
+            "90s rap",
+            "golden era",
+            "boom bap",
+            "classic hip hop",
+            "turntables",
+            "scratch",
+            "old hip hop"
+        ]
+    },
+    "rnb": {
+        "name": "R&B",
+        "category": "R&B/Soul",
+        "keywords": [
+            "r&b",
+            "rnb",
+            "rhythm and blues",
+            "contemporary r&b",
+            "slow jams",
+            "urban",
+            "smooth vocals",
+            "soulful"
+        ]
+    },
+    "chillout": {
+        "name": "Chillout",
+        "category": "Chill",
+        "keywords": [
+            "chillout",
+            "relaxing",
+            "downtempo",
+            "smooth beats",
+            "ambient chill",
+            "lounge",
+            "calm music",
+            "mellow"
+        ]
+    }
+}

@@ -10,21 +10,35 @@ class IArtistRepository(IBaseRepository[ArtistEntity, Any]):
     """Interface del repositorio de artistas"""
 
     @abstractmethod
-    def find_by_name(self, name: str) -> Optional[ArtistEntity]:
+    async def find_by_name(self, name: str) -> Optional[ArtistEntity]:
         """Busca un artista por nombre exacto"""
 
     @abstractmethod
-    def search_by_name(self, name: str, limit: int = 10) -> List[ArtistEntity]:
+    async def search_by_name(self, name: str, limit: int = 10) -> List[ArtistEntity]:
         """Busca artistas por nombre (búsqueda parcial)"""
 
     @abstractmethod
-    def find_by_country(self, country: str, limit: int = 10) -> List[ArtistEntity]:
+    async def find_by_country(
+        self, country: str, limit: int = 10
+    ) -> List[ArtistEntity]:
         """Busca artistas por país"""
 
     @abstractmethod
-    def get_popular_artists(self, limit: int = 10) -> List[ArtistEntity]:
+    async def get_popular_artists(self, limit: int = 10) -> List[ArtistEntity]:
         """Obtiene los artistas más populares"""
 
     @abstractmethod
-    def get_verified_artists(self, limit: int = 10) -> List[ArtistEntity]:
+    async def get_verified_artists(self, limit: int = 10) -> List[ArtistEntity]:
         """Obtiene artistas verificados"""
+
+    @abstractmethod
+    async def find_or_create_by_name(
+        self, name: str, image_url: Optional[str] = None
+    ) -> ArtistEntity:
+        """Busca un artista por nombre, si no existe lo crea"""
+
+    @abstractmethod
+    async def get_by_source(
+        self, source_type: str, source_id: str
+    ) -> Optional[ArtistEntity]:
+        """Busca un artista por fuente externa (YouTube channel, etc.)"""

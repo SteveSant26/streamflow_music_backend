@@ -3,7 +3,8 @@ from typing import Any, Optional, Type
 from rest_framework import serializers
 
 from common.interfaces.imapper.abstract_mapper import AbstractMapper
-from src.common.utils import get_logger
+
+from ..utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -22,7 +23,9 @@ class BaseEntitySerializer(serializers.Serializer):
         """
         Convierte automáticamente entidades o modelos a DTOs, y luego a representación JSON.
         """
-        logger.debug(f"[to_representation] instance type: {type(instance)}")
+        logger.debug(
+            f"[DEBUG] Tipo esperado: {self.dto_class}, tipo recibido: {type(instance)}"
+        )
 
         if not self.mapper_class or not self.entity_class or not self.dto_class:
             raise NotImplementedError(
@@ -36,7 +39,7 @@ class BaseEntitySerializer(serializers.Serializer):
 
             if isinstance(instance, self.entity_class):
                 logger.debug("Instancia es una entidad, mapeando a DTO")
-                dto = self.mapper_class.entity_to_response_dto(instance)
+                dto = self.mapper_class.entity_to_dto(instance)
                 return self._dto_to_dict(dto)
 
             if getattr(instance, "_meta", None) and getattr(
@@ -46,7 +49,7 @@ class BaseEntitySerializer(serializers.Serializer):
                     "Instancia es un modelo de Django, mapeando a entidad y luego a DTO"
                 )
                 entity = self.mapper_class.model_to_entity(instance)
-                dto = self.mapper_class.entity_to_response_dto(entity)
+                dto = self.mapper_class.entity_to_dto(entity)
                 return self._dto_to_dict(dto)
 
             raise TypeError(

@@ -1,4 +1,6 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from asgiref.sync import async_to_sync
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -8,6 +10,13 @@ from apps.artists.api.serializers import ArtistResponseSerializer
 from apps.artists.infrastructure.models import ArtistModel
 from common.mixins.logging_mixin import LoggingMixin
 
+from ..api.dtos import (
+    GetArtistsByCountryRequestDTO,
+    GetPopularArtistsRequestDTO,
+    GetVerifiedArtistsRequestDTO,
+    SearchArtistsByNameRequestDTO,
+)
+from ..api.mappers import ArtistMapper
 from ..infrastructure.repository import ArtistRepository
 from ..use_cases import (
     GetAllArtistsUseCase,
@@ -37,6 +46,10 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
     serializer_class = ArtistResponseSerializer
     permission_classes = [AllowAny]
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.mapper = ArtistMapper()
+
     def get_permissions(self):
         """Define permisos según la acción"""
         permission_classes = [AllowAny]
@@ -47,47 +60,90 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         self.logger.info("Getting all artists")
 
         get_all_artists = GetAllArtistsUseCase(artist_repository)
-        artists = get_all_artists.execute()
+        artists = async_to_sync(get_all_artists.execute)()
 
-        return Response(
-            self.get_serializer(artists, many=True).data, status=status.HTTP_200_OK
-        )
+        # Convertir entidades a DTOs usando el mapper
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
+        serializer = self.get_serializer(artist_dtos, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         """Obtiene un artista específico"""
         self.logger.info(f"Getting artist with ID: {pk}")
 
         get_artist = GetArtistUseCase(artist_repository)
-        artist = get_artist.execute(pk)
+        artist = async_to_sync(get_artist.execute)(pk)
 
-        return Response(self.get_serializer(artist).data, status=status.HTTP_200_OK)
+        # Convertir entidad a DTO usando el mapper
+        artist_dto = self.mapper.entity_to_dto(artist)
+        serializer = self.get_serializer(artist_dto)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "limit",
+                OpenApiTypes.INT,
+                description="Number of popular artists to return",
+            ),
+        ],
+    )
     @action(detail=False, methods=["get"], url_path="popular")
     def popular(self, request):
         """Obtiene artistas populares"""
         limit = int(request.query_params.get("limit", 10))
         self.logger.info(f"Getting popular artists with limit: {limit}")
 
+        request_dto = GetPopularArtistsRequestDTO(limit=limit)
         get_popular_artists = GetPopularArtistsUseCase(artist_repository)
-        artists = get_popular_artists.execute(limit)
+        artists = async_to_sync(get_popular_artists.execute)(request_dto)
 
-        return Response(
-            self.get_serializer(artists, many=True).data, status=status.HTTP_200_OK
-        )
+        # Convertir entidades a DTOs usando el mapper
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
+        serializer = self.get_serializer(artist_dtos, many=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "limit",
+                OpenApiTypes.INT,
+                description="Number of verified artists to return",
+            ),
+        ],
+    )
     @action(detail=False, methods=["get"], url_path="verified")
     def verified(self, request):
         """Obtiene artistas verificados"""
         limit = int(request.query_params.get("limit", 10))
         self.logger.info(f"Getting verified artists with limit: {limit}")
 
+        request_dto = GetVerifiedArtistsRequestDTO(limit=limit)
         get_verified_artists = GetVerifiedArtistsUseCase(artist_repository)
-        artists = get_verified_artists.execute(limit)
+        artists = async_to_sync(get_verified_artists.execute)(request_dto)
 
-        return Response(
-            self.get_serializer(artists, many=True).data, status=status.HTTP_200_OK
-        )
+        # Convertir entidades a DTOs usando el mapper
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
+        serializer = self.get_serializer(artist_dtos, many=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "name",
+                OpenApiTypes.STR,
+                description="Artist name to search for",
+                required=True,
+            ),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results to return"
+            ),
+        ],
+    )
     @action(detail=False, methods=["get"], url_path="search")
     def search(self, request):
         """Busca artistas por nombre"""
@@ -102,13 +158,29 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         self.logger.info(f"Searching artists by name: {name}")
 
+        request_dto = SearchArtistsByNameRequestDTO(name=name, limit=limit)
         search_artists = SearchArtistsByNameUseCase(artist_repository)
-        artists = search_artists.execute(name, limit)
+        artists = async_to_sync(search_artists.execute)(request_dto)
 
-        return Response(
-            self.get_serializer(artists, many=True).data, status=status.HTTP_200_OK
-        )
+        # Convertir entidades a DTOs usando el mapper
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
+        serializer = self.get_serializer(artist_dtos, many=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "country",
+                OpenApiTypes.STR,
+                description="Country to filter artists",
+                required=True,
+            ),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results to return"
+            ),
+        ],
+    )
     @action(detail=False, methods=["get"], url_path="by-country")
     def by_country(self, request):
         """Obtiene artistas por país"""
@@ -123,9 +195,12 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
 
         self.logger.info(f"Getting artists by country: {country}")
 
+        request_dto = GetArtistsByCountryRequestDTO(country=country, limit=limit)
         get_artists_by_country = GetArtistsByCountryUseCase(artist_repository)
-        artists = get_artists_by_country.execute(country, limit)
+        artists = async_to_sync(get_artists_by_country.execute)(request_dto)
 
-        return Response(
-            self.get_serializer(artists, many=True).data, status=status.HTTP_200_OK
-        )
+        # Convertir entidades a DTOs usando el mapper
+        artist_dtos = [self.mapper.entity_to_dto(artist) for artist in artists]
+        serializer = self.get_serializer(artist_dtos, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

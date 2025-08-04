@@ -1,6 +1,6 @@
-from common.interfaces import IStorageService
-from common.mixins.logging_mixin import LoggingMixin
-from src.common.utils import StorageUtils
+from ..interfaces.istorage_service import IStorageService
+from ..mixins.logging_mixin import LoggingMixin
+from ..utils.storage_utils import StorageUtils
 
 
 class SupabaseStorageAdapter(IStorageService, LoggingMixin):

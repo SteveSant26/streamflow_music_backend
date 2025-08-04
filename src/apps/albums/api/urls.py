@@ -4,6 +4,6 @@ from .views import AlbumViewSet
 
 router = DefaultRouter()
 
-router.register(r"albums", AlbumViewSet)
+router.register(r"", AlbumViewSet)
 
 urlpatterns = router.urls

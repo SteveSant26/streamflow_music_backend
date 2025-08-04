@@ -1,29 +1,21 @@
-from abc import ABC, abstractmethod
-from typing import List, Optional
+from abc import abstractmethod
+from typing import Any, List, Optional
+
+from common.interfaces.ibase_repository import IBaseRepository
 
 from ..entities import SongEntity
 
 
-class ISongRepository(ABC):
+class ISongRepository(IBaseRepository[SongEntity, Any]):
     """Interface para el repositorio de canciones"""
 
-    @abstractmethod
-    async def save(self, song: SongEntity) -> SongEntity:
-        """Guarda una canción"""
-
-    @abstractmethod
-    async def get_by_id(self, song_id: str) -> Optional[SongEntity]:
-        """Obtiene una canción por ID"""
+    # Métodos específicos del dominio de canciones
 
     @abstractmethod
     async def get_by_source(
         self, source_type: str, source_id: str
     ) -> Optional[SongEntity]:
         """Obtiene una canción por fuente y ID de fuente"""
-
-    @abstractmethod
-    async def get_all(self, limit: int = 100, offset: int = 0) -> List[SongEntity]:
-        """Obtiene todas las canciones activas"""
 
     @abstractmethod
     async def get_random(self, limit: int = 6) -> List[SongEntity]:
@@ -74,10 +66,6 @@ class ISongRepository(ABC):
     @abstractmethod
     async def increment_download_count(self, song_id: str) -> bool:
         """Incrementa el contador de descargas"""
-
-    @abstractmethod
-    async def delete(self, song_id: str) -> bool:
-        """Elimina una canción (soft delete)"""
 
     @abstractmethod
     async def exists_by_source(self, source_type: str, source_id: str) -> bool:

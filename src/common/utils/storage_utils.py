@@ -3,7 +3,7 @@ from typing import Optional
 from django.conf import settings
 from supabase import Client, create_client
 
-from src.common.utils import get_logger
+from .logging_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -27,9 +27,26 @@ class StorageUtils:
             return False
 
         try:
+            # Verificar que file_obj tiene método read
+            if not hasattr(file_obj, "read"):
+                logger.error("[Upload] El objeto file no tiene método read")
+                return False
+
+            # Leer el contenido del archivo
             file_content_obj = file_obj.read()
 
+            # Verificar que hay contenido
+            if not file_content_obj:
+                logger.error("[Upload] El archivo está vacío")
+                return False
+
             logger.info(f"[Upload] Subiendo archivo a: {self.bucket_name}/{file_path}")
+            logger.debug(f"[Upload] Tamaño del archivo: {len(file_content_obj)} bytes")
+
+            # Verificar conexión a Supabase
+            if not self.supabase:
+                logger.error("[Upload] Cliente de Supabase no inicializado")
+                return False
 
             upload_response = self.supabase.storage.from_(self.bucket_name).upload(
                 file_path,
@@ -38,12 +55,33 @@ class StorageUtils:
             )
             logger.debug(f"[Upload] Respuesta de Supabase: {upload_response}")
 
-            err = getattr(upload_response, "error", None)
-            if err:
-                logger.error(f"[Upload] Error al subir el archivo: {err}")
+            # Verificar diferentes tipos de errores en la respuesta
+            if hasattr(upload_response, "__dict__"):
+                response_dict = upload_response.__dict__
+                if "error" in response_dict and response_dict.get("error"):
+                    logger.error(
+                        f"[Upload] Error en respuesta de Supabase: {response_dict['error']}"
+                    )
+                    return False
+
+            # Verificar si la respuesta contiene información de error en el diccionario
+            if isinstance(upload_response, dict) and "error" in upload_response:
+                logger.error(
+                    f"[Upload] Error en respuesta de Supabase: {upload_response['error']}"
+                )
                 return False
 
             logger.info(f"[Upload] Archivo subido exitosamente: {file_path}")
+
+            # Verificar que el archivo existe en el bucket
+            try:
+                public_url = self.supabase.storage.from_(
+                    self.bucket_name
+                ).get_public_url(file_path)
+                logger.debug(f"[Upload] URL pública generada: {public_url}")
+            except Exception as url_error:
+                logger.warning(f"[Upload] No se pudo generar URL pública: {url_error}")
+
             return True
 
         except Exception as e:

@@ -2,16 +2,17 @@
 Configuración de pytest para tests de Albums
 """
 
-import pytest
 import os
 import sys
+from datetime import date, datetime
 from unittest.mock import Mock
-from datetime import datetime, date
 from uuid import uuid4
+
+import pytest
 
 # Agregar el proyecto al path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.join(current_dir, '..', '..')
+project_root = os.path.join(current_dir, "..", "..")
 sys.path.insert(0, project_root)
 
 # Importaciones necesarias
@@ -36,7 +37,7 @@ def sample_album_entity():
         play_count=1000,
         is_active=True,
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
 
 
@@ -47,7 +48,7 @@ def minimal_album_entity():
         id=str(uuid4()),
         title="Minimal Album",
         artist_id=str(uuid4()),
-        artist_name="Minimal Artist"
+        artist_name="Minimal Artist",
     )
 
 
@@ -55,7 +56,7 @@ def minimal_album_entity():
 def mock_album_repository():
     """Fixture para repositorio mock"""
     repo = Mock()
-    
+
     # Configurar métodos comunes
     repo.get_by_id.return_value = None
     repo.get_all.return_value = []
@@ -64,7 +65,7 @@ def mock_album_repository():
     repo.get_recent_albums.return_value = []
     repo.get_popular_albums.return_value = []
     repo.find_by_release_year.return_value = []
-    
+
     return repo
 
 
@@ -78,27 +79,31 @@ def sample_albums_list(sample_album_entity):
             title=f"Album {i+1}",
             artist_id=str(uuid4()),
             artist_name=f"Artist {i+1}",
-            release_date=date(2020+i, 1, 1),
-            total_tracks=10+i,
-            play_count=1000*(i+1),
-            is_active=True
+            release_date=date(2020 + i, 1, 1),
+            total_tracks=10 + i,
+            play_count=1000 * (i + 1),
+            is_active=True,
         )
         albums.append(album)
     return albums
 
 
-def create_mock_album(album_id: str = None, title: str = "Mock Album", 
-                     artist_name: str = "Mock Artist", **kwargs) -> AlbumEntity:
+def create_mock_album(
+    album_id: str = None,
+    title: str = "Mock Album",
+    artist_name: str = "Mock Artist",
+    **kwargs,
+) -> AlbumEntity:
     """Función helper para crear álbumes mock"""
     defaults = {
-        'id': album_id or str(uuid4()),
-        'title': title,
-        'artist_id': str(uuid4()),
-        'artist_name': artist_name,
-        'release_date': date(2020, 1, 1),
-        'total_tracks': 10,
-        'play_count': 1000,
-        'is_active': True,
+        "id": album_id or str(uuid4()),
+        "title": title,
+        "artist_id": str(uuid4()),
+        "artist_name": artist_name,
+        "release_date": date(2020, 1, 1),
+        "total_tracks": 10,
+        "play_count": 1000,
+        "is_active": True,
     }
     defaults.update(kwargs)
     return AlbumEntity(**defaults)

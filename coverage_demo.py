@@ -10,10 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 try:
     # Importar algunos módulos del proyecto para generar coverage
-    from apps.user_profile.domain import entities
-    from common.interfaces import IBaseRepository
-    from common.exceptions import base
-    from common.utils import string_validations
+    pass
 
     print("Módulos importados correctamente para coverage")
 

@@ -1,17 +1,31 @@
+import asyncio
+
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.serializers import ValidationError
 
-from src.common.exceptions import DomainException
+from ..exceptions import DomainException
 
 
 class ErrorHandlerMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
+        # One-time configuration and initialization.
+        if asyncio.iscoroutinefunction(self.get_response):
+            # Mark that this middleware works with async views
+            self.async_capable = True
+            self.sync_capable = False
 
     def __call__(self, request):
         try:
             response = self.get_response(request)
+            return response
+        except Exception as exception:
+            return self.process_exception(request, exception)
+
+    async def __acall__(self, request):
+        try:
+            response = await self.get_response(request)
             return response
         except Exception as exception:
             return self.process_exception(request, exception)
