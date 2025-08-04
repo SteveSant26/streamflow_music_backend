@@ -33,7 +33,6 @@ class PlaylistModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        app_label = "playlists"
         db_table = "playlists"
         ordering = ["created_at"]
         verbose_name = "Playlist"

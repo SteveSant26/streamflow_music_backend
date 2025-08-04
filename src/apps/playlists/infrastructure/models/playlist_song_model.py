@@ -31,7 +31,6 @@ class PlaylistSongModel(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        app_label = "playlists"
         db_table = "playlist_songs"
         ordering = ["playlist", "position"]
         verbose_name = "Canción en Playlist"
