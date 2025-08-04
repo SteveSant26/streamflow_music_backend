@@ -27,7 +27,6 @@ class ArtistEntityDTOMapper(
             image_url=entity.image_url,
             followers_count=entity.followers_count,
             is_verified=entity.is_verified,
-            is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -44,7 +43,6 @@ class ArtistEntityDTOMapper(
             image_url=dto.image_url,
             followers_count=dto.followers_count,
             is_verified=dto.is_verified,
-            is_active=dto.is_active,
             created_at=dto.created_at,
             updated_at=dto.updated_at,
         )

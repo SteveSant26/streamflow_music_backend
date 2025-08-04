@@ -3,6 +3,7 @@ from typing import List, Optional, cast
 from asgiref.sync import sync_to_async
 from django.db.models import Count, Q, Sum
 
+from apps.artists.infrastructure.models.artist_model import ArtistModel
 from apps.songs.api.mappers import SongEntityModelMapper
 from common.core import BaseDjangoRepository
 
@@ -96,13 +97,23 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     async def search(self, query: str, limit: int = 20) -> List[SongEntity]:
         """Busca canciones por título o artista"""
         try:
+            # Primero buscar artistas que coincidan con el query
+            matching_artist_ids = await sync_to_async(
+                lambda: list(
+                    ArtistModel.objects.filter(name__icontains=query).values_list(
+                        "id", flat=True
+                    )
+                )
+            )()
+
+            # Construir la consulta para canciones
             songs = await sync_to_async(
                 lambda: list(
                     SongModel.objects.select_related()
                     .prefetch_related("genres")
                     .filter(
                         Q(title__icontains=query)
-                        | Q(artist_name__icontains=query)
+                        | Q(artist_id__in=matching_artist_ids)
                         | Q(album_title__icontains=query),
                     )
                     .order_by("-play_count", "-created_at")[:limit]
@@ -118,12 +129,21 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     ) -> List[SongEntity]:
         """Obtiene canciones por artista"""
         try:
+            # Buscar el ID del artista por nombre
+            artist_ids = await sync_to_async(
+                lambda: list(
+                    ArtistModel.objects.filter(name__iexact=artist_name).values_list(
+                        "id", flat=True
+                    )
+                )
+            )()
+
             songs = await sync_to_async(
                 lambda: list(
                     SongModel.objects.select_related()
                     .prefetch_related("genres")
                     .filter(
-                        artist_name__iexact=artist_name,
+                        artist_id__in=artist_ids,
                     )
                     .order_by("-play_count", "album_title", "track_number")[:limit]
                 )

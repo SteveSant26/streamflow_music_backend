@@ -28,8 +28,6 @@ class GetArtistStatsUseCase(BaseUseCase[None, Dict[str, Any]]):
         stats = {
             "total_artists": len(all_artists),
             "verified_artists": len([a for a in all_artists if a.is_verified]),
-            "active_artists": len([a for a in all_artists if a.is_active]),
-            "inactive_artists": len([a for a in all_artists if not a.is_active]),
             "total_followers": sum(a.followers_count for a in all_artists),
         }
 

@@ -14,7 +14,6 @@ class ArtistResponseDTO:
     image_url: Optional[str] = None
     followers_count: int = 0
     is_verified: bool = False
-    is_active: bool = True
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

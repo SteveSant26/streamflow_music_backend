@@ -48,7 +48,7 @@ class RandomSongsView(PaginatedAPIView):
     def get(self, request):
         """Obtiene canciones aleatorias"""
         try:
-            page_size = int(request.GET.get("page_size", self.paginator.page_size))
+            page_size = self.paginator.page_size
             force_refresh = request.GET.get("force_refresh", "false").lower() == "true"
 
             request_dto = RandomSongsRequestDTO(
