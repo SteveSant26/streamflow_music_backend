@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from common.mixins.logging_mixin import LoggingMixin
+
 from ..application.use_cases import (
     CancelSubscriptionUseCase,
     CreateBillingPortalRequest,
@@ -297,25 +299,30 @@ async def get_stripe_public_key(request):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class StripeWebhookView(View):
-    """Vista para manejar webhooks de Stripe"""
+class StripeWebhookView(LoggingMixin, View):
+    """Vista para manejar webhooks de Stripe con logging integrado"""
 
     async def post(self, request):
         """Procesa eventos de webhook de Stripe"""
+        self.log_info("Recibiendo webhook de Stripe")
+
         try:
             payload = request.body
             signature = request.META.get("HTTP_STRIPE_SIGNATURE")
 
             if not signature:
+                self.log_warning("Webhook sin firma recibido")
                 return HttpResponse("Firma faltante", status=400)
 
             success = await process_webhook_use_case.execute(payload, signature)
 
             if success:
+                self.log_info("Webhook procesado exitosamente")
                 return HttpResponse("OK")
             else:
+                self.log_error("Error procesando webhook")
                 return HttpResponse("Error procesando webhook", status=400)
 
         except Exception as e:
-            print(f"Error en webhook: {e}")
+            self.log_error(f"Error en webhook: {e}")
             return HttpResponse("Error interno", status=500)

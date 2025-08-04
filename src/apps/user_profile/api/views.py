@@ -1,6 +1,6 @@
 from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -11,9 +11,10 @@ from apps.user_profile.api.serializers import (
     RetrieveUserProfileSerializer,
     UploadProfilePictureSerializer,
 )
+from apps.user_profile.infrastructure.filters import UserProfileFilter
 from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 from common.factories import StorageServiceFactory
-from common.mixins.logging_mixin import LoggingMixin
+from common.mixins import CRUDViewSetMixin
 
 from ..api.dtos import UploadProfilePictureRequestDTO
 from ..infrastructure.repository import UserRepository
@@ -21,21 +22,28 @@ from ..use_cases import GetUserProfileUseCase, UploadProfilePicture
 
 
 @extend_schema_view(
-    list=extend_schema(tags=["User Profile"]),
-    retrieve=extend_schema(tags=["User Profile"]),
-    create=extend_schema(tags=["User Profile"]),
-    update=extend_schema(tags=["User Profile"]),
-    destroy=extend_schema(tags=["User Profile"]),
+    list=extend_schema(
+        tags=["User Profile"], description="List user profiles with optional filtering"
+    ),
+    retrieve=extend_schema(
+        tags=["User Profile"], description="Get a specific user profile by ID"
+    ),
+    create=extend_schema(
+        tags=["User Profile"],
+        description="Profile creation is blocked - profiles are created automatically",
+    ),
+    update=extend_schema(tags=["User Profile"], description="Update user profile"),
+    destroy=extend_schema(tags=["User Profile"], description="Delete user profile"),
     me=extend_schema(tags=["User Profile"], description="Get current user's profile"),
     upload_profile_picture=extend_schema(
         tags=["User Profile"], description="Upload a new profile picture"
     ),
 )
-class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
+class UserProfileViewSet(CRUDViewSetMixin):
     queryset = UserProfileModel.objects.all()
-    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     http_method_names = ["get", "post", "delete"]
+    filterset_class = UserProfileFilter
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

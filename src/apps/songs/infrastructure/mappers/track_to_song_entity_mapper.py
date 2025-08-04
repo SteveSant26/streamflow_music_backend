@@ -3,15 +3,18 @@ from typing import List, Optional
 
 from django.utils import timezone
 
+from common.mixins.logging_mixin import LoggingMixin
+
 from ....genres.infrastructure.repository.genre_repository import GenreRepository
 from ....music_search.domain.interfaces import MusicTrackData
 from ...domain.entities import SongEntity
 
 
-class TrackToSongEntityMapper:
+class TrackToSongEntityMapper(LoggingMixin):
     """Mapper para convertir MusicTrackData a SongEntity"""
 
     def __init__(self):
+        super().__init__()
         self.genre_repository = GenreRepository()
 
     async def map(
@@ -44,7 +47,7 @@ class TrackToSongEntityMapper:
                 genre_ids = await self._get_genre_ids_from_names(analyzed_genres)
             except Exception as e:
                 # Si hay error obteniendo los IDs, continuar sin géneros
-                print(f"Error obteniendo IDs de géneros: {str(e)}")
+                self.logger.error(f"Error obteniendo IDs de géneros: {str(e)}")
                 genre_ids = []
 
         return SongEntity(
@@ -94,7 +97,7 @@ class TrackToSongEntityMapper:
                     genre_ids.append(str(genre_model.id))
             except Exception as e:
                 # Si hay error con un género específico, continuar con los demás
-                print(f"Error buscando género '{genre_name}': {str(e)}")
+                self.logger.error(f"Error buscando género '{genre_name}': {str(e)}")
                 continue
 
         return genre_ids

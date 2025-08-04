@@ -13,8 +13,22 @@ class SongModel(models.Model):
     title = models.CharField(max_length=255)
 
     # Relaciones
-    album_id = models.UUIDField(null=True, blank=True, db_index=True)
-    artist_id = models.UUIDField(null=True, blank=True, db_index=True)
+    album = models.ForeignKey(
+        "albums.AlbumModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="songs",
+        help_text="Álbum de la canción",
+    )
+    artist = models.ForeignKey(
+        "artists.ArtistModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="songs",
+        help_text="Artista de la canción",
+    )
 
     # Relación con géneros - Many to Many para permitir múltiples géneros por canción
     genres = models.ManyToManyField(
@@ -23,11 +37,6 @@ class SongModel(models.Model):
         related_name="songs",
         help_text="Géneros musicales asociados a esta canción",
     )
-
-    # Información desnormalizada para mejor rendimiento en consultas
-    album_title = models.CharField(
-        max_length=255, null=True, blank=True, db_index=True  # NOSONAR
-    )  # NOSONAR
 
     # Metadatos de la canción
     duration_seconds = models.IntegerField(
@@ -86,7 +95,6 @@ class SongModel(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["source_type", "source_id"]),
-            models.Index(fields=["album_title", "track_number"]),
             models.Index(fields=["play_count"], name="songs_most_played_idx"),
             models.Index(fields=["favorite_count"], name="songs_most_favorited_idx"),
             models.Index(fields=["last_played_at"], name="songs_recently_played_idx"),

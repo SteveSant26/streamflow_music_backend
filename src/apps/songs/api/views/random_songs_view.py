@@ -1,12 +1,12 @@
-from asgiref.sync import async_to_sync
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
+from apps.songs.infrastructure.filters import SongModelFilter
 from common.factories.unified_music_service_factory import get_music_service
-from common.mixins.paginated_api_view import PaginatedAPIView
+from common.mixins import UseCaseAPIViewMixin
 from common.utils.schema_decorators import paginated_list_endpoint
 
 from ...infrastructure.repository.song_repository import SongRepository
@@ -22,10 +22,10 @@ from ..serializers.song_serializers import SongListSerializer
         description="Get random songs from the database with optional refresh from YouTube",
     )
 )
-class RandomSongsView(PaginatedAPIView):
+class RandomSongsView(UseCaseAPIViewMixin):
     """Vista para obtener canciones aleatorias"""
 
-    permission_classes = [AllowAny]
+    filterset_class = SongModelFilter
 
     def __init__(self):
         super().__init__()
@@ -44,10 +44,20 @@ class RandomSongsView(PaginatedAPIView):
         serializer_class=SongListSerializer,
         tags=["Songs"],
         description="Get random songs from the database",
+        parameters=[
+            OpenApiParameter(
+                name="force_refresh",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                description="Whether to include YouTube results",
+            ),
+        ],
     )
     def get(self, request):
         """Obtiene canciones aleatorias"""
         try:
+            self.log_request_info("Get random songs")
+
             page_size = self.paginator.page_size
             force_refresh = request.GET.get("force_refresh", "false").lower() == "true"
 
@@ -55,10 +65,13 @@ class RandomSongsView(PaginatedAPIView):
                 count=page_size, force_refresh=force_refresh
             )
 
-            # Ejecutar función async directamente sin asyncio.run()
-            songs = async_to_sync(self.get_random_songs_use_case.execute)(request_dto)
+            # Ejecutar caso de uso usando el método helper
+            songs = self.handle_use_case_execution(
+                self.get_random_songs_use_case, request_dto
+            )
 
-            songs_dtos = [self.mapper.entity_to_dto(song) for song in songs]
+            # Convertir a DTOs usando el método helper
+            songs_dtos = self.map_entities_to_dtos(songs, self.mapper)
 
             # Usar el método heredado del PaginationMixin
             return self.paginate_and_respond(songs_dtos, request)

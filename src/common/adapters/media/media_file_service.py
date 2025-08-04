@@ -5,7 +5,8 @@ from typing import Optional, Tuple
 from common.interfaces.imedia_file_service import IMediaFileService
 from common.interfaces.istorage_service import IStorageService
 from common.utils.logging_decorators import log_execution
-from src.common.mixins.logging_mixin import LoggingMixin
+
+from ...mixins.logging_mixin import LoggingMixin
 
 
 class MediaFileService(IMediaFileService, LoggingMixin):

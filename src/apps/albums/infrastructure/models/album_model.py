@@ -6,11 +6,11 @@ class AlbumModel(models.Model):
 
     id = models.UUIDField(primary_key=True, editable=False)
     title = models.CharField(max_length=300, verbose_name="Título del álbum")
-    artist_id = models.UUIDField(verbose_name="ID del artista")
-    artist_name = models.CharField(
-        max_length=200,
-        verbose_name="Nombre del artista",
-        help_text="Desnormalizado para rendimiento",
+    artist = models.ForeignKey(
+        "artists.ArtistModel",
+        on_delete=models.CASCADE,
+        verbose_name="Artista",
+        related_name="albums",
     )
     release_date = models.DateField(
         blank=True, null=True, verbose_name="Fecha de lanzamiento"
@@ -63,7 +63,7 @@ class AlbumModel(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["title"]),
-            models.Index(fields=["artist_id"]),
+            models.Index(fields=["artist"]),
             models.Index(fields=["release_date"]),
             models.Index(fields=["play_count"]),
             models.Index(fields=["source_type", "source_id"]),
@@ -82,4 +82,4 @@ class AlbumModel(models.Model):
         await self.asave(update_fields=["play_count"])
 
     def __str__(self):
-        return f"{self.title} - {self.artist_name}"
+        return f"{self.title} - {self.artist.name if self.artist else 'Unknown Artist'}"

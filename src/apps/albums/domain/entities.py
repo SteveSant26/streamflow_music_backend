@@ -9,7 +9,7 @@ class AlbumEntity:
 
     id: str
     title: str
-    artist_id: str
+    artist_id: Optional[str] = None
     artist_name: Optional[str] = None  # Para evitar joins constantes
     release_date: Optional[date] = None
     description: Optional[str] = None

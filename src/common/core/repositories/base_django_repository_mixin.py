@@ -3,13 +3,11 @@ from typing import Generic, Type, TypeVar
 
 from common.interfaces.imapper import AbstractEntityModelMapper
 
-from ...mixins.logging_mixin import LoggingMixin
-
 EntityType = TypeVar("EntityType")
 ModelType = TypeVar("ModelType")
 
 
-class BaseDjangoRepositoryMixin(ABC, Generic[EntityType, ModelType], LoggingMixin):
+class BaseDjangoRepositoryMixin(ABC, Generic[EntityType, ModelType]):
     """
     Mixin base que proporciona funcionalidad común para repositorios Django.
 
@@ -27,3 +25,7 @@ class BaseDjangoRepositoryMixin(ABC, Generic[EntityType, ModelType], LoggingMixi
         self.model_class = model_class
         self.mapper = mapper
         super().__init__(*args, **kwargs)
+        
+        # Añadir logging sin importación circular
+        from ...utils.logging_helper import add_logging_to_instance
+        add_logging_to_instance(self)
