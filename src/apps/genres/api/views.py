@@ -1,3 +1,5 @@
+from typing import Any
+
 from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
@@ -24,7 +26,6 @@ class GenreViewSet(FilteredViewSetMixin):
     """ViewSet para consulta de géneros musicales (solo lectura) con filtros integrados"""
 
     queryset = GenreModel.objects.all()
-    serializer_class = GenreSerializer
     filterset_class = GenreModelFilter
 
     def __init__(self, **kwargs):
@@ -35,6 +36,9 @@ class GenreViewSet(FilteredViewSetMixin):
         self.get_all_genres = GetAllGenresUseCase(self.repository)
         self.get_genre = GetGenreUseCase(self.repository)
         self.get_popular_genres = GetPopularGenresUseCase(self.repository)
+
+    def get_serializer_class(self) -> Any:
+        return GenreSerializer
 
     @paginated_list_endpoint(
         serializer_class=GenreSerializer,

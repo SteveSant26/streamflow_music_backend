@@ -6,7 +6,6 @@ from .views import (
     MostPopularSongsView,
     RandomSongsView,
     SearchSongsView,
-    SongDetailView,
     SongViewSet,
 )
 
@@ -23,7 +22,6 @@ urlpatterns = [
     path("random/", RandomSongsView.as_view(), name="random-songs"),
     # Canciones más populares
     path("most-popular/", MostPopularSongsView.as_view(), name="most-popular-songs"),
-    path("detail/<uuid:song_id>/", SongDetailView.as_view(), name="song-detail"),
     # Nueva vista API para incrementar contador (más consistente)
     path(
         "api/<uuid:song_id>/increment-play-count/",

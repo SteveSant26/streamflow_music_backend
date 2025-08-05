@@ -59,7 +59,6 @@ class SongViewSet(FilteredViewSetMixin):
         .all()
         .order_by("-created_at")
     )
-    serializer_class = SongSerializer
     filterset_class = SongModelFilter
     lookup_field = "id"
     lookup_url_kwarg = "id"
@@ -82,7 +81,12 @@ class SongViewSet(FilteredViewSetMixin):
     ordering = ["-created_at"]  # Ordenamiento por defecto
 
     # Búsqueda simple
-    search_fields = ["title", "lyrics", "artist__name", "album__title", "genres__name"]
+
+    def get_serializer_class(self):
+        """
+        Retorna el serializer para este ViewSet
+        """
+        return SongSerializer
 
     def get_queryset(self):
         """

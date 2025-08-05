@@ -6,6 +6,8 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from common.utils.spectacular_extensions import DjangoFilterExtension  # noqa: F401
+
 from .schema import SupabaseAuthenticationScheme  # noqa: F401
 
 urlpatterns = []

@@ -12,13 +12,9 @@ class ArtistResponseSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "biography",
-            "country",
             "image_url",
             "followers_count",
             "is_verified",
-            "source_type",
-            "source_id",
-            "source_url",
             "created_at",
             "updated_at",
         ]
@@ -35,11 +31,7 @@ class CreateArtistSerializer(serializers.ModelSerializer):
         fields = [
             "name",
             "biography",
-            "country",
             "image_url",
-            "source_type",
-            "source_id",
-            "source_url",
         ]
 
     def validate_name(self, value):
@@ -59,7 +51,6 @@ class UpdateArtistSerializer(serializers.ModelSerializer):
         fields = [
             "name",
             "biography",
-            "country",
             "image_url",
             "followers_count",
             "is_verified",
