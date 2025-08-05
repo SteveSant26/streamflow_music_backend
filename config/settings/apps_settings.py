@@ -23,7 +23,6 @@ LOCAL_APPS = [
     "apps.albums",
     "apps.songs",
     "apps.genres",
-    "apps.music_search",
     "apps.payments",
     "apps.playlists",
 ]

@@ -1,5 +1,6 @@
 from typing import List, Optional, Union
 
+from common.adapters.media.media_types import MusicTrackData
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.types.media_types import AudioTrackData
 from common.utils.logging_decorators import log_execution, log_performance
@@ -7,7 +8,6 @@ from common.utils.logging_decorators import log_execution, log_performance
 from ...albums.infrastructure.repository.album_repository import AlbumRepository
 from ...artists.infrastructure.repository.artist_repository import ArtistRepository
 from ...genres.services.music_genre_analyzer import MusicGenreAnalyzer
-from ...music_search.domain.interfaces import MusicTrackData
 from ..domain.entities import SongEntity
 from ..domain.repository import ISongRepository
 from .converters.music_data_converter import MusicDataConverter

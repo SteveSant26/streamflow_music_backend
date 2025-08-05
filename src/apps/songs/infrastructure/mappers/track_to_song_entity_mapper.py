@@ -3,10 +3,10 @@ from typing import List, Optional
 
 from django.utils import timezone
 
+from common.adapters.media.media_types import MusicTrackData
 from common.mixins.logging_mixin import LoggingMixin
 
 from ....genres.infrastructure.repository.genre_repository import GenreRepository
-from ....music_search.domain.interfaces import MusicTrackData
 from ...domain.entities import SongEntity
 
 

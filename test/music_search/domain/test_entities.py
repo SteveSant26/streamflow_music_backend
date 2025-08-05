@@ -20,7 +20,7 @@ try:
         SearchResponseEntity,
         SearchResultEntity,
     )
-    from src.apps.music_search.domain.interfaces import MusicTrackData, YouTubeVideoInfo
+    from src.common.adapters.media.media_types import MusicTrackData, YouTubeVideoInfo
 
     print("✅ Entidades MusicSearch importadas correctamente")
 except ImportError as e:

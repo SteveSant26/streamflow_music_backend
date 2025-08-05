@@ -2,13 +2,13 @@ import re
 from typing import Dict, Optional
 
 from common.interfaces.ibase_use_case import BaseUseCase
+from common.types.media_types import MusicTrackData
 from common.utils.logging_decorators import log_execution, log_performance
 
 from ...albums.domain.repository import IAlbumRepository
 from ...albums.use_cases.save_album_use_case import SaveAlbumUseCase
 from ...artists.domain.repository import IArtistRepository
 from ...artists.use_cases.save_artist_use_case import SaveArtistUseCase
-from ...music_search.domain.interfaces import MusicTrackData
 
 
 class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):

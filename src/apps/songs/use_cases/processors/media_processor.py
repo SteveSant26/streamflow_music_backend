@@ -5,10 +5,10 @@ Procesador para archivos multimedia
 import logging
 from typing import Optional, Tuple
 
+from common.adapters.media.media_types import MusicTrackData
 from common.factories import StorageServiceFactory
 from common.factories.media_service_factory import MediaServiceFactory
 
-from ....music_search.domain.interfaces import MusicTrackData
 from ..validators.media_validators import MediaValidators
 
 

@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import action
@@ -22,27 +20,26 @@ from apps.songs.infrastructure.repository.song_repository import SongRepository
 
 class PlaylistSongViewSet(GenericViewSet):
     """ViewSet para gestionar canciones en playlists"""
-    
+
     permission_classes = [IsAuthenticated]
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.playlist_repository = PlaylistRepository()
         self.song_repository = SongRepository()
-    
-    @action(detail=True, methods=['get'], url_path='songs')
+
+    @action(detail=True, methods=["get"], url_path="songs")
     def list_songs(self, request, pk=None):
         """Lista las canciones de una playlist"""
-        try:
-            playlist_id = UUID(pk)
-        except (ValueError, TypeError):
+        if not pk:
             raise Http404("Playlist no encontrada")
-        
+
+        playlist_id = str(pk)
+
         get_songs_use_case = GetPlaylistSongsUseCase(
-            self.playlist_repository,
-            self.song_repository
+            self.playlist_repository, self.song_repository
         )
-        
+
         return self.execute_use_case(
             get_songs_use_case,
             playlist_id,
@@ -50,64 +47,64 @@ class PlaylistSongViewSet(GenericViewSet):
             serializer_class=PlaylistSongResponseSerializer,
             many=True,
         )
-    
-    @action(detail=True, methods=['post'], url_path='songs')
+
+    @action(detail=True, methods=["post"], url_path="songs")
     def add_song(self, request, pk=None):
         """Agrega una canción a la playlist"""
-        try:
-            playlist_id = UUID(pk)
-        except (ValueError, TypeError):
+        if not pk:
             raise Http404("Playlist no encontrada")
-        
+
+        playlist_id = str(pk)
+
         # Validar datos de entrada
         serializer = AddSongToPlaylistSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         add_dto = serializer.to_dto(serializer.validated_data)
         add_song_use_case = AddSongToPlaylistUseCase(self.playlist_repository)
-        
+
         request_data = {
             "playlist_id": playlist_id,
             "song_id": add_dto.song_id,
             "position": add_dto.position,
         }
-        
+
         return self.execute_use_case(
             add_song_use_case,
             request_data,
             success_message="Song added to playlist successfully",
             status_code=status.HTTP_201_CREATED,
         )
-    
-    @action(detail=True, methods=['delete'], url_path='songs/(?P<song_id>[^/.]+)')
+
+    @action(detail=True, methods=["delete"], url_path="songs/(?P<song_id>[^/.]+)")
     def remove_song(self, request, pk=None, song_id=None):
         """Remueve una canción de la playlist"""
-        try:
-            playlist_id = UUID(pk)
-            song_uuid = UUID(song_id)
-        except (ValueError, TypeError):
+        if not pk or not song_id:
             raise Http404("Playlist o canción no encontrada")
-        
+
+        playlist_id = str(pk)
+        song_id = str(song_id)
+
         remove_song_use_case = RemoveSongFromPlaylistUseCase(self.playlist_repository)
-        
+
         request_data = {
             "playlist_id": playlist_id,
-            "song_id": song_uuid,
+            "song_id": song_id,
         }
-        
+
         def handle_success(result):
             if result:
                 return Response(
                     {"message": "Canción removida de la playlist exitosamente"},
-                    status=status.HTTP_204_NO_CONTENT
+                    status=status.HTTP_204_NO_CONTENT,
                 )
             else:
                 return Response(
                     {"error": "No se pudo remover la canción de la playlist"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-        
+
         return self.execute_use_case(
             remove_song_use_case,
             request_data,

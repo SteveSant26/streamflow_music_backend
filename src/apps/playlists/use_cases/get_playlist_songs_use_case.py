@@ -1,55 +1,50 @@
 from typing import List
-from uuid import UUID
 
-from apps.playlists.api.dtos.playlist_dtos import PlaylistSongResponseDTO
-from apps.playlists.infrastructure.repository import PlaylistRepository
-from apps.songs.infrastructure.repository.song_repository import SongRepository
 from common.interfaces.ibase_use_case import BaseUseCase
+from common.utils.logging_decorators import log_execution, log_performance
+
+from ..domain.entities import PlaylistSongEntity
+from ..domain.exceptions import PlaylistNotFoundException, PlaylistValidationException
+from ..domain.repository.iplaylist_repository import IPlaylistRepository
 
 
-class GetPlaylistSongsUseCase(BaseUseCase[UUID, List[PlaylistSongResponseDTO]]):
-    """Caso de uso para obtener las canciones de una playlist"""
-    
-    def __init__(self, playlist_repository: PlaylistRepository, song_repository: SongRepository):
+class GetPlaylistSongsUseCase(BaseUseCase[str, List[PlaylistSongEntity]]):
+    """Caso de uso para obtener todas las canciones de una playlist"""
+
+    def __init__(self, playlist_repository: IPlaylistRepository):
         super().__init__()
-        self.playlist_repository = playlist_repository
-        self.song_repository = song_repository
-    
-    async def execute(self, playlist_id: UUID) -> List[PlaylistSongResponseDTO]:
+        self.repository = playlist_repository
+
+    @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+    @log_performance(threshold_seconds=1.0)
+    async def execute(self, playlist_id: str) -> List[PlaylistSongEntity]:
         """
-        Obtiene todas las canciones de una playlist con información completa
+        Obtiene todas las canciones de una playlist
+
+        Args:
+            playlist_id: ID de la playlist
+
+        Returns:
+            Lista de canciones de la playlist ordenadas por posición
+
+        Raises:
+            PlaylistValidationException: Si el ID es inválido
+            PlaylistNotFoundException: Si la playlist no existe
         """
-        self.logger.info(f"Getting songs for playlist {playlist_id}")
-        
-        # Verificar que la playlist existe
-        playlist = await self.playlist_repository.get_by_id(playlist_id)
-        if not playlist:
-            raise ValueError(f"Playlist {playlist_id} no encontrada")
-        
-        # Obtener las canciones de la playlist
-        playlist_songs = await self.playlist_repository.get_playlist_songs(playlist_id)
-        
-        # Construir la respuesta con información completa de las canciones
-        songs_response = []
-        for playlist_song in playlist_songs:
-            # Obtener información completa de la canción
-            song = await self.song_repository.get_by_id(playlist_song.song_id)
-            
-            if song:
-                song_dto = PlaylistSongResponseDTO(
-                    id=song.id,
-                    title=song.title,
-                    artist_name=song.artist.name if song.artist else None,
-                    album_name=song.album.title if song.album else None,
-                    duration_seconds=song.duration_seconds,
-                    thumbnail_url=song.thumbnail_url,
-                    position=playlist_song.position,
-                    added_at=playlist_song.added_at,
+        try:
+            if not playlist_id:
+                raise PlaylistValidationException("El ID de la playlist es requerido")
+
+            # Verificar que la playlist existe
+            playlist = await self.repository.get_by_id(playlist_id)
+            if not playlist:
+                raise PlaylistNotFoundException(
+                    f"Playlist con ID {playlist_id} no encontrada"
                 )
-                songs_response.append(song_dto)
-        
-        # Ordenar por posición
-        songs_response.sort(key=lambda x: x.position)
-        
-        self.logger.info(f"Found {len(songs_response)} songs in playlist {playlist_id}")
-        return songs_response
+
+            self.logger.debug(f"Getting songs for playlist {playlist_id}")
+            return await self.repository.get_playlist_songs(playlist_id)
+
+        except Exception as e:
+            self.logger.error(f"Error getting playlist songs: {str(e)}")
+            raise

@@ -4,7 +4,7 @@ Validadores para el procesamiento de archivos multimedia
 import logging
 from typing import Optional
 
-from ....music_search.domain.interfaces import MusicTrackData
+from common.adapters.media.media_types import MusicTrackData
 
 
 class MediaValidators:

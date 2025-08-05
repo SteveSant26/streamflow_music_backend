@@ -4,7 +4,8 @@ Procesador para crear entidades de canciones
 import logging
 from typing import List, Optional
 
-from ....music_search.domain.interfaces import MusicTrackData
+from common.adapters.media.media_types import MusicTrackData
+
 from ...domain.entities import SongEntity
 from ...infrastructure.mappers.track_to_song_entity_mapper import (
     TrackToSongEntityMapper,
