@@ -1,13 +1,12 @@
 from apps.user_profile.domain.entities import UserProfileEntity
 from common.factories.storage_service_factory import StorageServiceFactory
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
-from common.mixins.logging_mixin import LoggingMixin
 
 from ..dtos import UserProfileResponseDTO
 
 
 class UserProfileEntityDTOMapper(
-    AbstractEntityDtoMapper[UserProfileEntity, UserProfileResponseDTO], LoggingMixin
+    AbstractEntityDtoMapper[UserProfileEntity, UserProfileResponseDTO]
 ):
     """Mapper para convertir entre entidades del dominio y DTOs de la API."""
 

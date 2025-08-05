@@ -1,18 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Generic, Iterable, TypeVar
 
+from src.common.utils.logging_config import get_logger
 
 EntityType = TypeVar("EntityType")
 ModelType = TypeVar("ModelType")
 
 
 class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC):
-    
     def __init__(self):
         # Añadir logging sin importación circular
-        from common.utils.logging_helper import add_logging_to_instance
-        add_logging_to_instance(self)
-    
+        self.logger = get_logger(self.__class__.__name__)
+
     @abstractmethod
     def model_to_entity(self, model: ModelType) -> EntityType:
         """

@@ -1,5 +1,4 @@
 from apps.albums.domain.entities import AlbumEntity
-from common.mixins.logging_mixin import LoggingMixin
 from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
     AbstractEntityDtoMapper,
 )
@@ -7,7 +6,7 @@ from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
 from ..dtos import AlbumResponseDTO
 
 
-class AlbumEntityDTOMapper(AbstractEntityDtoMapper, LoggingMixin):
+class AlbumEntityDTOMapper(AbstractEntityDtoMapper[AlbumEntity, AlbumResponseDTO]):
     """Mapper para convertir entre entidades del dominio y DTOs de la API."""
 
     def __init__(self):

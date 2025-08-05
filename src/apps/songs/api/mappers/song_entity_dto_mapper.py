@@ -2,14 +2,11 @@ from typing import List
 
 from apps.songs.domain.entities import SongEntity
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
-from common.mixins.logging_mixin import LoggingMixin
 
 from ..dtos import SongResponseDTO
 
 
-class SongEntityDTOMapper(
-    AbstractEntityDtoMapper[SongEntity, SongResponseDTO], LoggingMixin
-):
+class SongEntityDTOMapper(AbstractEntityDtoMapper[SongEntity, SongResponseDTO]):
     """Mapper para convertir entre entidades del dominio y DTOs de la API."""
 
     def __init__(self):
