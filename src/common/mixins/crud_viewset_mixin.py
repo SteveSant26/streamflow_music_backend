@@ -24,7 +24,6 @@ class CRUDViewSetMixin(PaginationMixin, viewsets.ModelViewSet, LoggingMixin):
     ordering = ["-created_at"]
 
     def get_permissions(self) -> List[BasePermission]:
-        """Define permisos según la acción - debe ser sobrescrito en subclases"""
         return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):

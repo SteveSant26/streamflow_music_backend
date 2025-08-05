@@ -1,5 +1,5 @@
 from django.http import Http404
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -8,6 +8,8 @@ from apps.playlists.api.serializers import (
     PlaylistResponseSerializer,
     PlaylistUpdateSerializer,
 )
+from apps.playlists.infrastructure.filters import PlaylistModelFilter
+from apps.playlists.infrastructure.models.playlist_model import PlaylistModel
 from apps.playlists.infrastructure.repository import PlaylistRepository
 from apps.playlists.use_cases import (
     CreatePlaylistUseCase,
@@ -16,30 +18,22 @@ from apps.playlists.use_cases import (
     GetUserPlaylistsUseCase,
     UpdatePlaylistUseCase,
 )
-from common.mixins import LoggingMixin
+from common.mixins.crud_viewset_mixin import CRUDViewSetMixin
 
 
-class PlaylistViewSet(LoggingMixin, viewsets.ModelViewSet):
+class PlaylistViewSet(CRUDViewSetMixin):
     """ViewSet para gestionar playlists"""
 
+    queryset = PlaylistModel.objects.all()
     serializer_class = PlaylistResponseSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = "id"
+    filterset_class = PlaylistModelFilter
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.playlist_repository = PlaylistRepository()
 
-    def get_queryset(self):
-        """Override para filtrar por usuario"""
-        # Retornamos queryset vacío ya que manejamos datos via use cases
-        from apps.playlists.infrastructure.models import PlaylistModel
-
-        if not hasattr(self, "_queryset_cache"):
-            self._queryset_cache = PlaylistModel.objects.none()
-        return self._queryset_cache
-
-    def list(self, request):
+    async def list(self, request):
         """Lista las playlists del usuario autenticado"""
         try:
             user_id = str(request.user.id)
@@ -195,9 +189,9 @@ class PlaylistViewSet(LoggingMixin, viewsets.ModelViewSet):
             update_dto = UpdatePlaylistRequestDTO(
                 playlist_id=playlist_id,
                 name=validated_data.get("name") if validated_data else None,
-                description=validated_data.get("description")
-                if validated_data
-                else None,
+                description=(
+                    validated_data.get("description") if validated_data else None
+                ),
                 is_public=validated_data.get("is_public") if validated_data else None,
             )
 

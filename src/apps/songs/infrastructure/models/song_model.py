@@ -2,6 +2,7 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class SongModel(models.Model):
@@ -119,7 +120,6 @@ class SongModel(models.Model):
 
     async def increment_play_count(self):
         """Incrementa el contador de reproducciones y actualiza last_played_at"""
-        from django.utils import timezone
 
         self.play_count += 1
         self.last_played_at = timezone.now()

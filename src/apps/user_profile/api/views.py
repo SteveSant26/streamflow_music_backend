@@ -3,7 +3,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 
 from apps.user_profile.api.mappers import UserProfileMapper
@@ -51,16 +51,16 @@ class UserProfileViewSet(CRUDViewSetMixin):
         self.storage_service = StorageServiceFactory.create_profile_pictures_service()
         self.mapper = UserProfileMapper()
 
-    def get_permissions(self):
+    def get_permissions(self) -> list[BasePermission]:
         action_permissions = {
-            "me": IsAuthenticated,
-            "upload_profile_picture": IsAuthenticated,
-            "update": IsAuthenticated,
-            "partial_update": IsAuthenticated,
-            "destroy": IsAuthenticated,
+            "me": [IsAuthenticated],
+            "upload_profile_picture": [IsAuthenticated],
+            "update": [IsAuthenticated],
+            "partial_update": [IsAuthenticated],
+            "destroy": [IsAuthenticated],
         }
-        permission_class = action_permissions.get(self.action, AllowAny)
-        return [permission_class()]
+        permission_classes = action_permissions.get(self.action, [AllowAny])
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         action_to_serializer = {
