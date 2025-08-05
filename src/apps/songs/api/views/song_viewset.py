@@ -1,9 +1,11 @@
+from typing import Any
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
 
 from apps.songs.api.serializers.song_serializers import SongSerializer
 from apps.songs.infrastructure.filters import SongModelFilter
 from apps.songs.infrastructure.models import SongModel
-from common.mixins import FilteredViewSetMixin
 
 
 @extend_schema_view(
@@ -50,7 +52,7 @@ from common.mixins import FilteredViewSetMixin
         summary="Get song details",
     ),
 )
-class SongViewSet(FilteredViewSetMixin):
+class SongViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para gestión de canciones (solo lectura) con filtros integrados"""
 
     queryset = (
@@ -60,6 +62,7 @@ class SongViewSet(FilteredViewSetMixin):
         .order_by("-created_at")
     )
     filterset_class = SongModelFilter
+    permission_classes = [AllowAny]
     lookup_field = "id"
     lookup_url_kwarg = "id"
 
@@ -82,7 +85,7 @@ class SongViewSet(FilteredViewSetMixin):
 
     # Búsqueda simple
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Any:
         """
         Retorna el serializer para este ViewSet
         """
