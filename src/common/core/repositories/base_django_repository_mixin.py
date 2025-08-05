@@ -2,6 +2,7 @@ from abc import ABC
 from typing import Generic, Type, TypeVar
 
 from common.interfaces.imapper import AbstractEntityModelMapper
+from src.common.utils.logging_config import get_logger
 
 EntityType = TypeVar("EntityType")
 ModelType = TypeVar("ModelType")
@@ -25,7 +26,6 @@ class BaseDjangoRepositoryMixin(ABC, Generic[EntityType, ModelType]):
         self.model_class = model_class
         self.mapper = mapper
         super().__init__(*args, **kwargs)
-        
+
         # Añadir logging sin importación circular
-        from ...utils.logging_helper import add_logging_to_instance
-        add_logging_to_instance(self)
+        self.logger = get_logger(self.__class__.__name__)

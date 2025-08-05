@@ -183,3 +183,21 @@ class SongModelFilter(filters.FilterSet):
                 | Q(genres__name__icontains=value)
             ).distinct()  # distinct() para evitar duplicados por joins
         return queryset
+
+    # Filtros para integración con YouTube
+    include_youtube = filters.BooleanFilter(
+        method="filter_include_youtube",
+        help_text="Include YouTube results when searching (used internally)",
+    )
+    min_results = filters.NumberFilter(
+        method="filter_min_results",
+        help_text="Minimum number of results (triggers YouTube search if needed)",
+    )
+
+    def filter_include_youtube(self, queryset, name, value):
+        """Este filtro no modifica el queryset, solo es informativo para el ViewSet"""
+        return queryset
+
+    def filter_min_results(self, queryset, name, value):
+        """Este filtro no modifica el queryset, solo es informativo para el ViewSet"""
+        return queryset

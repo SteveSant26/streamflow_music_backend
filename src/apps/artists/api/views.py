@@ -1,3 +1,5 @@
+from typing import Any
+
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from apps.artists.api.serializers import ArtistResponseSerializer
@@ -41,12 +43,17 @@ class ArtistViewSet(FilteredViewSetMixin):
     """ViewSet para gestión de artistas (solo lectura) con filtros integrados"""
 
     queryset = ArtistModel.objects.all().order_by("-created_at")
-    serializer_class = ArtistResponseSerializer
     filterset_class = ArtistModelFilter
+
+    def get_serializer_class(self) -> Any:
+        return ArtistResponseSerializer
 
     # Campos por los que se puede ordenar
     ordering_fields = ["name", "followers_count", "created_at", "updated_at"]
     ordering = ["-created_at"]  # Ordenamiento por defecto
 
     # Búsqueda simple
-    search_fields = ["name", "biography", "country"]
+    search_fields = [
+        "name",
+        "biography",
+    ]

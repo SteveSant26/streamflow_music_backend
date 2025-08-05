@@ -3,6 +3,8 @@ from typing import Generic, Iterable, TypeVar
 
 from pyparsing import ABC
 
+from src.common.utils.logging_config import get_logger
+
 EntityType = TypeVar("EntityType")
 DTOType = TypeVar("DTOType")
 
@@ -14,9 +16,7 @@ class AbstractEntityDtoMapper(Generic[EntityType, DTOType], ABC):
     """
 
     def __init__(self):
-        # Añadir logging sin importación circular
-        from common.utils.logging_helper import add_logging_to_instance
-        add_logging_to_instance(self)
+        self.logger = get_logger(self.__class__.__name__)
 
     @abstractmethod
     def entity_to_dto(self, entity: EntityType) -> DTOType:

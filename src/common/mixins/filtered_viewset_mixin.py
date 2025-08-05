@@ -2,6 +2,7 @@
 Mixin para ViewSets con filtros de Django Filter integrados.
 Elimina la redundancia de código en las vistas que utilizan filtros.
 """
+
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 

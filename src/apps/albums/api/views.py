@@ -44,8 +44,10 @@ class AlbumViewSet(FilteredViewSetMixin):
     """ViewSet para gestión de álbumes (solo lectura) con filtros integrados"""
 
     queryset = AlbumModel.objects.select_related("artist").all().order_by("-created_at")
-    serializer_class = AlbumResponseSerializer
     filterset_class = AlbumModelFilter
+
+    def get_serializer_class(self):
+        return AlbumResponseSerializer
 
     # Campos por los que se puede ordenar
     ordering_fields = [
