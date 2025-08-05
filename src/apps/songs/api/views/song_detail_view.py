@@ -1,8 +1,7 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
-
-from common.mixins.use_case_api_view_mixin import UseCaseAPIViewMixin
+from rest_framework.views import APIView
 
 from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import GetSongByIdUseCase
@@ -15,7 +14,7 @@ from ..serializers.song_serializers import SongSerializer
         tags=["Songs"], description="Get detailed information of a specific song by ID"
     )
 )
-class SongDetailView(UseCaseAPIViewMixin):
+class SongDetailView(APIView):
     """Vista para detalles de una canción específica"""
 
     def __init__(self):
@@ -27,9 +26,13 @@ class SongDetailView(UseCaseAPIViewMixin):
     @extend_schema(responses={200: SongSerializer})
     def get(self, request, song_id):
         """Obtiene detalles de una canción"""
-
-        song = self.handle_use_case_execution(self.get_song_by_id_use_case, song_id)
-        song_dto = self.mapper.entity_to_dto(song)
-        serializer = SongSerializer(song_dto)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            song = self.get_song_by_id_use_case.execute(song_id)
+            song_dto = self.mapper.entity_to_dto(song)
+            serializer = SongSerializer(song_dto)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
