@@ -5,7 +5,6 @@ from .views import (
     IncrementPlayCountAPIView,
     MostPopularSongsView,
     RandomSongsView,
-    SearchSongsView,
     SongViewSet,
 )
 
@@ -14,10 +13,8 @@ router = DefaultRouter()
 router.register(r"list", SongViewSet, basename="songs-viewset")
 
 urlpatterns = [
-    # ViewSet para listado y detalle con filtros
+    # ViewSet para listado y detalle con filtros (incluye búsqueda unificada con YouTube)
     path("", include(router.urls)),
-    # Búsqueda de canciones
-    path("search/", SearchSongsView.as_view(), name="search-songs"),
     # Canciones aleatorias
     path("random/", RandomSongsView.as_view(), name="random-songs"),
     # Canciones más populares
