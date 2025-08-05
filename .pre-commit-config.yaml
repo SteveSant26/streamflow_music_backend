@@ -70,18 +70,29 @@ repos:
     rev: 1.7.5
     hooks:
       - id: bandit
-        args: ["-s", "B101", "-x", "test/,tests/", "--format", "json"]
+        args: ["-s", "B101", "-x", "test/,tests/,test_precommit.py,run_working_tests.py", "--format", "json"]
         exclude: |
           (?x)(
             ^tests/
             |^migrations/
             |^\.venv/
             |^src/apps/.*/migrations/
+            |^test_precommit\.py$
+            |^run_working_tests\.py$
             |^generate_simple_coverage\.py$
             |^generate_sonar_reports\.py$
           )
 
-  # Commit message formatting
+  # 🧪 Ejecutar tests de módulos funcionales
+  - repo: local
+    hooks:
+      - id: run-working-tests
+        name: Run working tests (user_profile & albums)
+        entry: python test_precommit.py
+        language: system
+        stages: [pre-commit]
+        pass_filenames: false
+        always_run: true  # Commit message formatting
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
     hooks:
