@@ -2,6 +2,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from asgiref.sync import async_to_sync
 
 from ...infrastructure.repository.song_repository import SongRepository
 from ...use_cases import GetSongByIdUseCase
@@ -27,7 +28,8 @@ class SongDetailView(APIView):
     def get(self, request, song_id):
         """Obtiene detalles de una canción"""
         try:
-            song = self.get_song_by_id_use_case.execute(song_id)
+            # Ejecutar el caso de uso async de forma síncrona
+            song = async_to_sync(self.get_song_by_id_use_case.execute)(song_id)
             song_dto = self.mapper.entity_to_dto(song)
             serializer = SongSerializer(song_dto)
             return Response(serializer.data, status=status.HTTP_200_OK)
