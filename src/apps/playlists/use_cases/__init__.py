@@ -5,7 +5,6 @@ from .ensure_default_playlist_use_case import EnsureDefaultPlaylistUseCase
 from .get_playlist_songs_use_case import GetPlaylistSongsUseCase
 from .get_user_playlists_use_case import GetUserPlaylistsUseCase
 from .remove_song_from_playlist_use_case import RemoveSongFromPlaylistUseCase
-from .search_playlists_use_case import SearchPlaylistsUseCase
 from .update_playlist_use_case import UpdatePlaylistUseCase
 
 __all__ = [
@@ -16,6 +15,5 @@ __all__ = [
     "GetPlaylistSongsUseCase",
     "GetUserPlaylistsUseCase",
     "RemoveSongFromPlaylistUseCase",
-    "SearchPlaylistsUseCase",
     "UpdatePlaylistUseCase",
 ]

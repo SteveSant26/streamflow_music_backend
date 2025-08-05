@@ -1,13 +1,13 @@
 from apps.playlists.api.mappers import (
-    PlaylistEntityDTOMapper,
-    PlaylistEntityModelMapper,
+    PlaylistSongEntityDTOMapper,
+    PlaylistSongEntityModelMapper,
 )
 from common.interfaces.imapper.abstract_mapper import AbstractMapper
 
 
-class PlaylistMapper(
-    PlaylistEntityModelMapper,
-    PlaylistEntityDTOMapper,
+class PlaylistSongMapper(
+    PlaylistSongEntityModelMapper,
+    PlaylistSongEntityDTOMapper,
     AbstractMapper,
 ):
     """Mapper completo para playlists que combina model-entity y entity-dto"""
