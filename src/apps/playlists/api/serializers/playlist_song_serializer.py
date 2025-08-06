@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.playlists.api.dtos import PlaylistSongResponseDTO
+from apps.playlists.api.mappers.playlist_mapper import PlaylistMapper
 from apps.playlists.domain.entities import PlaylistSongEntity
 from common.serializers.base_entity_serializer import BaseEntitySerializer
 
@@ -9,9 +10,7 @@ class PlaylistSongResponseSerializer(BaseEntitySerializer):
     """Serializer para canciones en playlists"""
 
     # Configuración para el serializer base
-    mapper_class = (
-        None  # PlaylistSongMapper tiene problemas de implementación abstracta
-    )
+    mapper_class = PlaylistMapper()
     entity_class = PlaylistSongEntity
     dto_class = PlaylistSongResponseDTO
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 
 @dataclass
@@ -27,7 +27,6 @@ class PlaylistSongResponseDTO:
     song_id: str
     position: int
     added_at: Optional[datetime] = None
-    # Datos de la canción (opcional)
     song_title: Optional[str] = None
     song_artist: Optional[str] = None
     song_duration: Optional[int] = None
@@ -67,28 +66,3 @@ class RemoveSongFromPlaylistRequestDTO:
 
     playlist_id: str
     song_id: str
-
-
-@dataclass
-class SearchPlaylistsRequestDTO:
-    """DTO para búsqueda de playlists"""
-
-    query: str
-    user_id: Optional[str] = None
-    limit: int = 20
-
-
-@dataclass
-class GetPublicPlaylistsRequestDTO:
-    """DTO para obtener playlists públicas"""
-
-    limit: int = 20
-    offset: int = 0
-
-
-@dataclass
-class ReorderPlaylistSongsRequestDTO:
-    """DTO para reordenar canciones en playlist"""
-
-    playlist_id: str
-    song_positions: List[tuple[str, int]]  # Lista de (song_id, nueva_posición)

@@ -54,13 +54,6 @@ class IPlaylistRepository(IBaseRepository[PlaylistEntity, Any]):
     async def get_playlist_songs(self, playlist_id: str) -> List[PlaylistSongEntity]:
         """Obtiene todas las canciones de una playlist"""
 
-    # Métodos adicionales útiles
-    @abstractmethod
-    async def reorder_playlist_songs(
-        self, playlist_id: str, song_positions: List[tuple[str, int]]
-    ) -> bool:
-        """Reordena las canciones de una playlist"""
-
     @abstractmethod
     async def get_public_playlists(
         self,

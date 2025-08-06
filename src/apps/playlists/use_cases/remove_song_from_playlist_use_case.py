@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
+from src.apps.playlists.api.dtos.playlist_dtos import RemoveSongFromPlaylistRequestDTO
 
 from ..domain.exceptions import PlaylistValidationException
 from ..domain.repository.iplaylist_repository import IPlaylistRepository
@@ -16,7 +17,7 @@ class RemoveSongFromPlaylistUseCase(BaseUseCase[Dict[str, Any], bool]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=1.0)
-    async def execute(self, request_data: Dict[str, Any]) -> bool:
+    async def execute(self, request_data: RemoveSongFromPlaylistRequestDTO) -> bool:
         """
         Remueve una canción de una playlist
 
@@ -30,8 +31,8 @@ class RemoveSongFromPlaylistUseCase(BaseUseCase[Dict[str, Any], bool]):
             PlaylistValidationException: Si los datos son inválidos
         """
         try:
-            playlist_id = request_data.get("playlist_id")
-            song_id = request_data.get("song_id")
+            playlist_id = request_data.playlist_id
+            song_id = request_data.song_id
 
             if not playlist_id or not song_id:
                 raise PlaylistValidationException(
