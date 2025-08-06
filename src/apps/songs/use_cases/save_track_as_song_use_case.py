@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from common.factories.media_service_factory import MediaServiceFactory
+from common.adapters.media.media_types import MusicTrackData
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.types.media_types import AudioTrackData
 from common.utils.logging_decorators import log_execution, log_performance
@@ -8,13 +8,17 @@ from common.utils.logging_decorators import log_execution, log_performance
 from ...albums.infrastructure.repository.album_repository import AlbumRepository
 from ...artists.infrastructure.repository.artist_repository import ArtistRepository
 from ...genres.services.music_genre_analyzer import MusicGenreAnalyzer
-from ...music_search.domain.interfaces import MusicTrackData
 from ..domain.entities import SongEntity
 from ..domain.repository import ISongRepository
-from ..infrastructure.mappers.track_to_song_entity_mapper import TrackToSongEntityMapper
+from .converters.music_data_converter import MusicDataConverter
 from .music_track_artist_album_extractor_use_case import (
     MusicTrackArtistAlbumExtractorUseCase,
 )
+
+# Importar los nuevos módulos
+from .processors.media_processor import MediaProcessor
+from .processors.song_entity_processor import SongEntityProcessor
+from .services.song_database_service import SongDatabaseService
 
 
 class SaveTrackAsSongUseCase(
@@ -27,13 +31,14 @@ class SaveTrackAsSongUseCase(
         song_repository: ISongRepository,
     ):
         super().__init__()
-        self.song_repository = song_repository
 
-        download_service, file_service = MediaServiceFactory.create_media_services()
-        self.media_download_service = download_service
-        self.media_file_service = file_service
+        # Inicializar servicios modulares
+        self.media_processor = MediaProcessor()
+        self.song_entity_processor = SongEntityProcessor()
+        self.database_service = SongDatabaseService(song_repository)
+        self.data_converter = MusicDataConverter()
 
-        self.mapper = TrackToSongEntityMapper()
+        # Servicios específicos que se mantienen aquí
         self.genre_analyzer = MusicGenreAnalyzer()
 
         # Repositorios para artistas y álbumes
@@ -63,134 +68,51 @@ class SaveTrackAsSongUseCase(
         """
         try:
             # Convertir AudioTrackData a MusicTrackData si es necesario
-            music_track = self._convert_to_music_track_data(track)
+            music_track = self.data_converter.convert_to_music_track_data(track)
 
-            # 1. Extraer y guardar información de artistas y álbumes PRIMERO
-            self.logger.info(
-                f"🎤 Processing artist and album information for: {music_track.title}"
-            )
-            artist_album_info = await self.artist_album_extractor.execute(music_track)
+            # 1. Procesar información de artistas y álbumes
+            artist_album_info = await self._process_artist_album_info(music_track)
 
-            artist_id = artist_album_info.get("artist_id")
-            album_id = artist_album_info.get("album_id")
-            artist_name = (
-                artist_album_info.get("artist_name") or music_track.artist_name
-            )
-            album_title = (
-                artist_album_info.get("album_title") or music_track.album_title
-            )
+            # 2. Procesar archivos multimedia y storage
+            media_result = await self.media_processor.process_media_files(music_track)
+            if not media_result:
+                return None
 
-            # 2. Descargar medios (audio y thumbnail)
-            audio_bytes, thumbnail_bytes = await self._download_media(music_track)
+            file_url, updated_thumbnail_url = media_result
 
-            # 3. Subir archivos al storage
-            (
-                audio_file_name,
-                thumbnail_file_name,
-                updated_thumbnail_url,
-            ) = await self.media_file_service.upload_media_files(
-                audio_bytes, thumbnail_bytes, music_track.video_id
-            )
-
-            # 4. Obtener URL del archivo de audio
-            file_url = await self._get_audio_file_url(audio_file_name)
-
-            # 5. Analizar géneros automáticamente usando el título y tags
+            # 3. Analizar géneros y crear entidad
             analyzed_genres = await self._analyze_track_genres(music_track)
-
-            # 6. Crear entidad de canción usando el mapper (ahora asíncrono)
-            song_entity = await self.mapper.map(
+            song_entity = await self.song_entity_processor.create_song_entity(
                 music_track,
-                file_url=file_url,
-                thumbnail_url=updated_thumbnail_url,
-                analyzed_genres=analyzed_genres,
-                artist_id=artist_id,  # Pasar el ID del artista
-                album_id=album_id,  # Pasar el ID del álbum
+                file_url,
+                updated_thumbnail_url,
+                analyzed_genres,
+                artist_album_info,
             )
 
-            # 7. Actualizar información desnormalizada para rendimiento
-            if artist_name:
-                song_entity.artist_name = artist_name
-            if album_title:
-                song_entity.album_title = album_title
-
-            # Log para debugging - verificar que los IDs están en la entidad
-            self.logger.debug(
-                f"Song entity created with artist_id: {song_entity.artist_id}, album_id: {song_entity.album_id}"
+            # 4. Guardar en base de datos
+            return await self.database_service.save_song_to_database(
+                song_entity, music_track.title
             )
-
-            self.logger.info(
-                f"🎵 Created song entity '{music_track.title}' with {len(song_entity.genre_ids or [])} genre(s): {song_entity.genre_ids}"
-            )
-            if artist_id:
-                self.logger.info(f"   🎤 Artist: {artist_name} (ID: {artist_id})")
-            if album_id:
-                self.logger.info(f"   💿 Album: {album_title} (ID: {album_id})")
-
-            return await self.song_repository.save(song_entity)
 
         except Exception as e:
             self.logger.error(f"Error saving track as song: {str(e)}")
             return None
 
-    async def _download_media(
-        self, track: MusicTrackData
-    ) -> tuple[Optional[bytes], Optional[bytes]]:
+    async def _process_artist_album_info(self, music_track: MusicTrackData) -> dict:
         """
-        Descarga audio y thumbnail del track
+        Procesa información de artistas y álbumes
 
         Args:
-            track: Datos del track
+            music_track: Datos del track de música
 
         Returns:
-            Tuple[audio_bytes, thumbnail_bytes]
+            Diccionario con información de artista y álbum
         """
-        audio_bytes = None
-        thumbnail_bytes = None
-
-        # Descargar audio si no existe y hay video_id
-        if not track.audio_file_name and track.video_id:
-            self.logger.info(f"Downloading audio for track: {track.title}")
-            audio_bytes = await self.media_download_service.download_audio(
-                track.video_id
-            )
-            if not audio_bytes:
-                self.logger.warning(
-                    f"Failed to download audio for track: {track.title}"
-                )
-
-        # Descargar thumbnail si existe URL
-        if track.thumbnail_url:
-            self.logger.info(f"Downloading thumbnail for track: {track.title}")
-            thumbnail_bytes = await self.media_download_service.download_thumbnail(
-                track.thumbnail_url
-            )
-            if not thumbnail_bytes:
-                self.logger.warning(
-                    f"Failed to download thumbnail for track: {track.title}"
-                )
-
-        return audio_bytes, thumbnail_bytes
-
-    async def _get_audio_file_url(
-        self, audio_file_name: Optional[str]
-    ) -> Optional[str]:
-        """
-        Obtiene la URL del archivo de audio si existe
-
-        Args:
-            audio_file_name: Nombre del archivo de audio
-
-        Returns:
-            URL del archivo o None
-        """
-        if audio_file_name:
-            # Acceder al storage a través del factory para obtener la URL
-            from common.factories import StorageServiceFactory
-
-            storage_service = StorageServiceFactory.create_music_files_service()
-            return storage_service.get_item_url(audio_file_name)
-        return None
+        self.logger.info(
+            f"🎤 Processing artist and album information for: {music_track.title}"
+        )
+        return await self.artist_album_extractor.execute(music_track)
 
     async def _analyze_track_genres(self, track: MusicTrackData) -> List[str]:
         """
@@ -251,34 +173,3 @@ class SaveTrackAsSongUseCase(
             )
             # En caso de error, retornar el género original si existe
             return [track.genre] if track.genre else []
-
-    def _convert_to_music_track_data(
-        self, track: Union[MusicTrackData, AudioTrackData]
-    ) -> MusicTrackData:
-        """
-        Convierte AudioTrackData a MusicTrackData si es necesario
-
-        Args:
-            track: Track data (MusicTrackData o AudioTrackData)
-
-        Returns:
-            MusicTrackData
-        """
-        # Si ya es MusicTrackData, retornarlo tal como está
-        if isinstance(track, MusicTrackData):
-            return track
-
-        # Si es AudioTrackData, convertirlo a MusicTrackData
-        return MusicTrackData(
-            video_id=track.video_id,
-            title=track.title,
-            artist_name=track.artist_name,
-            album_title=track.album_title,
-            duration_seconds=track.duration_seconds,
-            thumbnail_url=track.thumbnail_url,
-            genre=track.genre,
-            tags=track.tags,
-            url=track.url,
-            audio_file_data=track.audio_file_data,
-            audio_file_name=track.audio_file_name,
-        )
