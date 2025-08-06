@@ -1,3 +1,7 @@
+import uuid
+
+from django.utils import timezone
+
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
 
@@ -16,7 +20,9 @@ class CreatePlaylistUseCase(BaseUseCase[CreatePlaylistRequestDTO, PlaylistEntity
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=2.0)
-    async def execute(self, request_dto: CreatePlaylistRequestDTO) -> PlaylistEntity:
+    async def execute(
+        self, request_dto: CreatePlaylistRequestDTO, user_id: str
+    ) -> PlaylistEntity:
         """
         Crea una nueva playlist
 
@@ -36,19 +42,15 @@ class CreatePlaylistUseCase(BaseUseCase[CreatePlaylistRequestDTO, PlaylistEntity
                     "El nombre de la playlist es requerido"
                 )
 
-            if not request_dto.user_id:
+            if not user_id:
                 raise PlaylistValidationException("El ID del usuario es requerido")
 
             # Crear entidad playlist
-            import uuid
-
-            from django.utils import timezone
-
             playlist_entity = PlaylistEntity(
                 id=str(uuid.uuid4()),
                 name=request_dto.name.strip(),
                 description=request_dto.description or "",
-                user_id=request_dto.user_id,
+                user_id=user_id,
                 is_public=request_dto.is_public,
                 is_default=False,
                 created_at=timezone.now(),
@@ -56,9 +58,13 @@ class CreatePlaylistUseCase(BaseUseCase[CreatePlaylistRequestDTO, PlaylistEntity
             )
 
             self.logger.info(
-                f"Creating playlist '{request_dto.name}' for user {request_dto.user_id}"
+                f"Creating playlist '{request_dto.name}' for user {user_id}"
             )
-            return await self.repository.create(playlist_entity)
+            playlist = await self.repository.create(playlist_entity)
+            self.logger.info(
+                f"Created playlist '{playlist.name}' with ID {playlist.id}"
+            )
+            return playlist
 
         except Exception as e:
             self.logger.error(f"Error creating playlist: {str(e)}")

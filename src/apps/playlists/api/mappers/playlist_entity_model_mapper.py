@@ -37,10 +37,6 @@ class PlaylistEntityModelMapper(
             songs=songs,
         )
 
-    def model_to_entity_with_songs(self, model: PlaylistModel) -> PlaylistEntity:
-        """Convierte un PlaylistModel a PlaylistEntity incluyendo las canciones"""
-        return self.model_to_entity(model, include_songs=True)
-
     def entity_to_model(self, entity: PlaylistEntity) -> PlaylistModel:
         """Convierte una PlaylistEntity a PlaylistModel"""
         self.logger.debug(f"Converting entity to model for playlist {entity.id}")

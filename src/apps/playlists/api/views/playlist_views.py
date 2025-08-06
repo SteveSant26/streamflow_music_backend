@@ -26,10 +26,11 @@ from apps.user_profile.infrastructure.permissions import (
     IsPlaylistOwner,
     IsPlaylistOwnerOrPublic,
 )
-from common.mixins import SimpleViewSetMixin
+from src.common.mixins.crud_viewset_mixin import CRUDViewSetMixin
+from src.common.utils.schema_decorators import paginated_list_endpoint
+
 from ..dtos import CreatePlaylistRequestDTO, UpdatePlaylistRequestDTO
 from ..mappers import PlaylistEntityDTOMapper
-
 
 # Constantes para mensajes de error
 PLAYLIST_NOT_FOUND_MSG = "Playlist no encontrada"
@@ -60,7 +61,7 @@ DELETE_FAILED_MSG = "No se pudo eliminar la playlist"
         tags=["Playlist"], description="Delete user playlist (authentication required)"
     ),
 )
-class PlaylistViewSet(SimpleViewSetMixin):
+class PlaylistViewSet(CRUDViewSetMixin):
     """ViewSet para gestionar playlists"""
 
     queryset = PlaylistModel.objects.all()
@@ -71,6 +72,13 @@ class PlaylistViewSet(SimpleViewSetMixin):
         super().__init__(*args, **kwargs)
         self.playlist_repository = PlaylistRepository()
         self.mapper = PlaylistEntityDTOMapper()
+
+    def get_serializer_class(self) -> type:
+        if self.action == "create":
+            return PlaylistCreateSerializer
+        elif self.action in ["update", "partial_update"]:
+            return PlaylistUpdateSerializer
+        return PlaylistResponseSerializer
 
     def get_permissions(self) -> List:
         """
@@ -91,20 +99,20 @@ class PlaylistViewSet(SimpleViewSetMixin):
         permission_classes = action_permissions.get(self.action, [AllowAny])
         return [permission() for permission in permission_classes]
 
+    @paginated_list_endpoint(
+        serializer_class=PlaylistResponseSerializer,
+        tags=["Playlists"],
+        description="Get popular playlists from the database",
+    )
     def list(self, request):
         """Lista las playlists públicas y del usuario autenticado"""
-        self.log_action(
-            "list",
+        self.logger.debug(
             f"user_id={request.user.id if request.user.is_authenticated else 'anonymous'}",
         )
 
         try:
-            # Obtener parámetros de paginación
-            limit = int(request.query_params.get("limit", 50))
-            offset = int(request.query_params.get("offset", 0))
-
-            # Configurar parámetros
-            params = {"limit": limit, "offset": offset, "user_id": None}
+            # Configurar parámetros sin límites - DRF se encarga de la paginación
+            params = {}
 
             # Solo agregar user_id si el usuario está autenticado
             if request.user.is_authenticated:
@@ -114,14 +122,23 @@ class PlaylistViewSet(SimpleViewSetMixin):
             get_use_case = GetPublicAndUserPlaylistsUseCase(self.playlist_repository)
             playlists = async_to_sync(get_use_case.execute)(params)
 
-            playlist_dtos = self.mapper.entities_to_dtos(playlists)
-            serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
-
             user_info = (
                 f"user {request.user.id}"
                 if request.user.is_authenticated
                 else "anonymous user"
             )
+            # Usar la paginación de DRF
+            page = self.paginate_queryset(playlists)
+            if page is not None:
+                playlist_dtos = self.mapper.entities_to_dtos(page)
+                serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
+                self.logger.info(f"Retrieved {len(page)} playlists for {user_info}")
+                return self.get_paginated_response(serializer.data)
+
+            # Fallback sin paginación si no se puede paginar
+            playlist_dtos = self.mapper.entities_to_dtos(playlists)
+            serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
+
             self.logger.info(f"Retrieved {len(playlists)} playlists for {user_info}")
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -134,7 +151,7 @@ class PlaylistViewSet(SimpleViewSetMixin):
 
     def create(self, request):
         """Crea una nueva playlist"""
-        self.log_action("create", f"user_id={request.user.id}")
+        self.logger.debug(f"user_id={request.user.id}")
 
         try:
             user_id = str(request.user.id)
@@ -171,7 +188,7 @@ class PlaylistViewSet(SimpleViewSetMixin):
 
     def retrieve(self, request, id=None):
         """Obtiene una playlist específica"""
-        self.log_action("retrieve", f"user_id={request.user.id}, playlist_id={id}")
+        self.logger.debug(f"user_id={request.user.id}, playlist_id={id}")
 
         try:
             if not id:
@@ -204,7 +221,7 @@ class PlaylistViewSet(SimpleViewSetMixin):
 
     def update(self, request, id=None):
         """Actualiza una playlist"""
-        self.log_action("update", f"user_id={request.user.id}, playlist_id={id}")
+        self.logger.debug(f"user_id={request.user.id}, playlist_id={id}")
 
         try:
             if not id:
@@ -253,7 +270,7 @@ class PlaylistViewSet(SimpleViewSetMixin):
 
     def destroy(self, request, id=None):
         """Elimina una playlist"""
-        self.log_action("destroy", f"user_id={request.user.id}, playlist_id={id}")
+        self.logger.debug("destroy", f"user_id={request.user.id}, playlist_id={id}")
 
         try:
             if not id:

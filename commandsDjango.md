@@ -53,3 +53,7 @@ python manage.py collectstatic --noinput
 
 // Watch for problems in drf schema
 python manage.py spectacular --file schema.yaml
+
+
+// Execute as asgi
+uvicorn config.asgi:application --reload

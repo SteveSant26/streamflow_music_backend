@@ -33,18 +33,12 @@ class GetPublicAndUserPlaylistsUseCase(BaseUseCase[dict, List[PlaylistEntity]]):
             Lista de entidades de playlist (públicas + del usuario)
         """
         user_id = params.get("user_id")
-        limit = params.get("limit", 50)
-        offset = params.get("offset", 0)
 
-        self.logger.info(
-            f"Getting public and user playlists for user: {user_id}, limit: {limit}, offset: {offset}"
-        )
+        self.logger.info(f"Getting public and user playlists for user: {user_id}")
 
         try:
             # Obtener playlists públicas
-            public_playlists = await self.playlist_repository.get_public_playlists(
-                limit=limit, offset=offset
-            )
+            public_playlists = await self.playlist_repository.get_public_playlists()
 
             # Si hay usuario autenticado, obtener también sus playlists
             if user_id:

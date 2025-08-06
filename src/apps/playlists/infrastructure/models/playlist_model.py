@@ -1,14 +1,9 @@
 import uuid
-from typing import TYPE_CHECKING
 
 from django.db import models
+from django.db.models import QuerySet
 
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
-
-    from apps.playlists.infrastructure.models.playlist_song_model import (
-        PlaylistSongModel,
-    )
+from apps.playlists.infrastructure.models.playlist_song_model import PlaylistSongModel
 
 
 class PlaylistModel(models.Model):
@@ -68,17 +63,9 @@ class PlaylistModel(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name} - {self.user.email}"
+        return f"{self.name}"
 
     @property
     def total_songs(self):
         """Retorna el número total de canciones en la playlist"""
-        return self.playlist_songs.count()
-
-    def save(self, *args, **kwargs):
-        """Override save para validaciones adicionales"""
-        # Validar que el nombre no esté vacío
-        if not self.name or not self.name.strip():
-            raise ValueError("El nombre de la playlist no puede estar vacío")
-
-        super().save(*args, **kwargs)
+        return self.playlist_songs.acount()

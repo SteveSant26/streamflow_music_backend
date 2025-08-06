@@ -40,7 +40,6 @@ class CreatePlaylistRequestDTO:
     name: str
     description: Optional[str] = None
     is_public: bool = False
-    user_id: str = ""
 
 
 @dataclass

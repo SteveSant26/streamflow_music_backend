@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from asgiref.sync import sync_to_async
+
 from apps.playlists.api.mappers.playlist_entity_model_mapper import (
     PlaylistEntityModelMapper,
 )
@@ -17,8 +19,6 @@ class PlaylistRepository(
     def __init__(self):
         super().__init__(PlaylistModel, PlaylistEntityModelMapper())
 
-    # Métodos específicos del dominio (no sobrescribir los métodos base)
-
     async def create(self, entity: PlaylistEntity) -> PlaylistEntity:
         """Crea una nueva playlist"""
         self.logger.info(f"Creating playlist: {entity.name}")
@@ -29,7 +29,7 @@ class PlaylistRepository(
         model_data.pop("updated_at", None)
 
         model = await PlaylistModel.objects.acreate(**model_data)
-        return self.mapper.model_to_entity(model)
+        return await sync_to_async(self.mapper.model_to_entity)(model)
 
     async def update_playlist(self, entity: PlaylistEntity) -> PlaylistEntity:
         """Actualiza una playlist existente usando la entidad completa"""
@@ -210,18 +210,16 @@ class PlaylistRepository(
             return False
 
     async def get_public_playlists(
-        self, limit: int = 20, offset: int = 0
+        self,
     ) -> List[PlaylistEntity]:
         """Obtiene playlists públicas"""
-        self.logger.debug(
-            f"Getting public playlists with limit: {limit}, offset: {offset}"
-        )
+        self.logger.debug("Getting public playlists")
 
         models = []
         async for model in (
             PlaylistModel.objects.filter(is_public=True)
             .select_related("user")
-            .order_by("-created_at")[offset : offset + limit]
+            .order_by("-created_at")
         ):
             models.append(model)
         return [self.mapper.model_to_entity(model) for model in models]

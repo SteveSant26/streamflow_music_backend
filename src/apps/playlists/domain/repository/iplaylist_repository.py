@@ -63,7 +63,7 @@ class IPlaylistRepository(IBaseRepository[PlaylistEntity, Any]):
 
     @abstractmethod
     async def get_public_playlists(
-        self, limit: int = 20, offset: int = 0
+        self,
     ) -> List[PlaylistEntity]:
         """Obtiene playlists públicas"""
 

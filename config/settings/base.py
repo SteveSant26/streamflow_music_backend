@@ -82,5 +82,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGGING = LoggingConfig.get_logging_config(bool(DEBUG), ENVIRONMENT)
 
+DJANGO_ALLOW_ASYNC_UNSAFE = True
+
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

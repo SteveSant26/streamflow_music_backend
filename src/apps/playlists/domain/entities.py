@@ -7,7 +7,7 @@ from typing import List, Optional
 class PlaylistEntity:
     """Entidad de dominio para las playlists"""
 
-    id: str
+    id: str  # ID generado por la base de datos
     name: str
     description: Optional[str]
     user_id: str
