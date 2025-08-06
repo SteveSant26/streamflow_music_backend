@@ -17,6 +17,9 @@ class MediaValidators:
         self, music_track: MusicTrackData, audio_bytes: Optional[bytes]
     ) -> bool:
         """Valida que se haya descargado el audio si es necesario"""
+        print(f"Validating audio download for track: {music_track.title}")
+        print(f"Audio bytes: {audio_bytes is not None}")
+        print(f"Audio file name: {music_track.audio_file_name}")
         if not music_track.audio_file_name and music_track.video_id and not audio_bytes:
             self.logger.error(
                 f"❌ Failed to download audio for track: {music_track.title}. "

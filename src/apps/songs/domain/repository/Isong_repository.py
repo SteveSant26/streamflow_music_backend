@@ -12,9 +12,13 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     # Métodos específicos del dominio de canciones
 
     @abstractmethod
-    async def get_by_source(
-        self, source_type: str, source_id: str
+    def save(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, song_entity: SongEntity
     ) -> Optional[SongEntity]:
+        """Guarda una canción en la base de datos"""
+
+    @abstractmethod
+    def get_by_source(self, source_type: str, source_id: str) -> Optional[SongEntity]:
         """Obtiene una canción por fuente y ID de fuente"""
 
     @abstractmethod
@@ -22,7 +26,7 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
         """Obtiene canciones aleatorias"""
 
     @abstractmethod
-    async def search(self, query: str, limit: int = 20) -> List[SongEntity]:
+    def search(self, query: str, limit: int = 20) -> List[SongEntity]:
         """Busca canciones por título o artista"""
 
     @abstractmethod
@@ -40,22 +44,6 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
         """Obtiene las canciones más reproducidas"""
 
     @abstractmethod
-    async def get_most_favorited(self, limit: int = 10) -> List[SongEntity]:
-        """Obtiene las canciones más agregadas a favoritos"""
-
-    @abstractmethod
-    async def get_recently_played(self, limit: int = 20) -> List[SongEntity]:
-        """Obtiene las canciones reproducidas recientemente"""
-
-    @abstractmethod
-    async def get_trending_artists(self, limit: int = 10) -> List[dict]:
-        """Obtiene los artistas más populares basado en reproducciones"""
-
-    @abstractmethod
-    async def get_trending_albums(self, limit: int = 10) -> List[dict]:
-        """Obtiene los álbumes más populares basado en reproducciones"""
-
-    @abstractmethod
     async def increment_play_count(self, song_id: str) -> bool:
         """Incrementa el contador de reproducciones"""
 
@@ -66,7 +54,3 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     @abstractmethod
     async def increment_download_count(self, song_id: str) -> bool:
         """Incrementa el contador de descargas"""
-
-    @abstractmethod
-    async def exists_by_source(self, source_type: str, source_id: str) -> bool:
-        """Verifica si existe una canción con la fuente específica"""

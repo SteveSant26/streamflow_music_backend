@@ -115,7 +115,7 @@ class MusicMetadataExtractor(LoggingMixin):
     def _extract_artists(
         self, video_info: YouTubeVideoInfo
     ) -> List[ExtractedArtistInfo]:
-        """Extrae información de artistas"""
+        """Extrae información de artistas (optimizado para rendimiento)"""
         artists = []
 
         # 1. Extraer del canal (más confiable)
@@ -123,22 +123,27 @@ class MusicMetadataExtractor(LoggingMixin):
         if channel_artist:
             artists.append(channel_artist)
 
-        # 2. Extraer del título
+        # 2. Extraer del título (limitado)
         title_artists = self._extract_artists_from_title(video_info.title)
-        artists.extend(title_artists)
+        artists.extend(title_artists[:2])  # Límite de 2 artistas del título
 
-        # 3. Extraer de la descripción
-        description_artists = self._extract_artists_from_description(
-            video_info.description
-        )
-        artists.extend(description_artists)
+        # 3. Solo extraer de descripción si no tenemos suficientes artistas
+        if len(artists) < 3:
+            description_artists = self._extract_artists_from_description(
+                video_info.description
+            )
+            artists.extend(
+                description_artists[:1]
+            )  # Límite de 1 artista de descripción
 
-        # 4. Extraer de tags
-        tag_artists = self._extract_artists_from_tags(video_info.tags)
-        artists.extend(tag_artists)
+        # 4. Solo extraer tags si aún necesitamos más artistas
+        if len(artists) < 2:
+            tag_artists = self._extract_artists_from_tags(video_info.tags)
+            artists.extend(tag_artists[:1])  # Límite de 1 artista de tags
 
-        # Deduplicar y rankear por confianza
-        return self._deduplicate_and_rank_artists(artists)
+        # Deduplicar y rankear por confianza, máximo 3 artistas
+        deduplicated = self._deduplicate_and_rank_artists(artists)
+        return deduplicated[:3]  # Máximo 3 artistas por video
 
     def _extract_artist_from_channel(
         self, video_info: YouTubeVideoInfo
@@ -282,24 +287,28 @@ class MusicMetadataExtractor(LoggingMixin):
     def _extract_albums(
         self, video_info: YouTubeVideoInfo, artists: List[ExtractedArtistInfo]
     ) -> List[ExtractedAlbumInfo]:
-        """Extrae información de álbumes"""
+        """Extrae información de álbumes (optimizado para rendimiento)"""
         albums = []
 
-        # Extraer del título
+        # Extraer del título (limitado)
         title_albums = self._extract_albums_from_title(video_info.title, artists)
-        albums.extend(title_albums)
+        albums.extend(title_albums[:1])  # Máximo 1 álbum del título
 
-        # Extraer de la descripción
-        description_albums = self._extract_albums_from_description(
-            video_info.description, artists
-        )
-        albums.extend(description_albums)
+        # Solo extraer de descripción si no encontramos álbumes en el título
+        if not albums:
+            description_albums = self._extract_albums_from_description(
+                video_info.description, artists
+            )
+            albums.extend(description_albums[:1])  # Máximo 1 álbum de descripción
 
-        # Extraer de tags
-        tag_albums = self._extract_albums_from_tags(video_info.tags, artists)
-        albums.extend(tag_albums)
+        # Solo extraer de tags como último recurso
+        if not albums:
+            tag_albums = self._extract_albums_from_tags(video_info.tags, artists)
+            albums.extend(tag_albums[:1])  # Máximo 1 álbum de tags
 
-        return self._deduplicate_albums(albums)
+        # Deduplicar y limitar a 2 álbumes máximo
+        deduplicated = self._deduplicate_albums(albums)
+        return deduplicated[:2]  # Máximo 2 álbumes por video
 
     def _extract_albums_from_title(
         self, title: str, artists: List[ExtractedArtistInfo]

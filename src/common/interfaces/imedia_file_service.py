@@ -18,7 +18,7 @@ class IMediaFileService(ABC):
         """Determina la extensión de archivo basada en los bytes de la imagen"""
 
     @abstractmethod
-    async def upload_media_files(
+    def upload_media_files(
         self,
         audio_bytes: Optional[bytes],
         thumbnail_bytes: Optional[bytes],

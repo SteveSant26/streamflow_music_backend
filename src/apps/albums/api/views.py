@@ -1,4 +1,5 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework.permissions import AllowAny
 
 from apps.albums.api.serializers import AlbumResponseSerializer
 from apps.albums.infrastructure.filters import AlbumModelFilter
@@ -45,6 +46,8 @@ class AlbumViewSet(FilteredViewSetMixin):
 
     queryset = AlbumModel.objects.select_related("artist").all().order_by("-created_at")
     filterset_class = AlbumModelFilter
+
+    permission_classes = [AllowAny]
 
     def get_serializer_class(self):
         return AlbumResponseSerializer

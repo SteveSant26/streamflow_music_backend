@@ -28,6 +28,9 @@ class AlbumEntityDTOMapper(AbstractEntityDtoMapper[AlbumEntity, AlbumResponseDTO
             cover_image_url=entity.cover_image_url,
             total_tracks=entity.total_tracks,
             play_count=entity.play_count,
+            source_type=entity.source_type,
+            source_id=entity.source_id,
+            source_url=entity.source_url,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -46,6 +49,9 @@ class AlbumEntityDTOMapper(AbstractEntityDtoMapper[AlbumEntity, AlbumResponseDTO
             cover_image_url=dto.cover_image_url,
             total_tracks=dto.total_tracks,
             play_count=dto.play_count,
+            source_type=dto.source_type,
+            source_id=dto.source_id,
+            source_url=dto.source_url,
             created_at=dto.created_at,
             updated_at=dto.updated_at,
         )

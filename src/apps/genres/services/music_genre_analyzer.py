@@ -1,12 +1,9 @@
-"""
-Servicio para análisis automático de géneros musicales.
-Analiza videos/música y determina qué géneros corresponden mejor usando el archivo JSON de géneros.
-"""
-
 import json
 import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
+from asgiref.sync import async_to_sync
 
 from common.mixins.logging_mixin import LoggingMixin
 
@@ -42,7 +39,6 @@ class MusicGenreAnalyzer(LoggingMixin):
             return self._json_genres_cache
 
         try:
-            # Ruta al archivo JSON
             json_path = os.path.join(
                 os.path.dirname(__file__),
                 "../../../..",
@@ -65,11 +61,11 @@ class MusicGenreAnalyzer(LoggingMixin):
 
         return self._json_genres_cache or {}
 
-    async def _get_genres_from_database(self) -> List[GenreEntity]:
+    def _get_genres_from_database(self) -> List[GenreEntity]:
         """Obtiene todos los géneros de la base de datos con cache"""
         if self._genres_cache is None:
             try:
-                self._genres_cache = await self.repository.get_all()
+                self._genres_cache = async_to_sync(self.repository.get_all)()
                 self.logger.debug(
                     f"Cargados {len(self._genres_cache)} géneros de la BD"
                 )
@@ -79,7 +75,7 @@ class MusicGenreAnalyzer(LoggingMixin):
 
         return self._genres_cache
 
-    async def analyze_music_from_metadata(
+    def analyze_music_from_metadata(
         self,
         title: str,
         artist: str = "",
@@ -88,44 +84,33 @@ class MusicGenreAnalyzer(LoggingMixin):
         max_genres: int = 3,
         min_confidence: float = 0.2,
     ) -> List[GenreMatch]:
-        """
-        Analiza música desde metadata básica usando el JSON de géneros
-        """
+        """Analiza música desde metadata básica usando el JSON de géneros"""
         try:
-            # Cargar géneros del JSON
             json_genres = self._load_genres_json()
             if not json_genres:
                 self.logger.warning("No se pudo cargar el JSON de géneros")
                 return []
 
-            # Obtener géneros de la BD para crear las entidades
-            db_genres = await self._get_genres_from_database()
+            db_genres = self._get_genres_from_database()
             genre_entities_map = {g.name.lower(): g for g in db_genres}
 
-            # Crear texto combinado para análisis
             tags_text = " ".join(tags or []).lower()
-
             genre_matches = []
 
-            # Analizar cada género del JSON
             for genre_key, genre_data in json_genres.items():
                 genre_name = genre_data["name"]
                 keywords = genre_data.get("keywords", [])
 
-                # Buscar la entidad correspondiente en la BD
                 genre_entity = genre_entities_map.get(genre_name.lower())
                 if not genre_entity:
-                    # Si no existe en BD, crear una temporal para el análisis
                     self.logger.debug(f"Género '{genre_name}' no encontrado en BD")
                     continue
 
-                # Analizar matches
                 title_matches = self._find_matches(title.lower(), keywords)
                 artist_matches = self._find_matches(artist.lower(), keywords)
                 album_matches = self._find_matches(album.lower(), keywords)
                 tags_matches = self._find_matches(tags_text, keywords)
 
-                # Calcular confianza
                 all_matches = (
                     title_matches + artist_matches + album_matches + tags_matches
                 )
@@ -150,7 +135,6 @@ class MusicGenreAnalyzer(LoggingMixin):
                             )
                         )
 
-            # Ordenar por confianza y retornar los mejores
             genre_matches.sort(key=lambda x: x.confidence_score, reverse=True)
             return genre_matches[:max_genres]
 
@@ -159,7 +143,6 @@ class MusicGenreAnalyzer(LoggingMixin):
             return []
 
     def _find_matches(self, text: str, keywords: List[str]) -> List[str]:
-        """Encuentra coincidencias de palabras clave en un texto"""
         matches = []
         text = text.lower().strip()
 
@@ -168,7 +151,7 @@ class MusicGenreAnalyzer(LoggingMixin):
             if keyword_lower in text:
                 matches.append(keyword)
 
-        return list(set(matches))  # Remover duplicados
+        return list(set(matches))
 
     def _calculate_confidence_from_metadata(
         self,
@@ -177,28 +160,22 @@ class MusicGenreAnalyzer(LoggingMixin):
         album_matches: List[str],
         tags_matches: List[str],
     ) -> float:
-        """Calcula la confianza del match basado en metadata"""
+        title_weight = 0.4
+        tags_weight = 0.3
+        artist_weight = 0.2
+        album_weight = 0.1
 
-        # Pesos por fuente
-        title_weight = 0.4  # Título es muy importante
-        tags_weight = 0.3  # Tags son específicos y valiosos
-        artist_weight = 0.2  # Artista puede indicar género
-        album_weight = 0.1  # Álbum menos específico
-
-        # Puntuación base por número de matches
         title_score = min(len(title_matches) * 0.5, 1.0)
         tags_score = min(len(tags_matches) * 0.4, 1.0)
         artist_score = min(len(artist_matches) * 0.6, 1.0)
         album_score = min(len(album_matches) * 0.3, 1.0)
 
-        # Bonificaciones
         if tags_matches:
-            tags_score += 0.2  # Bonus por tener matches en tags
+            tags_score += 0.2
 
         if title_matches:
-            title_score += 0.1  # Bonus por matches en título
+            title_score += 0.1
 
-        # Calcular confianza ponderada
         confidence = (
             title_score * title_weight
             + tags_score * tags_weight
@@ -215,7 +192,6 @@ class MusicGenreAnalyzer(LoggingMixin):
         album_matches: List[str],
         tags_matches: List[str],
     ) -> str:
-        """Determina la fuente principal del match en metadata"""
         sources = [
             ("title", len(title_matches)),
             ("tags", len(tags_matches)),

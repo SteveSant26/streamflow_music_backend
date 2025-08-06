@@ -14,9 +14,7 @@ class SongModelFilter(filters.FilterSet):
     album_title = filters.CharFilter(field_name="album__title", lookup_expr="icontains")
     album_id = filters.UUIDFilter(field_name="album__id")
     genre_name = filters.CharFilter(field_name="genres__name", lookup_expr="icontains")
-    source_type = filters.ChoiceFilter(
-        choices=SongModel._meta.get_field("source_type").choices
-    )
+
     audio_quality = filters.ChoiceFilter(
         choices=SongModel._meta.get_field("audio_quality").choices
     )
@@ -100,7 +98,6 @@ class SongModelFilter(filters.FilterSet):
             "album_title",
             "album_id",
             "genre_name",
-            "source_type",
             "audio_quality",
             "min_duration",
             "max_duration",

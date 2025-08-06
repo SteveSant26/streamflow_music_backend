@@ -1,6 +1,7 @@
 """
 Procesador para crear entidades de canciones
 """
+
 import logging
 from typing import List, Optional
 
@@ -19,7 +20,7 @@ class SongEntityProcessor:
         self.logger = logging.getLogger(__name__)
         self.mapper = TrackToSongEntityMapper()
 
-    async def create_song_entity(
+    def create_song_entity(
         self,
         music_track: MusicTrackData,
         file_url: Optional[str],
@@ -45,8 +46,8 @@ class SongEntityProcessor:
         artist_name = artist_album_info.get("artist_name") or music_track.artist_name
         album_title = artist_album_info.get("album_title") or music_track.album_title
 
-        # Crear entidad usando el mapper
-        song_entity = await self.mapper.map(
+        # Crear entidad usando el mapper (versión síncrona)
+        song_entity = self.mapper.map(
             music_track,
             file_url=file_url,
             thumbnail_url=updated_thumbnail_url,
