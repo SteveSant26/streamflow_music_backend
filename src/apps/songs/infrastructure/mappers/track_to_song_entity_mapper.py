@@ -6,6 +6,7 @@ from django.utils import timezone
 from common.adapters.media.media_types import MusicTrackData
 from common.mixins.logging_mixin import LoggingMixin
 
+from ....genres.infrastructure.models import GenreModel
 from ....genres.infrastructure.repository.genre_repository import GenreRepository
 from ...domain.entities import SongEntity
 
@@ -17,7 +18,7 @@ class TrackToSongEntityMapper(LoggingMixin):
         super().__init__()
         self.genre_repository = GenreRepository()
 
-    async def map(
+    def map(
         self,
         track: MusicTrackData,
         file_url: Optional[str] = None,
@@ -44,17 +45,16 @@ class TrackToSongEntityMapper(LoggingMixin):
         genre_ids = []
         if analyzed_genres:
             try:
-                genre_ids = await self._get_genre_ids_from_names(analyzed_genres)
+                genre_ids = self._get_genre_ids_from_names(analyzed_genres)
             except Exception as e:
-                # Si hay error obteniendo los IDs, continuar sin géneros
                 self.logger.error(f"Error obteniendo IDs de géneros: {str(e)}")
                 genre_ids = []
 
         return SongEntity(
             id=str(uuid.uuid4()),
             title=track.title,
-            artist_id=artist_id,  # Usar el artist_id proporcionado
-            album_id=album_id,  # Usar el album_id proporcionado
+            artist_id=artist_id,
+            album_id=album_id,
             album_title=track.album_title,
             duration_seconds=track.duration_seconds,
             file_url=file_url,
@@ -65,10 +65,10 @@ class TrackToSongEntityMapper(LoggingMixin):
             audio_quality="standard",
             created_at=timezone.now(),
             release_date=timezone.now(),
-            genre_ids=genre_ids,  # Asignar los IDs de géneros obtenidos
+            genre_ids=genre_ids,
         )
 
-    async def _get_genre_ids_from_names(self, genre_names: List[str]) -> List[str]:
+    def _get_genre_ids_from_names(self, genre_names: List[str]) -> List[str]:
         """
         Convierte una lista de nombres de géneros a una lista de IDs de géneros
 
@@ -78,25 +78,14 @@ class TrackToSongEntityMapper(LoggingMixin):
         Returns:
             Lista de IDs de géneros (como strings)
         """
-        from asgiref.sync import sync_to_async
-
-        from ....genres.infrastructure.models import GenreModel
-
         genre_ids = []
 
         for genre_name in genre_names:
             try:
-                # Buscar el género por nombre (case insensitive) directamente en el modelo
-                genre_model = await sync_to_async(
-                    lambda name=genre_name: GenreModel.objects.filter(
-                        name__iexact=name
-                    ).first()
-                )()
-
+                genre_model = GenreModel.objects.filter(name__iexact=genre_name).first()
                 if genre_model:
                     genre_ids.append(str(genre_model.id))
             except Exception as e:
-                # Si hay error con un género específico, continuar con los demás
                 self.logger.error(f"Error buscando género '{genre_name}': {str(e)}")
                 continue
 

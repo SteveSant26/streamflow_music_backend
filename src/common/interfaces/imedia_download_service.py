@@ -6,7 +6,7 @@ class IMediaDownloadService(ABC):
     """Interface para servicios de descarga de medios"""
 
     @abstractmethod
-    async def download_thumbnail(self, url: str) -> Optional[bytes]:
+    def download_thumbnail(self, url: str) -> Optional[bytes]:
         """
         Descarga una imagen thumbnail desde una URL
 
@@ -18,7 +18,7 @@ class IMediaDownloadService(ABC):
         """
 
     @abstractmethod
-    async def download_audio(self, video_id: str) -> Optional[bytes]:
+    def download_audio(self, video_id: str) -> Optional[bytes]:
         """
         Descarga audio desde un video ID
 

@@ -49,7 +49,7 @@ class MediaFileService(IMediaFileService, LoggingMixin):
             return "jpg"
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    async def upload_media_files(
+    def upload_media_files(
         self,
         audio_bytes: Optional[bytes],
         thumbnail_bytes: Optional[bytes],
@@ -72,19 +72,17 @@ class MediaFileService(IMediaFileService, LoggingMixin):
 
         # Subir archivo de audio
         if audio_bytes:
-            audio_file_name = await self._upload_audio_file(audio_bytes, video_id)
+            audio_file_name = self._upload_audio_file(audio_bytes, video_id)
 
         # Subir thumbnail
         if thumbnail_bytes:
-            thumbnail_file_name, thumbnail_url = await self._upload_thumbnail_file(
+            thumbnail_file_name, thumbnail_url = self._upload_thumbnail_file(
                 thumbnail_bytes, video_id
             )
 
         return audio_file_name, thumbnail_file_name, thumbnail_url
 
-    async def _upload_audio_file(
-        self, audio_bytes: bytes, video_id: str
-    ) -> Optional[str]:
+    def _upload_audio_file(self, audio_bytes: bytes, video_id: str) -> Optional[str]:
         """Sube archivo de audio al storage"""
         try:
             audio_file_name = self.generate_audio_filename(video_id)
@@ -105,7 +103,7 @@ class MediaFileService(IMediaFileService, LoggingMixin):
             self.logger.error(f"Error uploading audio for video {video_id}: {str(e)}")
             return None
 
-    async def _upload_thumbnail_file(
+    def _upload_thumbnail_file(
         self, thumbnail_bytes: bytes, video_id: str
     ) -> Tuple[Optional[str], Optional[str]]:
         """Sube thumbnail al storage"""

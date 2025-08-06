@@ -1,0 +1,26 @@
+{
+  "searches": [
+    {
+      "query": "Riptide",
+      "operation": "full_search",
+      "start_time": 1754461820.487682,
+      "timestamp": "2025-08-06T01:30:20.487683",
+      "end_time": 1754462004.3887658,
+      "duration": 183.90108394622803,
+      "result_count": 9,
+      "success": true,
+      "error": null
+    }
+  ],
+  "summary": {
+    "total_searches": 1,
+    "successful_searches": 1,
+    "success_rate": 100.0,
+    "last_updated": "2025-08-06T01:33:24.388776",
+    "avg_duration": 183.90108394622803,
+    "max_duration": 183.90108394622803,
+    "min_duration": 183.90108394622803,
+    "avg_results": 9.0,
+    "total_results_found": 9
+  }
+}

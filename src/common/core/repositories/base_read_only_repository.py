@@ -30,7 +30,7 @@ class BaseReadOnlyDjangoRepository(
         """Obtiene una entidad por ID"""
         try:
             model_instance = await self.model_class.objects.aget(id=entity_id)
-            return self.mapper.model_to_entity(model_instance)
+            return await sync_to_async(self.mapper.model_to_entity)(model_instance)
         except ObjectDoesNotExist:
             self.logger.debug(
                 f"{self.model_class.__name__} with id {entity_id} not found"
@@ -45,8 +45,8 @@ class BaseReadOnlyDjangoRepository(
     async def get_all(self) -> List[EntityType]:
         """Obtiene todas las entidades activas"""
         try:
-            models = await sync_to_async(lambda: list(self.model_class.objects.all()))()
-            return self.mapper.models_to_entities(models)
+            models = [model async for model in self.model_class.objects.all()]
+            return await sync_to_async(self.mapper.models_to_entities)(models)
         except Exception as e:
             self.logger.error(
                 f"Error getting all {self.model_class.__name__}: {str(e)}"
