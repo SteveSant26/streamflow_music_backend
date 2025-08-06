@@ -1,11 +1,8 @@
-import time
 from typing import Any
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
-from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 
 from apps.songs.api.dtos import SongSearchRequestDTO
 from apps.songs.api.mappers import SongMapper
@@ -205,63 +202,3 @@ class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
             self.logger.error(
                 f"Error in _fetch_youtube_results for title '{query}': {str(e)}"
             )
-
-    @action(detail=False, methods=["get"], url_path="performance-test")
-    def performance_test(self, request):
-        """
-        Debug endpoint to test search performance with detailed timing
-        Usage: GET /api/songs/performance-test/?title=In%20the%20end
-        """
-        title = request.GET.get("title", "test song")
-
-        start_time = time.perf_counter()
-
-        try:
-            # Create search DTO
-            request_dto = SongSearchRequestDTO(
-                query=title, limit=1, include_youtube=True
-            )
-
-            # Execute search with timing
-            search_start = time.perf_counter()
-            songs = self.search_songs_use_case.execute(request_dto)
-            search_duration = time.perf_counter() - search_start
-
-            total_duration = time.perf_counter() - start_time
-
-            # Performance metrics
-            performance_data = {
-                "query": title,
-                "total_execution_time": f"{total_duration:.3f}s",
-                "search_execution_time": f"{search_duration:.3f}s",
-                "songs_found": len(songs),
-                "performance_status": "good" if total_duration < 5.0 else "slow",
-                "cached_videos": len(
-                    getattr(self.search_songs_use_case, "_processing_cache", set())
-                ),
-                "songs_data": [
-                    {
-                        "id": song.id,
-                        "title": song.title,
-                        "artist": song.artist_name,
-                        "source_type": song.source_type,
-                        "source_id": song.source_id,
-                    }
-                    for song in songs[:3]  # First 3 songs
-                ],
-            }
-
-            return Response(performance_data)
-
-        except Exception as e:
-            total_duration = time.perf_counter() - start_time
-            error_data = {
-                "query": title,
-                "error": str(e),
-                "total_execution_time": f"{total_duration:.3f}s",
-                "songs_found": 0,
-                "performance_status": "error",
-            }
-            return Response(error_data, status=500)
-            self.logger.exception("Full traceback:")
-            raise

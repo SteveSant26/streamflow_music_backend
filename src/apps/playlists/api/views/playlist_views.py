@@ -67,6 +67,7 @@ class PlaylistViewSet(CRUDViewSetMixin):
     queryset = PlaylistModel.objects.all()
     serializer_class = PlaylistResponseSerializer
     filterset_class = PlaylistModelFilter
+    http_method_names = ["get", "post", "put", "delete"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -110,188 +111,146 @@ class PlaylistViewSet(CRUDViewSetMixin):
             f"user_id={request.user.id if request.user.is_authenticated else 'anonymous'}",
         )
 
-        try:
-            # Configurar parámetros sin límites - DRF se encarga de la paginación
-            params = {}
+        # Configurar parámetros sin límites - DRF se encarga de la paginación
+        params = {}
 
-            # Solo agregar user_id si el usuario está autenticado
-            if request.user.is_authenticated:
-                params["user_id"] = str(request.user.id)
+        # Solo agregar user_id si el usuario está autenticado
+        if request.user.is_authenticated:
+            params["user_id"] = str(request.user.id)
 
-            # Ejecutar caso de uso de manera sincrónica
-            get_use_case = GetPublicAndUserPlaylistsUseCase(self.playlist_repository)
-            playlists = async_to_sync(get_use_case.execute)(params)
+        # Ejecutar caso de uso de manera sincrónica
+        get_use_case = GetPublicAndUserPlaylistsUseCase(self.playlist_repository)
+        playlists = async_to_sync(get_use_case.execute)(params)
 
-            user_info = (
-                f"user {request.user.id}"
-                if request.user.is_authenticated
-                else "anonymous user"
-            )
-            # Usar la paginación de DRF
-            page = self.paginate_queryset(playlists)
-            if page is not None:
-                playlist_dtos = self.mapper.entities_to_dtos(page)
-                serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
-                self.logger.info(f"Retrieved {len(page)} playlists for {user_info}")
-                return self.get_paginated_response(serializer.data)
-
-            # Fallback sin paginación si no se puede paginar
-            playlist_dtos = self.mapper.entities_to_dtos(playlists)
+        user_info = (
+            f"user {request.user.id}"
+            if request.user.is_authenticated
+            else "anonymous user"
+        )
+        # Usar la paginación de DRF
+        page = self.paginate_queryset(playlists)
+        if page is not None:
+            playlist_dtos = self.mapper.entities_to_dtos(page)
             serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
+            self.logger.info(f"Retrieved {len(page)} playlists for {user_info}")
+            return self.get_paginated_response(serializer.data)
 
-            self.logger.info(f"Retrieved {len(playlists)} playlists for {user_info}")
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        # Fallback sin paginación si no se puede paginar
+        playlist_dtos = self.mapper.entities_to_dtos(playlists)
+        serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
 
-        except Exception as e:
-            self.logger.error(f"Error listing playlists: {str(e)}")
-            return Response(
-                {"error": ERROR_LISTING_PLAYLISTS_MSG},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        self.logger.info(f"Retrieved {len(playlists)} playlists for {user_info}")
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request):
         """Crea una nueva playlist"""
         self.logger.debug(f"user_id={request.user.id}")
 
-        try:
-            user_id = str(request.user.id)
-            serializer = PlaylistCreateSerializer(data=request.data)
-            if not serializer.is_valid():
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_id = str(request.user.id)
+        serializer = PlaylistCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # Usar los datos del request después de la validación
-            name = request.data.get("name", "")
-            description = request.data.get("description")
-            is_public = request.data.get("is_public", False)
+        # Usar los datos del request después de la validación
+        name = request.data.get("name", "")
+        description = request.data.get("description")
+        is_public = request.data.get("is_public", False)
 
-            create_dto = CreatePlaylistRequestDTO(
-                name=name,
-                description=description,
-                is_public=is_public,
-            )
+        create_dto = CreatePlaylistRequestDTO(
+            name=name,
+            description=description,
+            is_public=is_public,
+        )
 
-            use_case = CreatePlaylistUseCase(self.playlist_repository)
-            playlist = async_to_sync(use_case.execute)(create_dto, user_id)
+        use_case = CreatePlaylistUseCase(self.playlist_repository)
+        playlist = async_to_sync(use_case.execute)(create_dto, user_id)
 
-            playlist_dto = self.mapper.entity_to_dto(playlist)
-            response_serializer = PlaylistResponseSerializer(playlist_dto)
+        playlist_dto = self.mapper.entity_to_dto(playlist)
+        response_serializer = PlaylistResponseSerializer(playlist_dto)
 
-            self.logger.info(f"Created playlist {playlist.id} for user {user_id}")
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        self.logger.info(f"Created playlist {playlist.id} for user {user_id}")
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
-        except Exception as e:
-            self.logger.error(f"Error creating playlist: {str(e)}")
-            return Response(
-                {"error": ERROR_CREATING_PLAYLIST_MSG},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-    def retrieve(self, request, id=None):
+    def retrieve(self, request, pk=None):
         """Obtiene una playlist específica"""
-        self.logger.debug(f"user_id={request.user.id}, playlist_id={id}")
+        self.logger.debug(f"user_id={request.user.id}, playlist_id={pk}")
 
-        try:
-            if not id:
-                raise Http404(PLAYLIST_NOT_FOUND_MSG)
+        if not pk:
+            raise Http404(PLAYLIST_NOT_FOUND_MSG)
 
-            playlist_id = str(id)
-            user_id = str(request.user.id)
+        playlist_id = str(pk)
+        user_id = str(request.user.id)
 
-            get_use_case = GetUserPlaylistsUseCase(self.playlist_repository)
-            playlists = async_to_sync(get_use_case.execute)(user_id)
+        get_use_case = GetUserPlaylistsUseCase(self.playlist_repository)
+        playlists = async_to_sync(get_use_case.execute)(user_id)
 
-            playlist = next((p for p in playlists if p.id == playlist_id), None)
-            if not playlist:
-                raise Http404(PLAYLIST_NOT_FOUND_MSG)
+        playlist = next((p for p in playlists if p.id == playlist_id), None)
+        if not playlist:
+            raise Http404(PLAYLIST_NOT_FOUND_MSG)
 
-            playlist_dto = self.mapper.entity_to_dto(playlist)
-            serializer = PlaylistResponseSerializer(playlist_dto)
+        playlist_dto = self.mapper.entity_to_dto(playlist)
+        serializer = PlaylistResponseSerializer(playlist_dto)
 
-            self.logger.info(f"Retrieved playlist {playlist_id} for user {user_id}")
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        self.logger.info(f"Retrieved playlist {playlist_id} for user {user_id}")
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        except Http404:
-            raise
-        except Exception as e:
-            self.logger.error(f"Error retrieving playlist: {str(e)}")
-            return Response(
-                {"error": ERROR_RETRIEVING_PLAYLIST_MSG},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-    def update(self, request, id=None):
+    def update(self, request, pk=None):
         """Actualiza una playlist"""
-        self.logger.debug(f"user_id={request.user.id}, playlist_id={id}")
+        self.logger.debug(f"user_id={request.user.id}, playlist_id={pk}")
 
-        try:
-            if not id:
-                raise Http404(PLAYLIST_NOT_FOUND_MSG)
+        if not pk:
+            raise Http404(PLAYLIST_NOT_FOUND_MSG)
 
-            playlist_id = str(id)
-            user_id = str(request.user.id)
+        playlist_id = str(pk)
+        user_id = str(request.user.id)
 
-            serializer = PlaylistUpdateSerializer(data=request.data, partial=True)
-            if not serializer.is_valid():
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PlaylistUpdateSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # Usar los datos del request después de la validación
-            name = request.data.get("name")
-            description = request.data.get("description")
-            is_public = request.data.get("is_public")
+        # Usar los datos del request después de la validación
+        name = request.data.get("name")
+        description = request.data.get("description")
+        is_public = request.data.get("is_public")
 
-            update_dto = UpdatePlaylistRequestDTO(
-                playlist_id=playlist_id,
-                name=name,
-                description=description,
-                is_public=is_public,
-            )
+        update_dto = UpdatePlaylistRequestDTO(
+            playlist_id=playlist_id,
+            name=name,
+            description=description,
+            is_public=is_public,
+        )
 
-            use_case = UpdatePlaylistUseCase(self.playlist_repository)
-            playlist = async_to_sync(use_case.execute)(
-                {
-                    "playlist_id": playlist_id,
-                    "user_id": user_id,
-                    "update_dto": update_dto,
-                }
-            )
+        use_case = UpdatePlaylistUseCase(self.playlist_repository)
+        playlist = async_to_sync(use_case.execute)(
+            {
+                "playlist_id": playlist_id,
+                "user_id": user_id,
+                "update_dto": update_dto,
+            }
+        )
 
-            playlist_dto = self.mapper.entity_to_dto(playlist)
-            response_serializer = PlaylistResponseSerializer(playlist_dto)
+        playlist_dto = self.mapper.entity_to_dto(playlist)
+        response_serializer = PlaylistResponseSerializer(playlist_dto)
 
-            self.logger.info(f"Updated playlist {playlist_id} for user {user_id}")
-            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        self.logger.info(f"Updated playlist {playlist_id} for user {user_id}")
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            self.logger.error(f"Error updating playlist: {str(e)}")
-            return Response(
-                {"error": ERROR_UPDATING_PLAYLIST_MSG},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-    def destroy(self, request, id=None):
+    def destroy(self, request, pk=None):
         """Elimina una playlist"""
-        self.logger.debug("destroy", f"user_id={request.user.id}, playlist_id={id}")
+        self.logger.debug("destroy", f"user_id={request.user.id}, playlist_id={pk}")
 
-        try:
-            if not id:
-                raise Http404(PLAYLIST_NOT_FOUND_MSG)
+        if not pk:
+            raise Http404(PLAYLIST_NOT_FOUND_MSG)
 
-            playlist_id = str(id)
-            use_case = DeletePlaylistUseCase(self.playlist_repository)
-            result = async_to_sync(use_case.execute)(playlist_id)
+        playlist_id = str(pk)
+        use_case = DeletePlaylistUseCase(self.playlist_repository)
+        result = async_to_sync(use_case.execute)(playlist_id)
 
-            if result:
-                self.logger.info(f"Deleted playlist {playlist_id}")
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(
-                    {"error": DELETE_FAILED_MSG},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        except Exception as e:
-            self.logger.error(f"Error deleting playlist: {str(e)}")
+        if result:
+            self.logger.info(f"Deleted playlist {playlist_id}")
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
             return Response(
-                {"error": ERROR_DELETING_PLAYLIST_MSG},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": DELETE_FAILED_MSG},
+                status=status.HTTP_400_BAD_REQUEST,
             )

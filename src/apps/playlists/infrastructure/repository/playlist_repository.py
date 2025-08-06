@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
+from django.db import models
 
 from apps.playlists.api.mappers.playlist_entity_model_mapper import (
     PlaylistEntityModelMapper,
@@ -128,12 +129,38 @@ class PlaylistRepository(
             )
         else:
             position_to_use = position
-            # Mover las canciones siguientes una posición hacia abajo
-            async for playlist_song in PlaylistSongModel.objects.filter(
-                playlist_id=playlist_id, position__gte=position_to_use
-            ):
-                playlist_song.position += 1
-                await playlist_song.asave()
+            # Para evitar violación de constraint único, utilizamos una estrategia diferente:
+            # 1. Primero encontramos el máximo de posiciones actual
+            # 2. Movemos todos los elementos a posiciones temporales altas
+            # 3. Luego los reordenamos correctamente
+
+            # Obtener el máximo de posiciones actual
+            max_position = await sync_to_async(
+                PlaylistSongModel.objects.filter(playlist_id=playlist_id).aggregate
+            )(max_pos=models.Max("position"))
+            max_pos = max_position["max_pos"] or 0
+
+            # Obtener todas las canciones que necesitan moverse
+            songs_to_move = [
+                song
+                async for song in PlaylistSongModel.objects.filter(
+                    playlist_id=playlist_id, position__gte=position_to_use
+                ).order_by("position")
+            ]
+
+            # Mover a posiciones temporales altas para evitar conflictos
+            temp_position = max_pos + 1000  # Usar posiciones muy altas temporalmente
+            for song in songs_to_move:
+                song.position = temp_position
+                await song.asave()
+                temp_position += 1
+
+            # Ahora mover a las posiciones finales correctas
+            final_position = position_to_use + 1
+            for song in songs_to_move:
+                song.position = final_position
+                await song.asave()
+                final_position += 1
 
         model = await PlaylistSongModel.objects.acreate(
             playlist_id=playlist_id, song_id=song_id, position=position_to_use
@@ -141,8 +168,8 @@ class PlaylistRepository(
 
         return PlaylistSongEntity(
             id=str(model.id),
-            playlist_id=str(model.playlist.id),
-            song_id=str(model.song.id),
+            playlist_id=playlist_id,
+            song_id=song_id,
             position=model.position,
             added_at=model.added_at,
         )
@@ -182,32 +209,15 @@ class PlaylistRepository(
         return [
             PlaylistSongEntity(
                 id=str(model.id),
-                playlist_id=str(model.playlist.id),
-                song_id=str(model.song.id),
+                playlist_id=playlist_id,
+                song_id=str(
+                    model.song_id  # pyright: ignore[reportAttributeAccessIssue]
+                ),
                 position=model.position,
                 added_at=model.added_at,
             )
             for model in models
         ]
-
-    # Métodos adicionales requeridos por la interfaz
-    async def reorder_playlist_songs(
-        self, playlist_id: str, song_positions: List[tuple[str, int]]
-    ) -> bool:
-        """Reordena las canciones de una playlist"""
-        self.logger.info(f"Reordering songs in playlist: {playlist_id}")
-
-        try:
-            for song_id, new_position in song_positions:
-                playlist_song = await PlaylistSongModel.objects.aget(
-                    playlist_id=playlist_id, song_id=song_id
-                )
-                playlist_song.position = new_position
-                await playlist_song.asave()
-            return True
-        except Exception as e:
-            self.logger.error(f"Error reordering songs: {e}")
-            return False
 
     async def get_public_playlists(
         self,
