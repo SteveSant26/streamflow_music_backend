@@ -2,8 +2,8 @@ from typing import Optional
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from ...common.adapters.lyrics.lyrics_service import LyricsService, LyricsUpdateService
-from ...common.mixins.logging_mixin import LoggingMixin
+from src.common.adapters.lyrics.lyrics_service import LyricsService, LyricsUpdateService
+from src.common.mixins.logging_mixin import LoggingMixin
 from ..infrastructure.models.song_model import SongModel
 
 
