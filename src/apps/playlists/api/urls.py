@@ -10,12 +10,12 @@ router.register(r"playlist", PlaylistViewSet, basename="playlist")
 urlpatterns = [
     path("", include(router.urls)),
     path(
-        "playlists/<uuid:pk>/songs/",
+        "playlist-songs/<uuid:pk>/songs/",
         PlaylistSongViewSet.as_view({"get": "list_songs", "post": "add_song"}),
         name="playlist-songs",
     ),
     path(
-        "playlists/<uuid:pk>/songs/<uuid:song_id>/",
+        "playlist-songs/<uuid:pk>/songs/<uuid:song_id>/",
         PlaylistSongViewSet.as_view({"delete": "remove_song"}),
         name="playlist-songs-delete",
     ),

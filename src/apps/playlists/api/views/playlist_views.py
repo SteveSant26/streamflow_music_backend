@@ -29,7 +29,6 @@ from apps.user_profile.infrastructure.permissions import (
 )
 from src.common.factories.storage_service_factory import StorageServiceFactory
 from src.common.mixins.crud_viewset_mixin import CRUDViewSetMixin
-from src.common.utils.schema_decorators import paginated_list_endpoint
 
 from ..dtos import CreatePlaylistRequestDTO, UpdatePlaylistRequestDTO
 from ..mappers import PlaylistEntityDTOMapper
@@ -104,45 +103,40 @@ class PlaylistViewSet(CRUDViewSetMixin):
         permission_classes = action_permissions.get(self.action, [AllowAny])
         return [permission() for permission in permission_classes]
 
-    @paginated_list_endpoint(
-        serializer_class=PlaylistResponseSerializer,
-        tags=["Playlists"],
-        description="Get popular playlists from the database",
-    )
     def list(self, request):
         """Lista las playlists públicas y del usuario autenticado"""
         self.logger.debug(
             f"user_id={request.user.id if request.user.is_authenticated else 'anonymous'}",
         )
 
-        # Configurar parámetros sin límites - DRF se encarga de la paginación
-        params = {}
+        queryset = self.filter_queryset(self.get_queryset())
 
-        # Solo agregar user_id si el usuario está autenticado
-        if request.user.is_authenticated:
-            params["user_id"] = str(request.user.id)
+        user_id = str(request.user.id) if request.user.is_authenticated else None
 
-        # Ejecutar caso de uso de manera sincrónica
         get_use_case = GetPublicAndUserPlaylistsUseCase(self.playlist_repository)
-        playlists = async_to_sync(get_use_case.execute)(params)
+        self.logger.info(
+            f"Executing GetPublicAndUserPlaylistsUseCase for user: {user_id}"
+        )
+
+        playlists = async_to_sync(get_use_case.execute)(queryset, user_id)
 
         user_info = (
             f"user {request.user.id}"
             if request.user.is_authenticated
             else "anonymous user"
         )
-        # Usar la paginación de DRF
+
+        # Paso 3: Paginación y serialización de la lista de entidades en memoria.
         page = self.paginate_queryset(playlists)
+
         if page is not None:
             playlist_dtos = self.mapper.entities_to_dtos(page)
             serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
             self.logger.info(f"Retrieved {len(page)} playlists for {user_info}")
             return self.get_paginated_response(serializer.data)
 
-        # Fallback sin paginación si no se puede paginar
         playlist_dtos = self.mapper.entities_to_dtos(playlists)
         serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
-
         self.logger.info(f"Retrieved {len(playlists)} playlists for {user_info}")
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -153,10 +147,6 @@ class PlaylistViewSet(CRUDViewSetMixin):
         user_id = str(request.user.id)
         serializer = PlaylistCreateSerializer(data=request.data)
         if not serializer.is_valid():
-            print(serializer.errors)
-            print(serializer.errors)
-            print(serializer.errors)
-            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         name = request.data.get("name", "")

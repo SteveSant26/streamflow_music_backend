@@ -1,6 +1,9 @@
 from abc import abstractmethod
 from typing import Any, List, Optional
 
+from asgiref.sync import sync_to_async
+from django.db.models.query import QuerySet
+
 from common.interfaces.ibase_repository import IBaseRepository
 
 from ..entities import PlaylistEntity, PlaylistSongEntity
@@ -69,3 +72,22 @@ class IPlaylistRepository(IBaseRepository[PlaylistEntity, Any]):
     @abstractmethod
     async def is_song_in_playlist(self, playlist_id: str, song_id: str) -> bool:
         """Verifica si una canción está en una playlist específica"""
+
+    @abstractmethod
+    @sync_to_async
+    def _get_playlists_from_queryset_sync(
+        self, queryset: QuerySet
+    ) -> List[PlaylistEntity]:
+        """Convierte un queryset de Django a una lista de entidades de playlist"""
+
+    async def get_from_queryset(self, queryset: QuerySet) -> List[PlaylistEntity]:
+        """
+        Obtiene una lista de entidades de playlist a partir de un queryset.
+
+        Args:
+            queryset (QuerySet): QuerySet de Django con los resultados.
+
+        Returns:
+            List[PlaylistEntity]: Lista de entidades de playlist.
+        """
+        return await self._get_playlists_from_queryset_sync(queryset)

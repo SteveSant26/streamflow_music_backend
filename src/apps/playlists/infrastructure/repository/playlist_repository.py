@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from asgiref.sync import sync_to_async
 from django.db import models
+from django.db.models import QuerySet
 
 from apps.playlists.api.mappers.playlist_entity_model_mapper import (
     PlaylistEntityModelMapper,
@@ -264,3 +265,9 @@ class PlaylistRepository(
         return await PlaylistSongModel.objects.filter(
             playlist_id=playlist_id, song_id=song_id
         ).aexists()
+
+    @sync_to_async
+    def _get_playlists_from_queryset_sync(
+        self, queryset: QuerySet
+    ) -> List[PlaylistEntity]:
+        return self.mapper.models_to_entities(list(queryset))

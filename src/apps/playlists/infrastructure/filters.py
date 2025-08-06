@@ -1,3 +1,5 @@
+# apps/playlists/infrastructure/filters.py
+
 from django.db.models import Count
 from django_filters import rest_framework as filters
 
@@ -35,14 +37,12 @@ class PlaylistModelFilter(filters.FilterSet):
 
     def filter_min_song_count(self, queryset, name, value):
         """Filtra playlists con un mínimo número de canciones"""
-
-        return queryset.annotate(song_count=Count("playlistsongmodel")).filter(
+        return queryset.annotate(song_count=Count("playlist_songs")).filter(
             song_count__gte=value
         )
 
     def filter_max_song_count(self, queryset, name, value):
         """Filtra playlists con un máximo número de canciones"""
-
-        return queryset.annotate(song_count=Count("playlistsongmodel")).filter(
+        return queryset.annotate(song_count=Count("playlist_songs")).filter(
             song_count__lte=value
         )
