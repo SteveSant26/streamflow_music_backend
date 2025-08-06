@@ -5,8 +5,8 @@ from apps.playlists.api.views import PlaylistSongViewSet, PlaylistViewSet
 
 # Router para las APIs REST
 router = DefaultRouter()
-router.register(r"playlists", PlaylistViewSet, basename="playlist")
-router.register(r"playlists", PlaylistSongViewSet, basename="playlist-songs")
+router.register(r"", PlaylistViewSet, basename="playlist")
+router.register(r"", PlaylistSongViewSet, basename="playlist-songs")
 
 urlpatterns = [
     path("", include(router.urls)),

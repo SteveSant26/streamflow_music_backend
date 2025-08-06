@@ -35,7 +35,7 @@ class PlaylistRepository(
         """Actualiza una playlist existente usando la entidad completa"""
         self.logger.info(f"Updating playlist: {entity.id}")
 
-        model = await PlaylistModel.objects.aget(id=entity.id)
+        model = await PlaylistModel.objects.select_related("user").aget(id=entity.id)
         model.name = entity.name
         model.description = entity.description
         model.is_public = entity.is_public
@@ -46,7 +46,9 @@ class PlaylistRepository(
         """Elimina una playlist usando string ID (solo si no es default)"""
         self.logger.info(f"Deleting playlist: {entity_id}")
         try:
-            model = await PlaylistModel.objects.aget(id=entity_id)
+            model = await PlaylistModel.objects.select_related("user").aget(
+                id=entity_id
+            )
             if model.is_default:
                 raise ValueError("No se puede eliminar una playlist por defecto")
             await model.adelete()
@@ -58,12 +60,14 @@ class PlaylistRepository(
         """Obtiene todas las playlists de un usuario"""
         self.logger.debug(f"Getting playlists for user: {user_id}")
 
-        models = [
-            model
-            async for model in PlaylistModel.objects.filter(user_id=user_id).order_by(
-                "created_at"
-            )
-        ]
+        models = []
+        async for model in (
+            PlaylistModel.objects.filter(user__id=user_id)
+            .select_related("user")
+            .order_by("created_at")
+        ):
+            models.append(model)
+
         return [self.mapper.model_to_entity(model) for model in models]
 
     async def get_default_playlist(
@@ -73,8 +77,8 @@ class PlaylistRepository(
         self.logger.debug(f"Getting default playlist '{name}' for user: {user_id}")
 
         try:
-            model = await PlaylistModel.objects.aget(
-                user_id=user_id, name=name, is_default=True
+            model = await PlaylistModel.objects.select_related("user").aget(
+                user__id=user_id, name=name, is_default=True
             )
             return self.mapper.model_to_entity(model)
         except PlaylistModel.DoesNotExist:
@@ -86,10 +90,17 @@ class PlaylistRepository(
         """Crea la playlist por defecto para un usuario"""
         self.logger.info(f"Creating default playlist '{name}' for user: {user_id}")
 
+        # Obtener la instancia del usuario
+        from apps.user_profile.infrastructure.models.user_profile import (
+            UserProfileModel,
+        )
+
+        user_instance = await UserProfileModel.objects.aget(id=user_id)
+
         model = await PlaylistModel.objects.acreate(
             name=name,
             description=f"Tu playlist {name}",
-            user_id=user_id,
+            user=user_instance,
             is_default=True,
             is_public=False,
         )
@@ -206,12 +217,13 @@ class PlaylistRepository(
             f"Getting public playlists with limit: {limit}, offset: {offset}"
         )
 
-        models = [
-            model
-            async for model in PlaylistModel.objects.filter(is_public=True).order_by(
-                "-created_at"
-            )[offset : offset + limit]
-        ]
+        models = []
+        async for model in (
+            PlaylistModel.objects.filter(is_public=True)
+            .select_related("user")
+            .order_by("-created_at")[offset : offset + limit]
+        ):
+            models.append(model)
         return [self.mapper.model_to_entity(model) for model in models]
 
     async def search_playlists(
@@ -227,11 +239,15 @@ class PlaylistRepository(
         )
 
         if user_id:
-            queryset = queryset.filter(Q(user_id=user_id) | Q(is_public=True))
+            queryset = queryset.filter(Q(user__id=user_id) | Q(is_public=True))
         else:
             queryset = queryset.filter(is_public=True)
 
-        models = [model async for model in queryset.order_by("-created_at")[:limit]]
+        models = []
+        async for model in queryset.select_related("user").order_by("-created_at")[
+            :limit
+        ]:
+            models.append(model)
         return [self.mapper.model_to_entity(model) for model in models]
 
     async def get_playlist_song_count(self, playlist_id: str) -> int:

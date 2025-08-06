@@ -21,7 +21,6 @@ class CRUDViewSetMixin(PaginationMixin, viewsets.ModelViewSet, LoggingMixin):
 
     # Configuración por defecto que puede ser sobrescrita
     permission_classes = [IsAuthenticated]
-    ordering = ["-created_at"]
 
     def get_permissions(self) -> List[BasePermission]:
         return [permission() for permission in self.permission_classes]

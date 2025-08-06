@@ -3,13 +3,11 @@ from .song_dtos import (
     RandomSongsRequestDTO,
     SongResponseDTO,
     SongSearchRequestDTO,
-    SongSearchResponseDTO,
 )
 
 __all__ = [
     "SongResponseDTO",
     "SongSearchRequestDTO",
-    "SongSearchResponseDTO",
     "RandomSongsRequestDTO",
     "IncrementCountRequestDTO",
 ]

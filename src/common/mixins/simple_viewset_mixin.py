@@ -2,6 +2,7 @@
 Mixin para ViewSets simples que no requieren paginación automática.
 Proporciona funcionalidad básica de logging y permisos.
 """
+
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ViewSet
 

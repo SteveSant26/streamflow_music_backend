@@ -52,16 +52,6 @@ class SongSearchRequestDTO:
 
 
 @dataclass
-class SongSearchResponseDTO:
-    """DTO para respuesta de búsqueda de canciones"""
-
-    source: str  # "local_cache", "youtube_api", "mixed"
-    results: list
-    total_found: int
-    message: Optional[str] = None
-
-
-@dataclass
 class RandomSongsRequestDTO:
     """DTO para solicitud de canciones aleatorias"""
 

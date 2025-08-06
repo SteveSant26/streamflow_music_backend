@@ -2,6 +2,8 @@
 Mapper entre entidades de canción en playlist y DTOs
 """
 
+from typing import Iterable, List
+
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 
 from ...domain.entities import PlaylistSongEntity
@@ -92,3 +94,89 @@ class PlaylistSongEntityDTOMapper(
                 "artist": None,
                 "duration": None,
             }
+
+    def entities_to_dtos(
+        self, entities: Iterable[PlaylistSongEntity]
+    ) -> List[PlaylistSongResponseDTO]:
+        """
+        Convierte una lista de entidades a DTOs
+
+        Args:
+            entities: Lista de entidades de canción en playlist
+
+        Returns:
+            Lista de DTOs de respuesta de canción en playlist
+        """
+        return [self.entity_to_dto(entity) for entity in entities]
+
+    def entities_to_dtos_with_song_info(
+        self, entities: Iterable[PlaylistSongEntity]
+    ) -> List[PlaylistSongResponseDTO]:
+        """
+        Convierte entidades a DTOs con información optimizada de canciones
+        (usando una sola consulta para todas las canciones)
+
+        Args:
+            entities: Lista de entidades de canción en playlist
+
+        Returns:
+            Lista de DTOs de respuesta con información de canciones
+        """
+        entities_list = list(entities)
+        if not entities_list:
+            return []
+
+        # Obtener IDs de canciones
+        song_ids = [entity.song_id for entity in entities_list]
+
+        # Obtener información de todas las canciones en una consulta
+        songs_info = self._get_multiple_songs_info_sync(song_ids)
+
+        # Crear DTOs
+        dtos = []
+        for entity in entities_list:
+            song_info = songs_info.get(entity.song_id, {})
+            dto = PlaylistSongResponseDTO(
+                id=entity.id,
+                playlist_id=entity.playlist_id,
+                song_id=entity.song_id,
+                position=entity.position,
+                added_at=entity.added_at,
+                song_title=song_info.get("title"),
+                song_artist=song_info.get("artist"),
+                song_duration=song_info.get("duration"),
+            )
+            dtos.append(dto)
+
+        return dtos
+
+    def _get_multiple_songs_info_sync(self, song_ids: List[str]) -> dict:
+        """
+        Obtiene información de múltiples canciones en una sola consulta
+
+        Args:
+            song_ids: Lista de IDs de canciones
+
+        Returns:
+            Diccionario con información de canciones {song_id: info}
+        """
+        try:
+            from apps.songs.infrastructure.models import SongModel
+
+            songs = SongModel.objects.select_related("artist").filter(id__in=song_ids)
+
+            songs_info = {}
+            for song in songs:
+                songs_info[str(song.id)] = {
+                    "title": song.title,
+                    "artist": song.artist.name if song.artist else None,
+                    "duration": song.duration_seconds,
+                }
+
+            return songs_info
+
+        except Exception as e:
+            self.logger.error(
+                f"Error obteniendo información de múltiples canciones: {str(e)}"
+            )
+            return {}

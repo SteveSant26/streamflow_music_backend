@@ -2,6 +2,8 @@
 Mapper entre entidades de playlist y DTOs
 """
 
+from typing import Iterable, List
+
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 
 from ...domain.entities import PlaylistEntity
@@ -28,8 +30,12 @@ class PlaylistEntityDTOMapper(
         """
         self.logger.debug(f"Converting entity to DTO for playlist {entity.id}")
 
-        # Obtener el conteo de canciones
-        song_count = self._get_playlist_song_count_sync(entity.id)
+        # Usar el conteo de canciones de la entidad si está disponible
+        song_count = (
+            entity.song_count
+            if entity.songs is not None
+            else self._get_playlist_song_count_sync(entity.id)
+        )
 
         return PlaylistResponseDTO(
             id=entity.id,
@@ -86,3 +92,45 @@ class PlaylistEntityDTOMapper(
         except Exception as e:
             self.logger.error(f"Error obteniendo conteo de canciones: {str(e)}")
             return 0
+
+    def entities_to_dtos(
+        self, entities: Iterable[PlaylistEntity]
+    ) -> List[PlaylistResponseDTO]:
+        """
+        Convierte una lista de entidades a DTOs
+
+        Args:
+            entities: Lista de entidades de playlist
+
+        Returns:
+            Lista de DTOs de respuesta de playlist
+        """
+        return [self.entity_to_dto(entity) for entity in entities]
+
+    def entity_to_dto_with_songs(self, entity: PlaylistEntity) -> PlaylistResponseDTO:
+        """
+        Convierte una entidad a DTO asegurándose de que las canciones estén cargadas
+
+        Args:
+            entity: Entidad de playlist
+
+        Returns:
+            DTO de respuesta de playlist con conteo de canciones preciso
+        """
+        # Si la entidad no tiene canciones cargadas, usar el método de conteo
+        if entity.songs is None:
+            song_count = self._get_playlist_song_count_sync(entity.id)
+        else:
+            song_count = entity.song_count
+
+        return PlaylistResponseDTO(
+            id=entity.id,
+            name=entity.name,
+            description=entity.description,
+            user_id=entity.user_id,
+            is_default=entity.is_default,
+            is_public=entity.is_public,
+            song_count=song_count,
+            created_at=entity.created_at,
+            updated_at=entity.updated_at,
+        )
