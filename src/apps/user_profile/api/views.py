@@ -154,27 +154,20 @@ class UserProfileViewSet(CRUDViewSetMixin):
         request,
     ):
         """Obtiene todas las playlists de un usuario específico"""
-        try:
-            user_id = str(request.user.id)
-            self.logger.info(f"Requesting playlists for user ID: {user_id}")
+        user_id = str(request.user.id)
+        self.logger.info(f"Requesting playlists for user ID: {user_id}")
 
-            # Asegurar que existe la playlist por defecto
-            ensure_use_case = EnsureDefaultPlaylistUseCase(self.playlist_repository)
-            async_to_sync(ensure_use_case.execute)(user_id)
+        # Asegurar que existe la playlist por defecto
+        ensure_use_case = EnsureDefaultPlaylistUseCase(self.playlist_repository)
+        async_to_sync(ensure_use_case.execute)(user_id)
 
-            # Obtener playlists del usuario
-            get_use_case = GetUserPlaylistsUseCase(self.playlist_repository)
-            playlists = async_to_sync(get_use_case.execute)(user_id)
+        # Obtener playlists del usuario
+        get_use_case = GetUserPlaylistsUseCase(self.playlist_repository)
+        playlists = async_to_sync(get_use_case.execute)(user_id)
 
-            # Convertir a DTOs y serializar
-            playlist_dtos = self.playlist_mapper.entities_to_dtos(playlists)
-            serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
+        # Convertir a DTOs y serializar
+        playlist_dtos = self.playlist_mapper.entities_to_dtos(playlists)
+        serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
 
-            self.logger.info(f"Retrieved {len(playlists)} playlists for user {user_id}")
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            self.logger.error(f"Error getting user playlists: {str(e)}")
-            return Response(
-                {"error": "Error obteniendo playlists del usuario"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        self.logger.info(f"Retrieved {len(playlists)} playlists for user {user_id}")
+        return Response(serializer.data, status=status.HTTP_200_OK)
