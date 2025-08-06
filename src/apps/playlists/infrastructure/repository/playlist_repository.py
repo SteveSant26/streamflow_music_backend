@@ -25,7 +25,6 @@ class PlaylistRepository(
         self.logger.info(f"Creating playlist: {entity.name}")
 
         model_data = self.mapper.entity_to_model_data(entity)
-        model_data.pop("id", None)  # Remover id para que Django genere uno nuevo
         model_data.pop("created_at", None)
         model_data.pop("updated_at", None)
 
@@ -257,12 +256,6 @@ class PlaylistRepository(
         ]:
             models.append(model)
         return [self.mapper.model_to_entity(model) for model in models]
-
-    async def get_playlist_song_count(self, playlist_id: str) -> int:
-        """Obtiene el número de canciones en una playlist"""
-        self.logger.debug(f"Getting song count for playlist: {playlist_id}")
-
-        return await PlaylistSongModel.objects.filter(playlist_id=playlist_id).acount()
 
     async def is_song_in_playlist(self, playlist_id: str, song_id: str) -> bool:
         """Verifica si una canción está en una playlist específica"""

@@ -14,6 +14,7 @@ class PlaylistResponseDTO:
     is_default: bool = False
     is_public: bool = False
     song_count: int = 0
+    playlist_img: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -39,6 +40,7 @@ class CreatePlaylistRequestDTO:
     name: str
     description: Optional[str] = None
     is_public: bool = False
+    playlist_img_file: Optional[str] = None
 
 
 @dataclass
@@ -49,6 +51,7 @@ class UpdatePlaylistRequestDTO:
     name: Optional[str] = None
     description: Optional[str] = None
     is_public: Optional[bool] = None
+    playlist_img_file: Optional[str] = None
 
 
 @dataclass

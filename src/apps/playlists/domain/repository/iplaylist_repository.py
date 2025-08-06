@@ -67,9 +67,5 @@ class IPlaylistRepository(IBaseRepository[PlaylistEntity, Any]):
         """Busca playlists por nombre o descripción"""
 
     @abstractmethod
-    async def get_playlist_song_count(self, playlist_id: str) -> int:
-        """Obtiene el número de canciones en una playlist"""
-
-    @abstractmethod
     async def is_song_in_playlist(self, playlist_id: str, song_id: str) -> bool:
         """Verifica si una canción está en una playlist específica"""

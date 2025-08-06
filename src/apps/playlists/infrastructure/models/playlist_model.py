@@ -28,6 +28,11 @@ class PlaylistModel(models.Model):
         related_name="playlists_containing",
         help_text="Canciones que contiene esta playlist",
     )
+    playlist_img = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,  # NOSONAR
+    )
 
     playlist_songs: "QuerySet[PlaylistSongModel]"
 
@@ -68,4 +73,4 @@ class PlaylistModel(models.Model):
     @property
     def total_songs(self):
         """Retorna el número total de canciones en la playlist"""
-        return self.playlist_songs.acount()
+        return self.playlist_songs.count()

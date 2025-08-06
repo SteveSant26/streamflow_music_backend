@@ -23,9 +23,10 @@ class PlaylistCreateSerializer(BaseEntitySerializer):
     name = serializers.CharField(max_length=255)
     description = serializers.CharField(required=False, allow_blank=True)
     is_public = serializers.BooleanField(default=False)
+    playlist_img = serializers.ImageField(required=True, allow_empty_file=False)
 
     class Meta:
-        fields = ["name", "description", "is_public"]
+        fields = ["name", "description", "is_public", "playlist_img"]
 
     def to_dto(self, validated_data):
         """Convierte datos validados a DTO"""
@@ -33,6 +34,7 @@ class PlaylistCreateSerializer(BaseEntitySerializer):
             name=validated_data["name"],
             description=validated_data.get("description"),
             is_public=validated_data.get("is_public", False),
+            playlist_img_file=validated_data["playlist_img"],
         )
 
 
@@ -47,9 +49,10 @@ class PlaylistUpdateSerializer(BaseEntitySerializer):
     name = serializers.CharField(max_length=255, required=False)
     description = serializers.CharField(required=False, allow_blank=True)
     is_public = serializers.BooleanField(required=False)
+    playlist_img = serializers.ImageField(required=False, allow_empty_file=False)
 
     class Meta:
-        fields = ["name", "description", "is_public"]
+        fields = ["name", "description", "is_public", "playlist_img"]
 
     def to_dto(self, validated_data):
         """Convierte datos validados a DTO"""
@@ -58,7 +61,16 @@ class PlaylistUpdateSerializer(BaseEntitySerializer):
             name=validated_data.get("name"),
             description=validated_data.get("description"),
             is_public=validated_data.get("is_public"),
+            playlist_img_file=validated_data.get("playlist_img"),
         )
+
+    def validate_playlist_img(self, value):
+        """
+        Custom validation for the image field.
+        """
+        if value.size > 5 * 1024 * 1024:  # 5 MB limit
+            raise serializers.ValidationError("Image size must be less than 5 MB.")
+        return value
 
 
 class PlaylistResponseSerializer(BaseEntitySerializer):
@@ -76,8 +88,11 @@ class PlaylistResponseSerializer(BaseEntitySerializer):
     is_default = serializers.BooleanField(read_only=True)
     is_public = serializers.BooleanField(read_only=True)
     total_songs = serializers.IntegerField(read_only=True)
+    playlist_img = serializers.ImageField(read_only=True)
+
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True, allow_null=True)
+
     songs = PlaylistSongResponseSerializer(many=True, read_only=True, required=False)
 
     class Meta:
@@ -91,5 +106,6 @@ class PlaylistResponseSerializer(BaseEntitySerializer):
             "total_songs",
             "created_at",
             "updated_at",
+            "playlist_img",
             "songs",
         ]

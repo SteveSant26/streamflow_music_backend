@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 from apps.playlists.domain.entities import PlaylistEntity, PlaylistSongEntity
-from apps.playlists.infrastructure.models import PlaylistModel, PlaylistSongModel
+from apps.playlists.infrastructure.models import PlaylistModel
 from common.interfaces.imapper.abstract_model_entity_mapper import (
     AbstractEntityModelMapper,
 )
@@ -32,6 +32,7 @@ class PlaylistEntityModelMapper(
             user_id=str(model.user.id),
             is_default=model.is_default,
             is_public=model.is_public,
+            playlist_img=model.playlist_img,
             created_at=model.created_at,
             updated_at=model.updated_at,
             songs=songs,
@@ -48,6 +49,7 @@ class PlaylistEntityModelMapper(
             user_id=entity.user_id,
             is_default=entity.is_default,
             is_public=entity.is_public,
+            playlist_img=entity.playlist_img,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -63,6 +65,7 @@ class PlaylistEntityModelMapper(
             "user_id": entity.user_id,  # Usar user_id para la creación
             "is_default": entity.is_default,
             "is_public": entity.is_public,
+            "playlist_img": entity.playlist_img,
             "created_at": entity.created_at,
             "updated_at": entity.updated_at,
         }
@@ -84,61 +87,3 @@ class PlaylistEntityModelMapper(
             )
             songs.append(song_entity)
         return songs
-
-    def create_playlist_with_songs(self, entity: PlaylistEntity) -> PlaylistModel:
-        """
-        Crea un PlaylistModel con sus canciones asociadas.
-        Nota: Este método debe usarse dentro de una transacción.
-        """
-        self.logger.debug(f"Creating playlist with songs for {entity.id}")
-
-        # Crear la playlist
-        playlist_model = self.entity_to_model(entity)
-        playlist_model.save()
-
-        # Crear las canciones asociadas si existen
-        if entity.songs:
-            playlist_songs = []
-            for song_entity in entity.songs:
-                playlist_song = PlaylistSongModel(
-                    playlist=playlist_model,
-                    song_id=song_entity.song_id,
-                    position=song_entity.position,
-                    added_at=song_entity.added_at,
-                )
-                playlist_songs.append(playlist_song)
-
-            # Bulk create para mejor performance
-            PlaylistSongModel.objects.bulk_create(playlist_songs)
-
-        return playlist_model
-
-    def update_playlist_songs(
-        self, playlist_model: PlaylistModel, entity: PlaylistEntity
-    ) -> None:
-        """
-        Actualiza las canciones de una playlist.
-        Nota: Este método debe usarse dentro de una transacción.
-        """
-        self.logger.debug(f"Updating songs for playlist {entity.id}")
-
-        if entity.songs is None:
-            return
-
-        # Eliminar todas las canciones existentes
-        playlist_model.playlist_songs.all().delete()
-
-        # Crear las nuevas canciones
-        if entity.songs:
-            playlist_songs = []
-            for song_entity in entity.songs:
-                playlist_song = PlaylistSongModel(
-                    playlist=playlist_model,
-                    song_id=song_entity.song_id,
-                    position=song_entity.position,
-                    added_at=song_entity.added_at,
-                )
-                playlist_songs.append(playlist_song)
-
-            # Bulk create para mejor performance
-            PlaylistSongModel.objects.bulk_create(playlist_songs)
