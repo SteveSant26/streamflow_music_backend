@@ -9,7 +9,6 @@ ModelType = TypeVar("ModelType")
 
 class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC):
     def __init__(self):
-        # Añadir logging sin importación circular
         self.logger = get_logger(self.__class__.__name__)
 
     @abstractmethod

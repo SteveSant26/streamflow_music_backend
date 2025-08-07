@@ -1,6 +1,7 @@
 """
 Configuración base para tests de user_profile
 """
+
 import os
 import sys
 from pathlib import Path

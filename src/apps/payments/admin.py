@@ -1,25 +1,18 @@
-"""
-Django admin conf    readonly_fields = ["id", "created_at", "updated_at"]
-
-    @admin.display(description="Precio")
-    def price_display(self, obj):
-        return f"{obj.price/100:.2f} {obj.currency}"ion for payments
-"""
 from django.contrib import admin
 
 from .infrastructure.models import (
-    BillingPortalSession,
-    CheckoutSession,
-    Invoice,
-    Payment,
-    PaymentMethod,
-    StripeWebhookEvent,
-    Subscription,
-    SubscriptionPlan,
+    BillingPortalSessionModel,
+    CheckoutSessionModel,
+    InvoiceModel,
+    PaymentMethodModel,
+    PaymentModel,
+    StripeWebhookEventModel,
+    SubscriptionModel,
+    SubscriptionPlanModel,
 )
 
 
-@admin.register(SubscriptionPlan)
+@admin.register(SubscriptionPlanModel)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
     list_display = ["name", "price_display", "interval", "is_active", "created_at"]
     list_filter = ["interval", "is_active", "currency"]
@@ -31,7 +24,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         return f"{obj.price/100:.2f} {obj.currency}"
 
 
-@admin.register(Subscription)
+@admin.register(SubscriptionModel)
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ["user", "plan", "status", "current_period_end", "is_active"]
     list_filter = ["status", "plan", "created_at"]
@@ -46,7 +39,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     raw_id_fields = ["user"]
 
 
-@admin.register(PaymentMethod)
+@admin.register(PaymentMethodModel)
 class PaymentMethodAdmin(admin.ModelAdmin):
     list_display = ["user", "type", "card_display", "is_default", "created_at"]
     list_filter = ["type", "card_brand", "is_default"]
@@ -61,7 +54,7 @@ class PaymentMethodAdmin(admin.ModelAdmin):
         return obj.type
 
 
-@admin.register(Invoice)
+@admin.register(InvoiceModel)
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = [
         "stripe_invoice_id",
@@ -81,7 +74,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         return f"{obj.amount/100:.2f} {obj.currency}"
 
 
-@admin.register(Payment)
+@admin.register(PaymentModel)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = [
         "stripe_payment_intent_id",
@@ -100,7 +93,7 @@ class PaymentAdmin(admin.ModelAdmin):
         return f"{obj.amount/100:.2f} {obj.currency}"
 
 
-@admin.register(StripeWebhookEvent)
+@admin.register(StripeWebhookEventModel)
 class StripeWebhookEventAdmin(admin.ModelAdmin):
     list_display = ["stripe_event_id", "event_type", "processed", "created_at"]
     list_filter = ["event_type", "processed", "created_at"]
@@ -111,7 +104,7 @@ class StripeWebhookEventAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(CheckoutSession)
+@admin.register(CheckoutSessionModel)
 class CheckoutSessionAdmin(admin.ModelAdmin):
     list_display = [
         "stripe_session_id",
@@ -131,7 +124,7 @@ class CheckoutSessionAdmin(admin.ModelAdmin):
         return f"{obj.amount/100:.2f} {obj.currency}"
 
 
-@admin.register(BillingPortalSession)
+@admin.register(BillingPortalSessionModel)
 class BillingPortalSessionAdmin(admin.ModelAdmin):
     list_display = ["stripe_session_id", "user", "created_at", "expires_at"]
     list_filter = ["created_at"]

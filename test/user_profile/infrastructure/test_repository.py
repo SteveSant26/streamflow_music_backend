@@ -1,6 +1,7 @@
 """
 Tests para el repositorio de user_profile
 """
+
 import unittest
 from uuid import uuid4
 
