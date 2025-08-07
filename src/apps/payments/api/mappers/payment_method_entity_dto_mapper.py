@@ -30,3 +30,22 @@ class PaymentMethodEntityDTOMapper(
             is_default=entity.is_default,
             created_at=entity.created_at,
         )
+
+    def dto_to_entity(self, dto: PaymentMethodResponseDTO) -> PaymentMethodEntity:
+        """
+        Convierte un DTO a entidad del dominio PaymentMethod.
+        """
+        self.logger.debug(f"Converting DTO to entity for payment method {dto.id}")
+
+        return PaymentMethodEntity(
+            id=dto.id,
+            user_id=dto.user_id,
+            stripe_payment_method_id=dto.stripe_payment_method_id,
+            type=dto.type,
+            card_brand=dto.card_brand,
+            card_last4=dto.card_last4,
+            card_exp_month=dto.card_exp_month,
+            card_exp_year=dto.card_exp_year,
+            is_default=dto.is_default,
+            created_at=dto.created_at,
+        )

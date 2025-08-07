@@ -18,11 +18,11 @@ class InvoiceRepository(
     def __init__(self):
         super().__init__(InvoiceModel, InvoiceEntityModelMapper())
 
-    async def get_by_user_id(
-        self, user_id: str, limit: int = 10
-    ) -> List[InvoiceEntity]:
+    async def get_by_user_id(self, user_id: str) -> List[InvoiceEntity]:
         def get_invoices():
-            return list(InvoiceModel.objects.filter(user_id=user_id)[:limit])
+            return list(
+                InvoiceModel.objects.filter(user_id=user_id).order_by("-created_at")
+            )
 
         invoices = await sync_to_async(get_invoices)()
         return self.mapper.models_to_entities(invoices)

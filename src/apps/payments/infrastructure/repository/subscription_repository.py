@@ -16,11 +16,13 @@ class SubscriptionRepository(
     def __init__(self):
         super().__init__(SubscriptionModel, SubscriptionEntityModelMapper())
 
-    async def get_by_user_id(self, user_id: str) -> Optional[SubscriptionEntity]:
+    async def get_by_user_id(
+        self, user_profile_id: str
+    ) -> Optional[SubscriptionEntity]:
         try:
             subscription = await SubscriptionModel.objects.select_related(
-                "user", "plan"
-            ).aget(user_id=user_id, status__in=["active", "trialing"])
+                "user_profile", "plan"
+            ).aget(user_profile_id=user_profile_id, status__in=["active", "trialing"])
             return self.mapper.model_to_entity(subscription)
         except SubscriptionModel.DoesNotExist:
             return None
@@ -30,7 +32,7 @@ class SubscriptionRepository(
     ) -> Optional[SubscriptionEntity]:
         try:
             subscription = await SubscriptionModel.objects.select_related(
-                "user", "plan"
+                "user_profile", "plan"
             ).aget(stripe_subscription_id=stripe_subscription_id)
             return self.mapper.model_to_entity(subscription)
         except SubscriptionModel.DoesNotExist:

@@ -33,9 +33,7 @@ class CancelSubscriptionUseCase(BaseUseCase[str, bool]):
             raise ValueError("Suscripción no encontrada")
 
         # Cancelar en Stripe
-        await self.stripe_service.cancel_subscription(
-            subscription.stripe_subscription_id
-        )
+        self.stripe_service.cancel_subscription(subscription.stripe_subscription_id)
 
         # Actualizar en base de datos
         return await self.subscription_repository.cancel(subscription.id)

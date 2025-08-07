@@ -1,5 +1,4 @@
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -93,17 +92,7 @@ class GetInvoiceHistoryAPIView(UseCaseAPIViewMixin):
     @extend_schema(
         tags=["Payments"],
         description="Get invoice history for the authenticated user with pagination",
-        parameters=[
-            OpenApiParameter(
-                name="limit",
-                type=OpenApiTypes.INT,
-                location=OpenApiParameter.QUERY,
-                description="Number of invoices to retrieve (max 100)",
-                required=False,
-                default=10,
-            ),
-        ]
-        + UseCaseAPIViewMixin.get_pagination_parameters(),
+        parameters=UseCaseAPIViewMixin.get_pagination_parameters(),
         responses={
             200: {
                 "type": "object",
@@ -144,22 +133,14 @@ class GetInvoiceHistoryAPIView(UseCaseAPIViewMixin):
         self.log_request_info("GetInvoiceHistory", f"User: {request.user.id}")
 
         try:
-            # Obtener parámetros de consulta con validación
-            limit = min(int(request.GET.get("limit", 100)), 100)  # Máximo 100
-
             # Usar el helper para ejecutar casos de uso
             invoices = self.handle_use_case_execution(
-                self.get_invoice_history_use_case, str(request.user.id), limit
+                self.get_invoice_history_use_case, str(request.user.id)
             )
 
             # Usar paginación automática
             return self.paginate_and_respond(invoices, request)
 
-        except ValueError as e:
-            self.logger.error(f"Invalid limit parameter: {str(e)}")
-            return Response(
-                {"error": "Invalid limit parameter"}, status=status.HTTP_400_BAD_REQUEST
-            )
         except Exception as e:
             self.logger.error(f"Error getting invoice history: {str(e)}")
             return Response(

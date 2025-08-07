@@ -44,7 +44,7 @@ class CreateBillingPortalSessionUseCase(
             raise ValueError("Usuario no tiene suscripción activa")
 
         # Crear sesión del portal
-        session = await self.stripe_service.create_billing_portal_session(
+        session = self.stripe_service.create_billing_portal_session(
             customer_id=subscription.stripe_customer_id, return_url=request.return_url
         )
 
