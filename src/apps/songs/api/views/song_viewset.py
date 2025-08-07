@@ -9,7 +9,6 @@ import asyncio
 
 from apps.songs.api.dtos import SongSearchRequestDTO
 from apps.songs.api.mappers import SongMapper
-from apps.songs.api.mixins import SongDownloadMixin
 from apps.songs.api.serializers.song_serializers import SongSerializer
 from apps.songs.infrastructure.filters import SongModelFilter
 from apps.songs.infrastructure.models import SongModel
@@ -71,7 +70,7 @@ from src.common.mixins import LoggingMixin
         summary="Get song details",
     ),
 )
-class SongViewSet(SongDownloadMixin, LoggingMixin, viewsets.ReadOnlyModelViewSet):
+class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
     """ViewSet para gestión de canciones (solo lectura) con filtros integrados y búsqueda en YouTube"""
 
     def __init__(self, **kwargs):
