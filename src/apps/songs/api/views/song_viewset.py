@@ -2,8 +2,11 @@ from typing import Any
 
 from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+import asyncio
 
 from apps.songs.api.dtos import SongSearchRequestDTO
 from apps.songs.api.mappers import SongMapper
@@ -12,8 +15,9 @@ from apps.songs.infrastructure.filters import SongModelFilter
 from apps.songs.infrastructure.models import SongModel
 from apps.songs.infrastructure.repository.song_repository import SongRepository
 from apps.songs.use_cases import SearchSongsUseCase
-from common.factories.unified_music_service_factory import get_music_service
-from common.mixins import LoggingMixin
+from apps.songs.use_cases.lyrics_use_cases import GetSongLyricsUseCase, UpdateSongLyricsUseCase
+from src.common.factories.unified_music_service_factory import get_music_service
+from src.common.mixins import LoggingMixin
 
 
 @extend_schema_view(
@@ -78,6 +82,8 @@ class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
             self.repository, self.music_service
         )
         self.mapper = SongMapper()
+        self.get_lyrics_use_case = GetSongLyricsUseCase()
+        self.update_lyrics_use_case = UpdateSongLyricsUseCase()
 
     queryset = (
         SongModel.objects.select_related("artist", "album")
@@ -205,4 +211,116 @@ class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
         except Exception as e:
             self.logger.error(
                 f"Error in _fetch_youtube_results for title '{query}': {str(e)}"
+            )
+
+    @extend_schema(
+        tags=["Songs"],
+        description="Get lyrics for a specific song. If lyrics don't exist, automatically searches for them.",
+        summary="Get song lyrics",
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "song_id": {"type": "string"},
+                    "title": {"type": "string"},
+                    "artist": {"type": "string"},
+                    "lyrics": {"type": "string", "nullable": True},
+                    "has_lyrics": {"type": "boolean"},
+                    "source": {"type": "string", "description": "Source where lyrics were found"}
+                }
+            },
+            404: {"description": "Song not found"}
+        }
+    )
+    @action(detail=True, methods=['get'], url_path='lyrics')
+    def get_lyrics(self, request, id=None):
+        """Obtiene las letras de una canción específica"""
+        try:
+            fetch_if_missing = request.query_params.get('fetch_if_missing', 'true').lower() == 'true'
+            
+            # Ejecutar use case de forma asíncrona
+            lyrics = asyncio.run(self.get_lyrics_use_case.execute(id, fetch_if_missing))
+            
+            # Obtener información de la canción
+            try:
+                song = SongModel.objects.select_related('artist').get(id=id)
+                
+                response_data = {
+                    'song_id': str(song.id),
+                    'title': song.title,
+                    'artist': song.artist.name if song.artist else 'Unknown Artist',
+                    'lyrics': lyrics,
+                    'has_lyrics': lyrics is not None,
+                    'source': 'database' if song.lyrics else ('external' if lyrics else None)
+                }
+                
+                return Response(response_data, status=status.HTTP_200_OK)
+                
+            except SongModel.DoesNotExist:
+                return Response(
+                    {'error': 'Song not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Error getting lyrics for song {id}: {str(e)}")
+            return Response(
+                {'error': 'Internal server error'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @extend_schema(
+        tags=["Songs"],
+        description="Force update lyrics for a specific song, even if they already exist.",
+        summary="Update song lyrics",
+        responses={
+            200: {
+                "type": "object", 
+                "properties": {
+                    "song_id": {"type": "string"},
+                    "title": {"type": "string"},
+                    "artist": {"type": "string"},
+                    "updated": {"type": "boolean"},
+                    "lyrics": {"type": "string", "nullable": True},
+                    "message": {"type": "string"}
+                }
+            },
+            404: {"description": "Song not found"}
+        }
+    )
+    @action(detail=True, methods=['post'], url_path='lyrics/update')
+    def update_lyrics(self, request, id=None):
+        """Actualiza las letras de una canción específica"""
+        try:
+            force_update = request.data.get('force_update', False)
+            
+            # Ejecutar use case de forma asíncrona
+            updated = asyncio.run(self.update_lyrics_use_case.execute(id, force_update))
+            
+            # Obtener información actualizada de la canción
+            try:
+                song = SongModel.objects.select_related('artist').get(id=id)
+                
+                response_data = {
+                    'song_id': str(song.id),
+                    'title': song.title,
+                    'artist': song.artist.name if song.artist else 'Unknown Artist',
+                    'updated': updated,
+                    'lyrics': song.lyrics,
+                    'message': 'Lyrics updated successfully' if updated else 'No lyrics found or already exists'
+                }
+                
+                return Response(response_data, status=status.HTTP_200_OK)
+                
+            except SongModel.DoesNotExist:
+                return Response(
+                    {'error': 'Song not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Error updating lyrics for song {id}: {str(e)}")
+            return Response(
+                {'error': 'Internal server error'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

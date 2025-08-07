@@ -35,6 +35,9 @@ from .youtube_settings import (  # noqa: F401
     YOUTUBE_MUSIC_GENRES,
 )
 
+# Lyrics Services Settings (opcional)
+GENIUS_API_KEY = env("GENIUS_API_KEY", default=None)  # Opcional para mejores letras
+
 SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env.bool("DEBUG")
