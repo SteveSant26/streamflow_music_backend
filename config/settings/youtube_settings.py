@@ -26,5 +26,12 @@ RANDOM_MUSIC_QUERIES: List[str] = [
 ]
 
 
-with open("config/settings/music_genres.json", "r", encoding="utf-8") as f:
+import os
+import json
+
+# Obtener la ruta absoluta del directorio de este archivo
+current_dir = os.path.dirname(os.path.abspath(__file__))
+genres_file_path = os.path.join(current_dir, "music_genres.json")
+
+with open(genres_file_path, "r", encoding="utf-8") as f:
     YOUTUBE_MUSIC_GENRES = json.load(f)
