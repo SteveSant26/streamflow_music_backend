@@ -57,7 +57,7 @@ class PlaylistSongViewSet(CRUDViewSetMixin):
     # Atributos requeridos para DRF y drf-spectacular
     queryset = PlaylistModel.objects.all()
     serializer_class = PlaylistSongResponseSerializer
-    permission_classes = [AllowAny]  # Temporalmente para debug
+    permission_classes = [IsAuthenticated]
     http_method_names = ["get", "post", "delete"]
 
     def __init__(self, *args, **kwargs):
