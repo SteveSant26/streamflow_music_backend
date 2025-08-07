@@ -1,7 +1,9 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from common.mixins import UseCaseAPIViewMixin
 
 from ...infrastructure.repository import (
     SubscriptionPlanRepository,
@@ -16,80 +18,278 @@ from ...use_cases import (
     CreateCheckoutSessionUseCase,
 )
 
-stripe_service = StripeService()
-plan_repository = SubscriptionPlanRepository()
-subscription_repository = SubscriptionRepository()
 
-create_checkout_use_case = CreateCheckoutSessionUseCase(
-    stripe_service, plan_repository, subscription_repository
-)
-create_billing_portal_use_case = CreateBillingPortalSessionUseCase(
-    stripe_service, subscription_repository
-)
-cancel_subscription_use_case = CancelSubscriptionUseCase(
-    stripe_service, subscription_repository
-)
+class CreateCheckoutSessionAPIView(UseCaseAPIViewMixin):
+    """Vista para crear una sesión de checkout para suscripción con casos de uso optimizados"""
 
+    permission_classes = [IsAuthenticated]
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-async def create_checkout_session(request):
-    """Crea una sesión de checkout para suscripción"""
-    try:
-        data = request.data
-        checkout_request = CreateCheckoutSessionRequest(
-            user_id=str(request.user.id),
-            plan_id=data.get("plan_id"),
-            success_url=data.get("success_url"),
-            cancel_url=data.get("cancel_url"),
-            allow_promotion_codes=data.get("allow_promotion_codes", True),
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.stripe_service = StripeService()
+        self.plan_repository = SubscriptionPlanRepository()
+        self.subscription_repository = SubscriptionRepository()
+        self.create_checkout_use_case = CreateCheckoutSessionUseCase(
+            self.stripe_service, self.plan_repository, self.subscription_repository
         )
-        result = await create_checkout_use_case.execute(checkout_request)
-        return Response({"url": result["url"], "session_id": result["session_id"]})
-    except ValueError as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @extend_schema(
+        tags=["Payments"],
+        description="Create a checkout session for subscription",
+        request={
+            "type": "object",
+            "properties": {
+                "plan_id": {
+                    "type": "string",
+                    "description": "ID of the subscription plan",
+                },
+                "success_url": {
+                    "type": "string",
+                    "description": "URL to redirect on success",
+                },
+                "cancel_url": {
+                    "type": "string",
+                    "description": "URL to redirect on cancel",
+                },
+                "allow_promotion_codes": {
+                    "type": "boolean",
+                    "description": "Allow promotion codes",
+                },
+            },
+            "required": ["plan_id", "success_url", "cancel_url"],
+        },
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "Checkout session URL"},
+                    "session_id": {
+                        "type": "string",
+                        "description": "Checkout session ID",
+                    },
+                },
+            },
+            400: {
+                "type": "object",
+                "properties": {"error": {"type": "string"}},
+            },
+            500: {
+                "type": "object",
+                "properties": {"error": {"type": "string"}},
+            },
+        },
+    )
+    def post(self, request):
+        """Crea una sesión de checkout para suscripción"""
+        self.log_request_info("CreateCheckoutSession", f"User: {request.user.id}")
+
+        try:
+            data = request.data
+
+            # Validar datos requeridos
+            required_fields = ["plan_id", "success_url", "cancel_url"]
+            for field in required_fields:
+                if not data.get(field):
+                    return Response(
+                        {"error": f"Missing required field: {field}"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            checkout_request = CreateCheckoutSessionRequest(
+                user_id=str(request.user.id),
+                plan_id=data.get("plan_id"),
+                success_url=data.get("success_url"),
+                cancel_url=data.get("cancel_url"),
+                allow_promotion_codes=data.get("allow_promotion_codes", True),
+            )
+
+            # Usar el helper para ejecutar casos de uso
+            result = self.handle_use_case_execution(
+                self.create_checkout_use_case, checkout_request
+            )
+
+            self.logger.info(f"Checkout session created for user {request.user.id}")
+            return Response({"url": result["url"], "session_id": result["session_id"]})
+
+        except ValueError as e:
+            self.logger.error(f"Validation error creating checkout session: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            self.logger.error(f"Error creating checkout session: {str(e)}")
+            return Response(
+                {"error": "Failed to create checkout session"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-async def create_billing_portal_session(request):
-    """Crea una sesión del portal de facturación"""
-    try:
-        data = request.data
-        portal_request = CreateBillingPortalRequest(
-            user_id=str(request.user.id), return_url=data.get("return_url")
+class CreateBillingPortalSessionAPIView(UseCaseAPIViewMixin):
+    """Vista para crear una sesión del portal de facturación con casos de uso optimizados"""
+
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.stripe_service = StripeService()
+        self.subscription_repository = SubscriptionRepository()
+        self.create_billing_portal_use_case = CreateBillingPortalSessionUseCase(
+            self.stripe_service, self.subscription_repository
         )
-        result = await create_billing_portal_use_case.execute(portal_request)
-        return Response({"url": result["url"]})
-    except ValueError as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @extend_schema(
+        tags=["Payments"],
+        description="Create a billing portal session",
+        request={
+            "type": "object",
+            "properties": {
+                "return_url": {
+                    "type": "string",
+                    "description": "URL to return to after billing portal",
+                },
+            },
+            "required": ["return_url"],
+        },
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "Billing portal URL"},
+                },
+            },
+            400: {
+                "type": "object",
+                "properties": {"error": {"type": "string"}},
+            },
+            500: {
+                "type": "object",
+                "properties": {"error": {"type": "string"}},
+            },
+        },
+    )
+    def post(self, request):
+        """Crea una sesión del portal de facturación"""
+        self.log_request_info("CreateBillingPortalSession", f"User: {request.user.id}")
+
+        try:
+            data = request.data
+
+            # Validar datos requeridos
+            if not data.get("return_url"):
+                return Response(
+                    {"error": "Missing required field: return_url"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            portal_request = CreateBillingPortalRequest(
+                user_id=str(request.user.id), return_url=data.get("return_url")
+            )
+
+            # Usar el helper para ejecutar casos de uso
+            result = self.handle_use_case_execution(
+                self.create_billing_portal_use_case, portal_request
+            )
+
+            self.logger.info(
+                f"Billing portal session created for user {request.user.id}"
+            )
+            return Response({"url": result["url"]})
+
+        except ValueError as e:
+            self.logger.error(
+                f"Validation error creating billing portal session: {str(e)}"
+            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            self.logger.error(f"Error creating billing portal session: {str(e)}")
+            return Response(
+                {"error": "Failed to create billing portal session"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-async def cancel_subscription(request):
-    """Cancela la suscripción del usuario"""
-    try:
-        data = request.data
-        subscription_id = data.get("subscription_id")
-        if not subscription_id:
-            return Response(
-                {"error": "subscription_id es requerido"},
-                status=status.HTTP_400_BAD_REQUEST,
+class CancelSubscriptionAPIView(UseCaseAPIViewMixin):
+    """Vista para cancelar la suscripción del usuario con casos de uso optimizados"""
+
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.stripe_service = StripeService()
+        self.subscription_repository = SubscriptionRepository()
+        self.cancel_subscription_use_case = CancelSubscriptionUseCase(
+            self.stripe_service, self.subscription_repository
+        )
+
+    @extend_schema(
+        tags=["Payments"],
+        description="Cancel user subscription",
+        request={
+            "type": "object",
+            "properties": {
+                "subscription_id": {
+                    "type": "string",
+                    "description": "ID of the subscription to cancel",
+                },
+            },
+            "required": ["subscription_id"],
+        },
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Suscripción cancelada exitosamente",
+                    },
+                },
+            },
+            400: {
+                "type": "object",
+                "properties": {"error": {"type": "string"}},
+            },
+            500: {
+                "type": "object",
+                "properties": {"error": {"type": "string"}},
+            },
+        },
+    )
+    def post(self, request):
+        """Cancela la suscripción del usuario"""
+        self.log_request_info("CancelSubscription", f"User: {request.user.id}")
+
+        try:
+            data = request.data
+            subscription_id = data.get("subscription_id")
+
+            # Validar datos requeridos
+            if not subscription_id:
+                return Response(
+                    {"error": "subscription_id is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Usar el helper para ejecutar casos de uso
+            success = self.handle_use_case_execution(
+                self.cancel_subscription_use_case, subscription_id
             )
-        success = await cancel_subscription_use_case.execute(subscription_id)
-        if success:
-            return Response({"message": "Suscripción cancelada exitosamente"})
-        else:
+
+            if success:
+                self.logger.info(
+                    f"Subscription {subscription_id} cancelled successfully"
+                )
+                return Response({"message": "Subscription cancelled successfully"})
+            else:
+                self.logger.warning(f"Failed to cancel subscription {subscription_id}")
+                return Response(
+                    {"error": "Could not cancel subscription"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        except ValueError as e:
+            self.logger.error(f"Validation error canceling subscription: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            self.logger.error(f"Error canceling subscription: {str(e)}")
             return Response(
-                {"error": "No se pudo cancelar la suscripción"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"error": "Failed to cancel subscription"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-    except ValueError as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
