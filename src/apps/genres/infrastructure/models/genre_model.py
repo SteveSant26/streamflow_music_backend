@@ -2,7 +2,6 @@ from django.db import models
 
 
 class GenreModel(models.Model):
-
     """Modelo Django para Género Musical"""
 
     id = models.UUIDField(primary_key=True, editable=False)

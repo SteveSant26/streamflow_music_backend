@@ -39,9 +39,11 @@ class InvoiceEntityModelMapper(AbstractEntityModelMapper[InvoiceEntity, InvoiceM
             stripe_invoice_id=entity.stripe_invoice_id,
             amount=entity.amount,
             currency=entity.currency,
-            status=entity.status.value
-            if hasattr(entity.status, "value")
-            else entity.status,
+            status=(
+                entity.status.value
+                if hasattr(entity.status, "value")
+                else entity.status
+            ),
             due_date=entity.due_date,
             paid_at=entity.paid_at,
             created_at=entity.created_at,
@@ -58,9 +60,11 @@ class InvoiceEntityModelMapper(AbstractEntityModelMapper[InvoiceEntity, InvoiceM
             "stripe_invoice_id": entity.stripe_invoice_id,
             "amount": entity.amount,
             "currency": entity.currency,
-            "status": entity.status.value
-            if hasattr(entity.status, "value")
-            else entity.status,
+            "status": (
+                entity.status.value
+                if hasattr(entity.status, "value")
+                else entity.status
+            ),
             "due_date": entity.due_date,
             "paid_at": entity.paid_at,
         }

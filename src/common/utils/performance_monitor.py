@@ -1,6 +1,7 @@
 """
 Simple performance monitoring utility for tracking search improvements
 """
+
 import json
 import os
 import time

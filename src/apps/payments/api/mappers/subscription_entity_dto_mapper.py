@@ -24,9 +24,11 @@ class SubscriptionEntityDTOMapper(
             plan_id=entity.plan_id,
             stripe_subscription_id=entity.stripe_subscription_id,
             stripe_customer_id=entity.stripe_customer_id,
-            status=entity.status.value
-            if hasattr(entity.status, "value")
-            else str(entity.status),
+            status=(
+                entity.status.value
+                if hasattr(entity.status, "value")
+                else str(entity.status)
+            ),
             current_period_start=entity.current_period_start,
             current_period_end=entity.current_period_end,
             trial_start=entity.trial_start,

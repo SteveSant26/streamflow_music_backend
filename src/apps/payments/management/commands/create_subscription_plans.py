@@ -1,6 +1,7 @@
 """
 Management command to create subscription plans
 """
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 

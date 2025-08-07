@@ -29,10 +29,10 @@ jobs:
         run: black . --check --diff --exclude '(^test/|test_.*\.py$)'
 
       - name: Run isort (check import order)
-        run: isort . --check-only --diff --skip 'test'
+        run: isort . --check-only --diff --exclude '(^test/|test_.*\.py$)'
 
       - name: Run flake8 (linting)
-        run: flake8 --exclude='test,__init__.py' .
+        run: flake8 --exclude='^test/,test_.*\.py$' .
 
       - name: Run mypy (type checking)
         run: mypy --exclude '(^test/|test_.*\.py$)' .
