@@ -26,9 +26,13 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
 
 @admin.register(SubscriptionModel)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ["user", "plan", "status", "current_period_end", "is_active"]
+    list_display = ["user_email", "plan", "status", "current_period_end", "is_active"]
     list_filter = ["status", "plan", "created_at"]
-    search_fields = ["user__email", "stripe_subscription_id", "stripe_customer_id"]
+    search_fields = [
+        "user_profile__email",
+        "stripe_subscription_id",
+        "stripe_customer_id",
+    ]
     readonly_fields = [
         "id",
         "stripe_subscription_id",
@@ -36,16 +40,24 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     ]
-    raw_id_fields = ["user"]
+    raw_id_fields = ["user_profile"]
+
+    @admin.display(description="Usuario")
+    def user_email(self, obj):
+        return obj.user_profile.email if obj.user_profile else ""
 
 
 @admin.register(PaymentMethodModel)
 class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ["user", "type", "card_display", "is_default", "created_at"]
+    list_display = ["user_email", "type", "card_display", "is_default", "created_at"]
     list_filter = ["type", "card_brand", "is_default"]
-    search_fields = ["user__email", "stripe_payment_method_id"]
+    search_fields = ["user_profile__email", "stripe_payment_method_id"]
     readonly_fields = ["id", "stripe_payment_method_id", "created_at"]
-    raw_id_fields = ["user"]
+    raw_id_fields = ["user_profile"]
+
+    @admin.display(description="Usuario")
+    def user_email(self, obj):
+        return obj.user_profile.email if obj.user_profile else ""
 
     @admin.display(description="Tarjeta")
     def card_display(self, obj):
@@ -58,16 +70,20 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = [
         "stripe_invoice_id",
-        "user",
+        "user_email",
         "amount_display",
         "status",
         "paid_at",
         "created_at",
     ]
     list_filter = ["status", "currency", "created_at"]
-    search_fields = ["user__email", "stripe_invoice_id"]
+    search_fields = ["user_profile__email", "stripe_invoice_id"]
     readonly_fields = ["id", "stripe_invoice_id", "created_at"]
-    raw_id_fields = ["user", "subscription"]
+    raw_id_fields = ["user_profile", "subscription"]
+
+    @admin.display(description="Usuario")
+    def user_email(self, obj):
+        return obj.user_profile.email if obj.user_profile else ""
 
     @admin.display(description="Monto")
     def amount_display(self, obj):
@@ -78,15 +94,19 @@ class InvoiceAdmin(admin.ModelAdmin):
 class PaymentAdmin(admin.ModelAdmin):
     list_display = [
         "stripe_payment_intent_id",
-        "user",
+        "user_email",
         "amount_display",
         "status",
         "created_at",
     ]
     list_filter = ["status", "currency", "created_at"]
-    search_fields = ["user__email", "stripe_payment_intent_id"]
+    search_fields = ["user_profile__email", "stripe_payment_intent_id"]
     readonly_fields = ["id", "stripe_payment_intent_id", "created_at"]
-    raw_id_fields = ["user", "invoice", "payment_method"]
+    raw_id_fields = ["user_profile", "invoice", "payment_method"]
+
+    @admin.display(description="Usuario")
+    def user_email(self, obj):
+        return obj.user_profile.email if obj.user_profile else ""
 
     @admin.display(description="Monto")
     def amount_display(self, obj):
@@ -108,16 +128,20 @@ class StripeWebhookEventAdmin(admin.ModelAdmin):
 class CheckoutSessionAdmin(admin.ModelAdmin):
     list_display = [
         "stripe_session_id",
-        "user",
+        "user_email",
         "plan",
         "amount_display",
         "status",
         "created_at",
     ]
     list_filter = ["status", "currency", "created_at"]
-    search_fields = ["user__email", "stripe_session_id"]
+    search_fields = ["user_profile__email", "stripe_session_id"]
     readonly_fields = ["id", "stripe_session_id", "created_at"]
-    raw_id_fields = ["user", "plan"]
+    raw_id_fields = ["user_profile", "plan"]
+
+    @admin.display(description="Usuario")
+    def user_email(self, obj):
+        return obj.user_profile.email if obj.user_profile else ""
 
     @admin.display(description="Monto")
     def amount_display(self, obj):
@@ -126,8 +150,12 @@ class CheckoutSessionAdmin(admin.ModelAdmin):
 
 @admin.register(BillingPortalSessionModel)
 class BillingPortalSessionAdmin(admin.ModelAdmin):
-    list_display = ["stripe_session_id", "user", "created_at", "expires_at"]
+    list_display = ["stripe_session_id", "user_email", "created_at", "expires_at"]
     list_filter = ["created_at"]
-    search_fields = ["user__email", "stripe_session_id"]
+    search_fields = ["user_profile__email", "stripe_session_id"]
     readonly_fields = ["id", "stripe_session_id", "url", "created_at"]
-    raw_id_fields = ["user"]
+    raw_id_fields = ["user_profile"]
+
+    @admin.display(description="Usuario")
+    def user_email(self, obj):
+        return obj.user_profile.email if obj.user_profile else ""

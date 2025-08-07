@@ -14,10 +14,6 @@ class ISubscriptionPlanRepository(IBaseRepository[SubscriptionPlanEntity, Any]):
         """Obtiene todos los planes activos"""
 
     @abstractmethod
-    async def get_by_id(self, entity_id: Any) -> Optional[SubscriptionPlanEntity]:
-        """Obtiene un plan por ID"""
-
-    @abstractmethod
     async def get_by_stripe_price_id(
         self, stripe_price_id: str
     ) -> Optional[SubscriptionPlanEntity]:

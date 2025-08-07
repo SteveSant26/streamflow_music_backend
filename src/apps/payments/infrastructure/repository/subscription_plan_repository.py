@@ -19,7 +19,7 @@ class SubscriptionPlanRepository(
     def __init__(self):
         super().__init__(SubscriptionPlanModel, SubscriptionPlanEntityModelMapper())
 
-    async def _get_all_active(self) -> List[SubscriptionPlanEntity]:
+    async def get_all_active(self) -> List[SubscriptionPlanEntity]:
         plans = await sync_to_async(SubscriptionPlanModel.objects.filter)(
             is_active=True
         )
