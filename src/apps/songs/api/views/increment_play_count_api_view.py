@@ -59,18 +59,12 @@ class IncrementPlayCountAPIView(APIView):
     )
     def post(self, request, song_id):
         """Incrementa el contador de reproducciones"""
-        try:
-            request_dto = IncrementCountRequestDTO(song_id=song_id)
-            song = async_to_sync(self.increment_use_case.execute)(request_dto)
+        request_dto = IncrementCountRequestDTO(song_id=song_id)
+        song = async_to_sync(self.increment_use_case.execute)(request_dto)
 
-            if not song:
-                return Response(
-                    {"error": "Song not found"}, status=status.HTTP_404_NOT_FOUND
-                )
-
-            return Response({"play_count": song.play_count}, status=status.HTTP_200_OK)
-
-        except Exception as e:
+        if not song:
             return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Song not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+        return Response({"play_count": song.play_count}, status=status.HTTP_200_OK)

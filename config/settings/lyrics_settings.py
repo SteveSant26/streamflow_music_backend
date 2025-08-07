@@ -1,0 +1,4 @@
+from .utils.env import env
+
+GENIUS_CLIENT_ID = env("GENIUS_CLIENT_ID")
+GENIUS_CLIENT_SECRET = env("GENIUS_CLIENT_SECRET")
