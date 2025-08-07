@@ -13,6 +13,5 @@ class GenreEntity:
     image_url: Optional[str] = None
     color_hex: Optional[str] = None  # Color representativo del género
     popularity_score: int = 0
-    is_active: bool = True
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

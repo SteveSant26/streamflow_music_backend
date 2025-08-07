@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .infrastructure.models import SongModel
 
 @admin.register(SongModel)

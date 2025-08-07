@@ -1,8 +1,3 @@
-"""
-Servicio mejorado para descarga de audio desde videos
-"""
-
-import asyncio
 import os
 import tempfile
 import uuid
@@ -10,11 +5,14 @@ from typing import Any, Dict, Optional
 
 import yt_dlp
 
+from src.config.music_service_config import get_optimized_ydl_options
+
 from ...interfaces.imedia_service import IAudioDownloadService
 from ...mixins.logging_mixin import LoggingMixin
 from ...types.media_types import AudioServiceConfig, DownloadOptions
 from ...utils.retry_manager import RetryManager
 from ...utils.validators import MediaDataValidator, URLValidator
+from ...utils.youtube_error_handler import YouTubeErrorHandler
 
 
 class AudioDownloadService(IAudioDownloadService, LoggingMixin):
@@ -35,27 +33,28 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
         self.retry_manager = RetryManager(
             max_retries=self.config.max_retries, base_delay=self.config.retry_delay
         )
+        self.error_handler = YouTubeErrorHandler()
 
         # Configuración base para yt-dlp
         self._base_ydl_opts = self._build_base_ydl_options()
 
     def _build_base_ydl_options(self) -> Dict[str, Any]:
-        """Construye las opciones base para yt-dlp"""
-        return {
-            "quiet": True,
-            "no_warnings": True,
-            "writesubtitles": False,
-            "writeautomaticsub": False,
-            "referer": "https://www.youtube.com/",
-            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "socket_timeout": self.config.request_timeout,
-            "retries": 0,  # Manejamos reintentos externamente
-        }
+        """Construye las opciones base optimizadas para yt-dlp"""
+        base_options = get_optimized_ydl_options()
+        base_options.update(
+            {
+                "outtmpl": {"default": "%(id)s.%(ext)s"},
+                "restrictfilenames": True,
+                "windowsfilenames": True,
+                "trim_filename": 100,
+            }
+        )
+        return base_options
 
-    async def download_audio(
+    def download_audio(
         self, video_url: str, options: Optional[DownloadOptions] = None
     ) -> Optional[bytes]:
-        """Descarga el audio de un video como bytes"""
+        """Descarga el audio de un video como bytes (sincrónico)"""
         if not self.url_validator.validate_youtube_url(video_url):
             self.logger.error(f"Invalid URL: {video_url}")
             return None
@@ -63,126 +62,138 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
         download_options = options or self.default_options
 
         try:
-            return await self.retry_manager.execute_with_retry(
+            return self.retry_manager.execute_with_retry(
                 self._download_audio_with_timeout, video_url, download_options
             )
         except Exception as e:
             self.logger.error(f"Error downloading audio from {video_url}: {str(e)}")
             return None
 
-    async def _download_audio_with_timeout(
+    def _download_audio_with_timeout(
         self, video_url: str, options: DownloadOptions
     ) -> Optional[bytes]:
-        """Descarga audio con timeout"""
-        try:
-            return await asyncio.wait_for(
-                self._download_audio_internal(video_url, options),
-                timeout=options.timeout,
-            )
-        except asyncio.TimeoutError:
-            self.logger.error(f"Download timeout for {video_url}")
-            return None
+        """Descarga audio con timeout sincrónico (cross-platform)"""
+        import concurrent.futures
 
-    async def _download_audio_internal(
-        self, video_url: str, options: DownloadOptions
-    ) -> Optional[bytes]:
-        """Lógica interna de descarga"""
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, self._download_audio_sync, video_url, options
-        )
+        timeout = options.timeout or self.config.request_timeout
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self._download_audio_sync, video_url, options)
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                self.logger.error(f"Download timeout for {video_url}")
+                return None
+            except Exception as e:
+                self.logger.error(f"Error in download thread: {str(e)}")
+                return None
 
-    async def get_audio_info(self, video_url: str) -> Optional[Dict[str, Any]]:
-        """Obtiene información del audio sin descargarlo"""
+    def get_audio_info(self, video_url: str) -> Optional[Dict[str, Any]]:
+        """Obtiene información del audio sin descargarlo (sincrónico)"""
         if not self.url_validator.validate_youtube_url(video_url):
             self.logger.error(f"Invalid URL for info extraction: {video_url}")
             return None
 
         try:
-            return await self.retry_manager.execute_with_retry(
+            return self.retry_manager.execute_with_retry(
                 self._get_audio_info_with_timeout, video_url
             )
         except Exception as e:
             self.logger.error(f"Error getting audio info from {video_url}: {str(e)}")
             return None
 
-    async def _get_audio_info_with_timeout(
-        self, video_url: str
-    ) -> Optional[Dict[str, Any]]:
-        """Obtiene información con timeout"""
-        try:
-            return await asyncio.wait_for(
-                self._get_audio_info_internal(video_url),
-                timeout=self.config.request_timeout,
+    def _get_audio_info_with_timeout(self, video_url: str) -> Optional[Dict[str, Any]]:
+        """Obtiene información con timeout sincrónico (cross-platform)"""
+        import concurrent.futures
+
+        timeout = self.config.request_timeout
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(
+                self._get_audio_info_sync, video_url, self._base_ydl_opts.copy()
             )
-        except asyncio.TimeoutError:
-            self.logger.error(f"Info extraction timeout for {video_url}")
-            return None
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                self.logger.error(f"Info extraction timeout for {video_url}")
+                return None
+            except Exception as e:
+                self.logger.error(f"Error in info extraction thread: {str(e)}")
+                return None
 
-    async def _get_audio_info_internal(
-        self, video_url: str
-    ) -> Optional[Dict[str, Any]]:
-        """Lógica interna para obtener información"""
-        opts = self._base_ydl_opts.copy()
-        opts["extract_flat"] = True
-
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, self._get_audio_info_sync, video_url, opts
-        )
-
-    async def validate_url(self, video_url: str) -> bool:
+    def validate_url(self, video_url: str) -> bool:
         """Valida si la URL es válida para descarga"""
         return self.url_validator.validate_youtube_url(video_url)
 
     def _download_audio_sync(
         self, video_url: str, options: DownloadOptions
     ) -> Optional[bytes]:
-        """Descarga sincrónica del audio"""
+        """Descarga sincrónica del audio usando configuración simplificada como ApiEjemplo"""
         temp_dir = self.config.temp_dir or tempfile.gettempdir()
 
         with tempfile.TemporaryDirectory(dir=temp_dir) as working_dir:
             try:
-                output_path = f"{working_dir}/{uuid.uuid4()}.%(ext)s"
-
-                # Configurar opciones de yt-dlp
-                ydl_opts = self._build_ydl_options(options, output_path)
-
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    self.logger.debug(f"Starting download for: {video_url}")
-                    ydl.download([video_url])
-
-                # Buscar el archivo descargado
-                audio_file = self._find_downloaded_file(working_dir)
-                if audio_file:
-                    return self._read_and_validate_audio_file(audio_file, options)
-
-                self.logger.warning(f"No audio file found after download: {video_url}")
-                return None
-
+                return self._simple_download_approach(video_url, options, working_dir)
             except Exception as e:
-                self.logger.error(f"yt-dlp download error: {str(e)}")
-                return None
+                self.logger.warning(f"Simple download failed: {str(e)}")
+                try:
+                    return self._fallback_download_approach(
+                        video_url, options, working_dir
+                    )
+                except Exception as fallback_error:
+                    self.logger.error(
+                        f"All download approaches failed: {str(fallback_error)}"
+                    )
+                    return None
+
+    def _simple_download_approach(
+        self, video_url: str, options: DownloadOptions, working_dir: str
+    ) -> Optional[bytes]:
+        output_path = f"{working_dir}/{uuid.uuid4()}.%(ext)s"
+        ydl_opts = get_optimized_ydl_options()
+        ydl_opts["outtmpl"] = output_path
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            self.logger.debug(f"Starting simple download for: {video_url}")
+            ydl.download([video_url])
+
+        audio_file = self._find_downloaded_file(working_dir)
+        if audio_file:
+            return self._read_and_validate_audio_file(audio_file, options)
+
+        self.logger.warning(f"No audio file found after simple download: {video_url}")
+        return None
+
+    def _fallback_download_approach(
+        self, video_url: str, options: DownloadOptions, working_dir: str
+    ) -> Optional[bytes]:
+        output_path = f"{working_dir}/{uuid.uuid4()}.%(ext)s"
+        ydl_opts = self._build_ydl_options(options, output_path)
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            self.logger.debug(f"Starting fallback download for: {video_url}")
+            ydl.download([video_url])
+
+        audio_file = self._find_downloaded_file(working_dir)
+        if audio_file:
+            return self._read_and_validate_audio_file(audio_file, options)
+
+        self.logger.warning(f"No audio file found after fallback download: {video_url}")
+        return None
 
     def _read_and_validate_audio_file(
         self, audio_file: str, options: DownloadOptions
     ) -> Optional[bytes]:
-        """Lee y valida el archivo de audio descargado"""
         try:
-            # Validar formato
             if not self.media_validator.validate_audio_format(audio_file):
                 self.logger.warning(f"Invalid audio format: {audio_file}")
                 return None
 
-            # Validar tamaño
             file_size = os.path.getsize(audio_file)
-            max_size = options.max_filesize or (100 * 1024 * 1024)  # 100MB default
+            max_size = options.max_filesize or (100 * 1024 * 1024)
 
             if not self.media_validator.validate_filesize(file_size, max_size):
                 self.logger.warning(f"File too large: {file_size} bytes")
                 return None
 
-            # Leer archivo
             with open(audio_file, "rb") as f:
                 audio_data = f.read()
 
@@ -196,7 +207,6 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
     def _get_audio_info_sync(
         self, video_url: str, opts: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        """Obtiene información sincrónica del audio"""
         try:
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(video_url, download=False)
@@ -211,7 +221,6 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
             return None
 
     def _process_audio_info(self, info: Dict[str, Any]) -> Dict[str, Any]:
-        """Procesa y valida la información extraída"""
         duration = info.get("duration", 0)
         if not self.media_validator.validate_duration(duration):
             self.logger.warning(f"Invalid duration: {duration} seconds")
@@ -230,9 +239,7 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
     def _build_ydl_options(
         self, options: DownloadOptions, output_path: str
     ) -> Dict[str, Any]:
-        """Construye las opciones para yt-dlp"""
         ydl_opts = self._base_ydl_opts.copy()
-
         ydl_opts.update(
             {
                 "format": options.format,
@@ -244,37 +251,95 @@ class AudioDownloadService(IAudioDownloadService, LoggingMixin):
                 "outtmpl": output_path,
             }
         )
-
         return ydl_opts
 
     def _find_downloaded_file(self, temp_dir: str) -> Optional[str]:
-        """Busca el archivo de audio descargado en el directorio temporal"""
         try:
             for file in os.listdir(temp_dir):
                 if self.media_validator.validate_audio_format(file):
                     return os.path.join(temp_dir, file)
-
             return None
-
         except Exception as e:
             self.logger.error(f"Error finding downloaded file: {str(e)}")
             return None
 
     def _extract_audio_formats(self, formats: list) -> list:
-        """Extrae información relevante de los formatos de audio"""
         audio_formats = []
-
         for fmt in formats:
-            if fmt.get("acodec") != "none":  # Tiene audio
+            if fmt.get("acodec") != "none":
                 audio_formats.append(
                     {
                         "format_id": fmt.get("format_id"),
                         "ext": fmt.get("ext"),
                         "acodec": fmt.get("acodec"),
-                        "abr": fmt.get("abr"),  # Audio bitrate
+                        "abr": fmt.get("abr"),
                         "filesize": fmt.get("filesize"),
                         "quality": fmt.get("quality"),
                     }
                 )
-
         return audio_formats
+
+    def cleanup(self):
+        """Limpia recursos del servicio de descarga de audio"""
+        try:
+            temp_files_deleted = self._cleanup_temp_files()
+            self._reset_components()
+
+            if temp_files_deleted > 0:
+                self.logger.info(
+                    f"Cleaned up {temp_files_deleted} temporary audio files"
+                )
+
+            self.logger.info("AudioDownloadService cleanup completed")
+
+        except Exception as e:
+            self.logger.error(f"Error during AudioDownloadService cleanup: {str(e)}")
+
+    def _cleanup_temp_files(self) -> int:
+        temp_dir = self.config.temp_dir or tempfile.gettempdir()
+        temp_files_deleted = 0
+
+        if not os.path.exists(temp_dir):
+            return 0
+
+        audio_extensions = (".mp3", ".mp4", ".webm", ".m4a", ".wav", ".flac")
+
+        for filename in os.listdir(temp_dir):
+            if self._should_delete_file(filename, audio_extensions):
+                file_path = os.path.join(temp_dir, filename)
+                if self._try_delete_file(file_path, filename):
+                    temp_files_deleted += 1
+
+        return temp_files_deleted
+
+    def _should_delete_file(self, filename: str, audio_extensions: tuple) -> bool:
+        return filename.endswith(audio_extensions)
+
+    def _try_delete_file(self, file_path: str, filename: str) -> bool:
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                return True
+        except OSError as file_error:
+            self.logger.warning(
+                f"Error cleaning temp file {filename}: {str(file_error)}"
+            )
+        except Exception as file_error:
+            self.logger.warning(
+                f"Error cleaning temp file {filename}: {str(file_error)}"
+            )
+        return False
+
+    def _reset_components(self):
+        for component, name in [
+            (self.retry_manager, "retry_manager"),
+            (self.error_handler, "error_handler"),
+        ]:
+            reset_method = getattr(component, "reset", None)
+            if reset_method and callable(reset_method):
+                try:
+                    reset_method()
+                except Exception as component_error:
+                    self.logger.warning(
+                        f"Error resetting {name}: {str(component_error)}"
+                    )

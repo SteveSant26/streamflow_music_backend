@@ -11,16 +11,15 @@ class SongResponseDTO:
     title: str
     album_id: Optional[str] = None
     artist_id: Optional[str] = None
-    genre_id: Optional[str] = None
+    genre_ids: Optional[List[str]] = None  # Lista de IDs de géneros
     duration_seconds: int = 0
     album_title: Optional[str] = None
     artist_name: Optional[str] = None
-    genre_name: Optional[str] = None
+    genre_names: Optional[List[str]] = None  # Lista de nombres de géneros
     track_number: Optional[int] = None
     file_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
     lyrics: Optional[str] = None
-    tags: Optional[List[str]] = None
     play_count: int = 0
     favorite_count: int = 0
     download_count: int = 0
@@ -31,6 +30,16 @@ class SongResponseDTO:
     audio_quality: Optional[str] = None
     created_at: Optional[datetime] = None
     release_date: Optional[datetime] = None
+    audio_downloaded: bool = False  # Indica si el audio está descargado
+
+    @property
+    def duration_formatted(self) -> str:
+        """Retorna la duración en formato MM:SS"""
+        if self.duration_seconds <= 0:
+            return "00:00"
+        minutes = self.duration_seconds // 60
+        seconds = self.duration_seconds % 60
+        return f"{minutes:02d}:{seconds:02d}"
 
 
 @dataclass
@@ -40,16 +49,6 @@ class SongSearchRequestDTO:
     query: str
     limit: int = 20
     include_youtube: bool = True
-
-
-@dataclass
-class SongSearchResponseDTO:
-    """DTO para respuesta de búsqueda de canciones"""
-
-    source: str  # "local_cache", "youtube_api", "mixed"
-    results: list
-    total_found: int
-    message: Optional[str] = None
 
 
 @dataclass

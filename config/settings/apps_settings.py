@@ -23,8 +23,10 @@ LOCAL_APPS = [
     "apps.albums",
     "apps.songs",
     "apps.genres",
-    "apps.music_search",
+    "apps.payments",
+    "apps.playlists",
 ]
+
 INSTALLED_APPS = THEME_APPLICATION + DEFAULT_DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 
@@ -44,6 +46,28 @@ SPECTACULAR_SETTINGS = {
             }
         }
     },
+    # Configuración para mostrar filtros automáticamente
+    "FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.OrderingFilter",
+        "rest_framework.filters.SearchFilter",
+    ],
+    "AUTO_SCHEMA_OPERATIONS": True,
+    "ENABLE_DJANGO_DEPLOY_CHECK": False,
+    "EXTENSIONS_INFO": {
+        "x-badges": [
+            {"label": "Django", "message": "4.2+", "color": "green"},
+            {"label": "DRF", "message": "3.14+", "color": "blue"},
+        ]
+    },
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums",
+    ],
+    "SCHEMA_PATH_PREFIX": "/api/",
+    # Registrar extensiones personalizadas
+    "EXTENSIONS": [
+        "common.utils.spectacular_extensions.DjangoFilterExtension",
+    ],
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
         "persistAuthorization": True,  # Mantiene el token después de refrescar

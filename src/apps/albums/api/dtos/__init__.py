@@ -1,17 +1,5 @@
-from .album_dtos import (
-    AlbumResponseDTO,
-    AlbumSearchRequestDTO,
-    AlbumSearchResponseDTO,
-    GetAlbumsByArtistRequestDTO,
-    GetPopularAlbumsRequestDTO,
-    SearchAlbumsByTitleRequestDTO,
-)
+from .album_dtos import AlbumResponseDTO
 
 __all__ = [
     "AlbumResponseDTO",
-    "AlbumSearchRequestDTO",
-    "AlbumSearchResponseDTO",
-    "SearchAlbumsByTitleRequestDTO",
-    "GetAlbumsByArtistRequestDTO",
-    "GetPopularAlbumsRequestDTO",
 ]

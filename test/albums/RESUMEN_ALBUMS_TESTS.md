@@ -68,7 +68,7 @@ test/albums/
 ├── README.md                      # Documentación completa
 ├── conftest.py                    # Configuración pytest
 ├── test_direct.py                 # ✅ Tests entidades (5 tests)
-├── test_use_cases_direct.py       # ✅ Tests casos de uso (6 tests)  
+├── test_use_cases_direct.py       # ✅ Tests casos de uso (6 tests)
 ├── test_serializers_direct.py     # ✅ Tests serializadores (6 tests)
 ├── test_models_direct.py          # ⚠️ En desarrollo
 └── run_all_tests.py              # ✅ Script maestro
@@ -81,11 +81,11 @@ test/albums/
 def test_functionality():
     """Test con descripción clara"""
     print("📀 Probando funcionalidad...")
-    
+
     # Arrange, Act, Assert pattern
     result = execute_test()
     assert result.is_valid()
-    
+
     print("✅ Funcionalidad probada")
     return True
 ```
@@ -153,7 +153,7 @@ python test/albums/run_all_tests.py
 
 📈 ESTADÍSTICAS:
    • Total de archivos de test: 3
-   • Tests que pasaron: 3  
+   • Tests que pasaron: 3
    • Tests que fallaron: 0
    • Porcentaje de éxito: 100.0%
 ```

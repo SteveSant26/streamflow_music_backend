@@ -1,24 +1,26 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
-from ..mixins.logging_mixin import LoggingMixin
+from src.common.utils.logging_config import get_logger
+
 from ..types import EntityType, InputType, ModelType, ReturnType
 from ..utils.logging_decorators import log_execution, log_performance
 from .ibase_repository import IReadOnlyRepository
 
 
-class BaseUseCase(ABC, Generic[InputType, ReturnType], LoggingMixin):
+class BaseUseCase(ABC, Generic[InputType, ReturnType]):
     """Clase base para casos de uso."""
 
     def __init__(self):
         super().__init__()
+        self.logger = get_logger(self.__class__.__name__)
 
     @abstractmethod
     async def execute(self, *args, **kwargs) -> ReturnType:
         """Ejecuta el caso de uso."""
 
 
-class BaseGetByIdUseCase(BaseUseCase[str, EntityType], Generic[EntityType]):
+class BaseGetByIdUseCase(BaseUseCase[str, EntityType], Generic[EntityType, ModelType]):
     """Clase base para casos de uso de obtener por ID."""
 
     def __init__(self, repository: IReadOnlyRepository[EntityType, ModelType]):
@@ -44,7 +46,9 @@ class BaseGetByIdUseCase(BaseUseCase[str, EntityType], Generic[EntityType]):
         """Obtiene la excepción para entidad no encontrada."""
 
 
-class BaseGetAllUseCase(BaseUseCase[None, list[EntityType]], Generic[EntityType]):
+class BaseGetAllUseCase(
+    BaseUseCase[None, list[EntityType]], Generic[EntityType, ModelType]
+):
     """Clase base para casos de uso de obtener todas las entidades."""
 
     def __init__(self, repository: IReadOnlyRepository[EntityType, ModelType]):

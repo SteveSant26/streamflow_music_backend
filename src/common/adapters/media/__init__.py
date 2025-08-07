@@ -1,13 +1,14 @@
-"""
-Servicios de medios reutilizables
-"""
-
 from .audio_download_service import AudioDownloadService
-from .music_service import MusicService
+from .media_download_service import MediaDownloadService
+from .media_file_service import MediaFileService
+from .media_types import MusicTrackData, YouTubeVideoInfo
+from .unified_music_service import UnifiedMusicService
 from .youtube_service import YouTubeAPIService
 
 __all__ = [
     "AudioDownloadService",
-    "MusicService",
+    "UnifiedMusicService",
     "YouTubeAPIService",
+    "MediaDownloadService",
+    "MediaFileService",
 ]

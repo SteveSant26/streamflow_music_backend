@@ -1,13 +1,5 @@
-from .genre_dtos import (
-    GenreResponseDTO,
-    GenreSearchRequestDTO,
-    PopularGenresRequestDTO,
-    SearchGenresRequestDTO,
-)
+from .genre_dtos import GenreResponseDTO
 
 __all__ = [
     "GenreResponseDTO",
-    "GenreSearchRequestDTO",
-    "PopularGenresRequestDTO",
-    "SearchGenresRequestDTO",
 ]

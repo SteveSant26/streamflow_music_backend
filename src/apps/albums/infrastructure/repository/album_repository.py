@@ -1,5 +1,10 @@
-from typing import Any, List
+import uuid
+from typing import List, Optional
 
+from asgiref.sync import sync_to_async
+from django.utils import timezone
+
+from apps.albums.api.mappers import AlbumEntityModelMapper
 from apps.albums.domain.repository import IAlbumRepository
 from common.core import BaseDjangoRepository
 
@@ -11,90 +16,128 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
     """Implementación del repositorio de álbumes"""
 
     def __init__(self):
-        super().__init__(AlbumModel)
+        super().__init__(AlbumModel, AlbumEntityModelMapper())
 
-    def _model_to_entity(self, model: AlbumModel) -> AlbumEntity:
-        """Convierte un modelo Django a entidad del dominio"""
-        return AlbumEntity(
-            id=str(model.id),
-            title=model.title,
-            artist_id=str(model.artist_id),
-            artist_name=model.artist_name,
-            release_date=model.release_date,
-            description=model.description,
-            cover_image_url=model.cover_image_url,
-            total_tracks=model.total_tracks,
-            play_count=model.play_count,
-            is_active=model.is_active,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-        )
-
-    def _entity_to_model_data(self, entity: AlbumEntity) -> dict[str, Any]:
-        """Convierte una entidad a datos del modelo"""
-        return {
-            "title": entity.title,
-            "artist_id": entity.artist_id,
-            "artist_name": entity.artist_name,
-            "release_date": entity.release_date,
-            "description": entity.description,
-            "cover_image_url": entity.cover_image_url,
-            "total_tracks": entity.total_tracks,
-            "play_count": entity.play_count,
-            "is_active": entity.is_active,
-        }
-
-    def _entity_to_model(self, entity: AlbumEntity) -> AlbumModel:
-        """Convierte una entidad AlbumEntity a un modelo Django AlbumModel"""
+    def save(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, entity: AlbumEntity
+    ) -> AlbumEntity:
         try:
-            album_data = self._entity_to_model_data(entity)
+            model_data = self.mapper.entity_to_model_data(entity)
 
-            if hasattr(entity, "id") and entity.id is not None:
-                album_data["id"] = entity.id
+            model_instance, created = self.model_class.objects.update_or_create(
+                id=getattr(entity, "id", None), defaults=model_data
+            )
 
-            self.logger.debug(f"Convirtiendo entidad álbum a modelo: {album_data}")
-            album = AlbumModel(**album_data)
-            return album
-
+            action = "created" if created else "updated"
+            self.logger.info(
+                f"{self.model_class.__name__} {action} with id {model_instance.pk}"
+            )
+            return self.mapper.model_to_entity(model_instance)
         except Exception as e:
-            self.logger.error(f"Error al convertir entidad álbum a modelo: {str(e)}")
+            self.logger.error(f"Error saving {self.model_class.__name__}: {str(e)}")
             raise
 
     async def find_by_artist_id(
         self, artist_id: str, limit: int = 10
     ) -> List[AlbumEntity]:
         """Busca álbumes por ID del artista"""
-        models = self.model_class.objects.filter(
-            artist_id=artist_id, is_active=True
-        ).order_by("-release_date")[:limit]
-        return [self._model_to_entity(model) async for model in models]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.select_related("artist")
+                .filter(
+                    artist__id=artist_id,
+                )
+                .order_by("-release_date")[:limit]
+            )
+        )()
+        return self.mapper.models_to_entities(models)
 
     async def search_by_title(self, title: str, limit: int = 10) -> List[AlbumEntity]:
         """Busca álbumes por título"""
-        models = self.model_class.objects.filter(
-            title__icontains=title, is_active=True
-        ).order_by("-play_count")[:limit]
-        return [self._model_to_entity(model) async for model in models]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.select_related("artist")
+                .filter(
+                    title__icontains=title,
+                )
+                .order_by("-play_count")[:limit]
+            )
+        )()
+        return self.mapper.models_to_entities(models)
 
     async def get_recent_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes recientes"""
-        models = self.model_class.objects.filter(is_active=True).order_by(
-            "-created_at"
-        )[:limit]
-        return [self._model_to_entity(model) async for model in models]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.select_related("artist")
+                .all()
+                .order_by("-created_at")[:limit]
+            )
+        )()
+        return self.mapper.models_to_entities(models)
 
     async def get_popular_albums(self, limit: int = 10) -> List[AlbumEntity]:
         """Obtiene álbumes populares"""
-        models = self.model_class.objects.filter(is_active=True).order_by(
-            "-play_count"
-        )[:limit]
-        return [self._model_to_entity(model) async for model in models]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.select_related("artist")
+                .all()
+                .order_by("-play_count")[:limit]
+            )
+        )()
+        return self.mapper.models_to_entities(models)
 
     async def find_by_release_year(
         self, year: int, limit: int = 10
     ) -> List[AlbumEntity]:
         """Busca álbumes por año de lanzamiento"""
-        models = self.model_class.objects.filter(
-            release_date__year=year, is_active=True
-        ).order_by("-play_count")[:limit]
-        return [self._model_to_entity(model) async for model in models]
+        models = await sync_to_async(
+            lambda: list(
+                self.model_class.objects.select_related("artist")
+                .filter(
+                    release_date__year=year,
+                )
+                .order_by("-play_count")[:limit]
+            )
+        )()
+        return self.mapper.models_to_entities(models)
+
+    def find_or_create_by_title_and_artist(
+        self,
+        title: str,
+        artist_id: str,
+        artist_name: str,
+        cover_image_url: Optional[str] = None,
+    ) -> AlbumEntity:
+        """Busca un álbum por título y artista, si no existe lo crea (versión síncrona)"""
+        # Primero intentar encontrar por título y artista
+        try:
+            model = self.model_class.objects.select_related("artist").get(
+                title__iexact=title, artist__id=artist_id
+            )
+            return self.mapper.model_to_entity(model)
+        except self.model_class.DoesNotExist:
+            # Si no existe, crear uno nuevo
+            album_entity = AlbumEntity(
+                id=str(uuid.uuid4()),
+                title=title,
+                artist_id=artist_id,
+                artist_name=artist_name,
+                cover_image_url=cover_image_url,
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
+
+        return self.save(album_entity)
+
+    async def get_by_source(
+        self, source_type: str, source_id: str
+    ) -> Optional[AlbumEntity]:
+        """Busca un álbum por fuente externa"""
+        try:
+            model = await self.model_class.objects.select_related("artist").aget(
+                source_type=source_type, source_id=source_id
+            )
+            return self.mapper.model_to_entity(model)
+        except self.model_class.DoesNotExist:
+            return None

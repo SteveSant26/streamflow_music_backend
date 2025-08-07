@@ -1,30 +1,28 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-from apps.songs.api.views import (
-    ProcessYouTubeVideoView,
+from .views import (
+    IncrementPlayCountAPIView,
+    MostPopularSongsView,
     RandomSongsView,
-    SearchSongsView,
-    SongDetailView,
-    increment_play_count_view,
+    SongViewSet,
 )
 
+# Router para el ViewSet
+router = DefaultRouter()
+router.register(r"list", SongViewSet, basename="songs-viewset")
+
 urlpatterns = [
-    # Búsqueda de canciones
-    path("search/", SearchSongsView.as_view(), name="search-songs"),
+    # ViewSet para listado y detalle con filtros (incluye búsqueda unificada con YouTube)
+    path("", include(router.urls)),
     # Canciones aleatorias
     path("random/", RandomSongsView.as_view(), name="random-songs"),
-    # Detalles de una canción específica
-    path("<int:song_id>/", SongDetailView.as_view(), name="song-detail"),
-    # Procesar video de YouTube
+    # Canciones más populares
+    path("most-popular/", MostPopularSongsView.as_view(), name="most-popular-songs"),
+    # Nueva vista API para incrementar contador (más consistente)
     path(
-        "process-youtube/",
-        ProcessYouTubeVideoView.as_view(),
-        name="process-youtube-video",
-    ),
-    # Incrementar contador de reproducciones
-    path(
-        "<int:song_id>/increment-play-count/",
-        increment_play_count_view,
-        name="increment-play-count",
+        "api/<uuid:song_id>/increment-play-count/",
+        IncrementPlayCountAPIView.as_view(),
+        name="increment-play-count-api",
     ),
 ]

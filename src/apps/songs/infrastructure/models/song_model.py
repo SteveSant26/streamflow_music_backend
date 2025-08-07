@@ -2,6 +2,7 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class SongModel(models.Model):
@@ -12,21 +13,31 @@ class SongModel(models.Model):
     # Información básica
     title = models.CharField(max_length=255)
 
-    # Relaciones (por ahora como UUIDs, luego serán FK cuando estén los otros modelos)
-    album_id = models.UUIDField(null=True, blank=True, db_index=True)
-    artist_id = models.UUIDField(null=True, blank=True, db_index=True)
-    genre_id = models.UUIDField(null=True, blank=True, db_index=True)
+    # Relaciones
+    album = models.ForeignKey(
+        "albums.AlbumModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="songs",
+        help_text="Álbum de la canción",
+    )
+    artist = models.ForeignKey(
+        "artists.ArtistModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="songs",
+        help_text="Artista de la canción",
+    )
 
-    # Información desnormalizada para mejor rendimiento en consultas
-    album_title = models.CharField(
-        max_length=255, null=True, blank=True, db_index=True  # NOSONAR
-    )  # NOSONAR
-    artist_name = models.CharField(
-        max_length=255, null=True, blank=True, db_index=True  # NOSONAR
-    )  # NOSONAR
-    genre_name = models.CharField(
-        max_length=100, null=True, blank=True, db_index=True  # NOSONAR
-    )  # NOSONAR
+    # Relación con géneros - Many to Many para permitir múltiples géneros por canción
+    genres = models.ManyToManyField(
+        "genres.GenreModel",
+        blank=True,
+        related_name="songs",
+        help_text="Géneros musicales asociados a esta canción",
+    )
 
     # Metadatos de la canción
     duration_seconds = models.IntegerField(
@@ -41,7 +52,6 @@ class SongModel(models.Model):
 
     # Contenido adicional
     lyrics = models.TextField(null=True, blank=True)  # NOSONAR
-    tags = models.JSONField(default=list, blank=True)
 
     # Métricas internas de la aplicación
     play_count = models.PositiveIntegerField(default=0, db_index=True)
@@ -60,14 +70,11 @@ class SongModel(models.Model):
         ],
     )
     source_id = models.CharField(
-        max_length=100, null=True, blank=True, db_index=True
+        max_length=100, null=True, blank=True, db_index=True  # noqa
     )  # NOSONAR
     source_url = models.URLField(null=True, blank=True, max_length=500)
 
     # Estados y configuración
-    is_explicit = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True, db_index=True)
-    is_premium = models.BooleanField(default=False)
     audio_quality = models.CharField(
         max_length=20,
         default="standard",
@@ -89,10 +96,6 @@ class SongModel(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["source_type", "source_id"]),
-            models.Index(fields=["artist_name", "play_count"]),
-            models.Index(fields=["album_title", "track_number"]),
-            models.Index(fields=["genre_name", "play_count"]),
-            models.Index(fields=["is_active", "created_at"]),
             models.Index(fields=["play_count"], name="songs_most_played_idx"),
             models.Index(fields=["favorite_count"], name="songs_most_favorited_idx"),
             models.Index(fields=["last_played_at"], name="songs_recently_played_idx"),
@@ -106,7 +109,7 @@ class SongModel(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.artist_name} - {self.title}" if self.artist_name else self.title
+        return self.title
 
     @property
     def duration_formatted(self) -> str:
@@ -115,20 +118,23 @@ class SongModel(models.Model):
         seconds = self.duration_seconds % 60
         return f"{minutes:02d}:{seconds:02d}"
 
-    def increment_play_count(self):
+    async def increment_play_count(self):
         """Incrementa el contador de reproducciones y actualiza last_played_at"""
-        from django.utils import timezone
 
         self.play_count += 1
         self.last_played_at = timezone.now()
-        self.save(update_fields=["play_count", "last_played_at"])
+        await self.asave(update_fields=["play_count", "last_played_at"])
 
-    def increment_favorite_count(self):
+    async def increment_favorite_count(self):
         """Incrementa el contador de favoritos"""
         self.favorite_count += 1
-        self.save(update_fields=["favorite_count"])
+        await self.asave(update_fields=["favorite_count"])
 
-    def increment_download_count(self):
+    async def increment_download_count(self):
         """Incrementa el contador de descargas"""
         self.download_count += 1
-        self.save(update_fields=["download_count"])
+        await self.asave(update_fields=["download_count"])
+
+    async def get_primary_genre(self):
+        """Retorna el primer género asignado como género principal"""
+        return await self.genres.afirst()

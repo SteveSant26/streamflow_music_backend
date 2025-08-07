@@ -1,9 +1,5 @@
-"""
-Servicio mejorado para interactuar con la API de YouTube
-"""
-
-import random
 import re
+import secrets
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -14,25 +10,29 @@ from googleapiclient.errors import HttpError
 from ...interfaces.imedia_service import IYouTubeService
 from ...mixins.logging_mixin import LoggingMixin
 from ...types.media_types import SearchOptions, YouTubeServiceConfig, YouTubeVideoInfo
+from ...utils.music_metadata_extractor import MusicMetadataExtractor
 from ...utils.retry_manager import CircuitBreaker, RetryManager
-from ...utils.validators import TextCleaner, URLValidator
+from ...utils.validators import TextCleaner
 
 
 class YouTubeAPIService(IYouTubeService, LoggingMixin):
-    """Servicio mejorado para interactuar con la API de YouTube"""
+    """Servicio simplificado para interactuar con la API de YouTube"""
 
     def __init__(
         self,
         config: Optional[YouTubeServiceConfig] = None,
-        api_key: Optional[str] = None,
     ):
         super().__init__()
         self.config = config or YouTubeServiceConfig()
-        self.api_key = api_key or self.config.api_key or settings.YOUTUBE_API_KEY
 
-        # Componentes auxiliares
+        # API configuration from settings
+        self.api_key = settings.YOUTUBE_API_KEY
+        self.service_name = settings.YOUTUBE_API_SERVICE_NAME
+        self.api_version = settings.YOUTUBE_API_VERSION
+
+        # Components
         self.text_cleaner = TextCleaner()
-        self.url_validator = URLValidator()
+        self.metadata_extractor = MusicMetadataExtractor()
         self.retry_manager = RetryManager(
             max_retries=self.config.max_retries, base_delay=self.config.retry_delay
         )
@@ -42,29 +42,29 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             expected_exception=HttpError,
         )
 
-        # Inicializar cliente de YouTube
+        # Initialize YouTube client
         self.youtube = self._build_youtube_client()
 
-        # Tracking de cuota (si está habilitado)
+        # Quota tracking
         self.quota_used_today = 0
         self.enable_quota_tracking = self.config.enable_quota_tracking
 
     def _build_youtube_client(self):
-        """Construye el cliente de YouTube API"""
+        """Builds the YouTube API client"""
         try:
             return build(
-                self.config.service_name,
-                self.config.api_version,
+                self.service_name,
+                self.api_version,
                 developerKey=self.api_key,
             )
         except Exception as e:
             self.logger.error(f"Failed to build YouTube client: {str(e)}")
             raise
 
-    async def search_videos(
+    def search_videos(
         self, query: str, options: Optional[SearchOptions] = None
     ) -> List[YouTubeVideoInfo]:
-        """Busca videos en YouTube con opciones configurables"""
+        """Search videos on YouTube with configurable options - MUSIC ONLY"""
         if not query or not query.strip():
             self.logger.warning("Empty search query provided")
             return []
@@ -72,37 +72,59 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
         if not options:
             options = SearchOptions()
 
+        # Force music category for all searches
+        options.video_category_id = "10"
+
+        # Add music keywords to query if not present
+        music_keywords = ["music", "song", "audio", "track", "artist", "band"]
+        query_lower = query.lower()
+
+        if not any(keyword in query_lower for keyword in music_keywords):
+            query = f"{query} music"
+
         try:
-            return (
-                await self.retry_manager.execute_with_retry(
+            videos = (
+                self.retry_manager.execute_with_retry(
                     self._search_videos_with_circuit_breaker, query, options
                 )
                 or []
             )
 
+            # Filter results to ensure only music content
+            music_videos = []
+            for video in videos:
+                if self._is_music_content(video):
+                    music_videos.append(video)
+
+            self.logger.info(
+                f"Filtered {len(videos)} videos to {len(music_videos)} music videos"
+            )
+            return music_videos
+
         except Exception as e:
             self.logger.error(f"Error searching videos with query '{query}': {str(e)}")
             return []
 
-    async def _search_videos_with_circuit_breaker(
+    def _search_videos_with_circuit_breaker(
         self, query: str, options: SearchOptions
     ) -> List[YouTubeVideoInfo]:
-        """Busca videos usando circuit breaker"""
-        return await self.circuit_breaker.call(self._perform_search, query, options)
+        """Search videos using circuit breaker"""
+        return self.circuit_breaker.call(self._perform_search, query, options)
 
-    async def _perform_search(
+    def _perform_search(
         self, query: str, options: SearchOptions
     ) -> List[YouTubeVideoInfo]:
-        """Realiza la búsqueda real en la API"""
+        """Performs the actual search on the API"""
         search_params = self._build_search_params(query, options)
 
-        # Verificar cuota antes de hacer la llamada
+        # Check quota before making the call
         if self.enable_quota_tracking and not self._check_quota_limit(100):
             self.logger.warning("YouTube API quota limit reached")
             return []
 
         try:
             search_response = self.youtube.search().list(**search_params).execute()
+            self.logger.debug(f"Search response: {search_response}")
 
             if self.enable_quota_tracking:
                 self.quota_used_today += 100  # Cost of search operation
@@ -117,7 +139,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 self.logger.warning(f"No videos found for query: {query}")
                 return []
 
-            return await self._get_videos_details(video_ids)
+            return self._get_videos_details(video_ids)
 
         except HttpError as e:
             if e.resp.status == 403:  # Quota exceeded
@@ -129,18 +151,18 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
     def _build_search_params(
         self, query: str, options: SearchOptions
     ) -> Dict[str, Any]:
-        """Construye los parámetros de búsqueda"""
+        """Builds search parameters"""
         search_params = {
             "q": query.strip(),
             "part": "snippet",
             "type": "video",
-            "maxResults": min(options.max_results, 50),  # YouTube API limit
+            "maxResults": min(options.max_results, 50),
             "videoCategoryId": options.video_category_id,
             "order": options.order,
             "safeSearch": options.safe_search,
         }
 
-        # Agregar parámetros opcionales
+        # Add optional parameters
         if options.region_code:
             search_params["regionCode"] = options.region_code
         if options.language:
@@ -152,24 +174,24 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
         return search_params
 
-    async def get_video_details(self, video_id: str) -> Optional[YouTubeVideoInfo]:
-        """Obtiene detalles de un video específico"""
+    def get_video_details(self, video_id: str) -> Optional[YouTubeVideoInfo]:
+        """Gets details of a specific video"""
         if not video_id or not isinstance(video_id, str):
             self.logger.error("Invalid video ID provided")
             return None
 
         try:
-            videos = await self._get_videos_details([video_id])
+            videos = self._get_videos_details([video_id])
             return videos[0] if videos else None
 
         except Exception as e:
             self.logger.error(f"Error getting video details for {video_id}: {str(e)}")
             return None
 
-    async def get_random_videos(
+    def get_random_videos(
         self, options: Optional[SearchOptions] = None
     ) -> List[YouTubeVideoInfo]:
-        """Obtiene videos aleatorios usando consultas predefinidas"""
+        """Gets random videos using predefined queries"""
         if not options:
             options = SearchOptions()
 
@@ -177,49 +199,34 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             random_queries = self._get_random_queries()
 
             if not random_queries:
-                self.logger.warning("No random queries available")
+                self.logger.error("No random queries available")
                 return []
 
-            query = random.choice(random_queries)  # nosec B311
+            query = secrets.SystemRandom().choice(random_queries)
             self.logger.debug(f"Using random query: {query}")
 
-            return await self.search_videos(query, options)
+            return self.search_videos(query, options)
 
         except Exception as e:
             self.logger.error(f"Error getting random videos: {str(e)}")
             return []
 
     def _get_random_queries(self) -> List[str]:
-        """Obtiene consultas aleatorias para búsqueda"""
-        return getattr(
-            settings,
-            "RANDOM_MUSIC_QUERIES",
-            [
-                "popular music 2024",
-                "trending songs",
-                "best music hits",
-                "top 40 music",
-                "latest music videos",
-                "new releases music",
-                "acoustic songs",
-                "rock music",
-                "pop hits",
-                "indie music",
-            ],
-        )
+        """Gets random queries for search"""
+        return settings.RANDOM_MUSIC_QUERIES
 
-    async def _get_videos_details(self, video_ids: List[str]) -> List[YouTubeVideoInfo]:
-        """Obtiene detalles completos de una lista de videos"""
+    def _get_videos_details(self, video_ids: List[str]) -> List[YouTubeVideoInfo]:
+        """Gets complete details of a list of videos"""
         if not video_ids:
             return []
 
         try:
-            # Verificar cuota antes de hacer la llamada
+            # Check quota before making the call
             if self.enable_quota_tracking and not self._check_quota_limit(1):
                 self.logger.warning("YouTube API quota limit reached for video details")
                 return []
 
-            videos_response = await self.circuit_breaker.call(
+            videos_response = self.circuit_breaker.call(
                 self._fetch_videos_details, video_ids
             )
 
@@ -239,7 +246,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             return []
 
     def _fetch_videos_details(self, video_ids: List[str]) -> Dict[str, Any]:
-        """Realiza la llamada real a la API para obtener detalles"""
+        """Makes the actual API call to get details"""
         return (
             self.youtube.videos()
             .list(
@@ -252,32 +259,34 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
     def _build_video_info(
         self, video_data: Dict[str, Any]
     ) -> Optional[YouTubeVideoInfo]:
-        """Construye un objeto YouTubeVideoInfo a partir de datos de la API"""
+        """Builds a YouTubeVideoInfo object from API data"""
         try:
             snippet = video_data["snippet"]
             statistics = video_data.get("statistics", {})
             content_details = video_data["contentDetails"]
 
-            # Parsear duración ISO 8601
+            # Parse ISO 8601 duration
             duration_seconds = self._parse_duration(content_details["duration"])
 
-            # Parsear fecha de publicación
+            # Parse publication date
             published_at = self._parse_published_date(snippet["publishedAt"])
 
-            # Procesar título y canal
+            # Process title and channel
             title = self.text_cleaner.clean_title(snippet["title"])
             channel_title = self.text_cleaner.clean_channel_name(
                 snippet["channelTitle"]
             )
 
-            # Obtener género basado en categoría
+            # Solo almacenar el category_id para referencia, el género se analiza por separado
             category_id = snippet.get("categoryId", "10")
-            genre = self._get_genre_from_category(category_id)
 
-            # Obtener la mejor calidad de thumbnail disponible
+            # No mapear género aquí - se hará con MusicGenreAnalyzer posteriormente
+            # Solo usamos "Music" como valor por defecto ya que filtramos por Category ID 10
+
+            # Get the best quality thumbnail available
             thumbnail_url = self._get_best_thumbnail(snippet.get("thumbnails", {}))
 
-            return YouTubeVideoInfo(
+            video_info = YouTubeVideoInfo(
                 video_id=video_data["id"],
                 title=title,
                 channel_title=channel_title,
@@ -290,16 +299,21 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 like_count=int(statistics.get("likeCount", 0)),
                 tags=snippet.get("tags", []),
                 category_id=category_id,
-                genre=genre,
+                genre="Music",  # Valor por defecto - el género real se determina con MusicGenreAnalyzer
                 url=f"https://www.youtube.com/watch?v={video_data['id']}",
             )
+
+            # Extract music metadata
+            video_info = self.metadata_extractor.extract_music_metadata(video_info)
+
+            return video_info
 
         except Exception as e:
             self.logger.error(f"Error building video info: {str(e)}")
             return None
 
     def _parse_duration(self, duration_str: str) -> int:
-        """Convierte duración ISO 8601 a segundos"""
+        """Converts ISO 8601 duration to seconds"""
         try:
             match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration_str)
             if not match:
@@ -316,57 +330,29 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             return 0
 
     def _parse_published_date(self, date_str: str) -> datetime:
-        """Parsea la fecha de publicación"""
+        """Parses the publication date"""
         try:
             return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
         except Exception as e:
             self.logger.error(f"Error parsing published date '{date_str}': {str(e)}")
             return datetime.now()
 
-    def _get_genre_from_category(self, category_id: str) -> str:
-        """Obtiene el género basado en la categoría de YouTube"""
-        categories = getattr(
-            settings,
-            "YOUTUBE_CATEGORIES",
-            {
-                "10": "Music",
-                "1": "Film & Animation",
-                "2": "Autos & Vehicles",
-                "15": "Pets & Animals",
-                "17": "Sports",
-                "19": "Travel & Events",
-                "20": "Gaming",
-                "22": "People & Blogs",
-                "23": "Comedy",
-                "24": "Entertainment",
-                "25": "News & Politics",
-                "26": "Howto & Style",
-                "27": "Education",
-                "28": "Science & Technology",
-            },
-        )
-
-        try:
-            return categories.get(str(category_id), "Music")
-        except (ValueError, TypeError):
-            return "Music"
-
     def _get_best_thumbnail(self, thumbnails: Dict[str, Any]) -> str:
-        """Obtiene la URL del thumbnail de mejor calidad disponible"""
-        # Orden de preferencia: maxres > high > medium > default
+        """Gets the URL of the best quality thumbnail available"""
+        # Order of preference: maxres > high > medium > default
         for quality in ["maxres", "high", "medium", "default"]:
             if quality in thumbnails:
                 return thumbnails[quality]["url"]
 
-        # Fallback si no hay thumbnails
+        # Fallback if no thumbnails
         return ""
 
     def _check_quota_limit(self, cost: int) -> bool:
-        """Verifica si se puede realizar una operación sin exceder la cuota"""
+        """Verifies if an operation can be performed without exceeding quota"""
         return (self.quota_used_today + cost) <= self.config.quota_limit_per_day
 
     def get_quota_usage(self) -> Dict[str, int]:
-        """Obtiene información sobre el uso de cuota"""
+        """Gets quota usage information"""
         return {
             "quota_used": self.quota_used_today,
             "quota_limit": self.config.quota_limit_per_day,
@@ -374,3 +360,199 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 0, self.config.quota_limit_per_day - self.quota_used_today
             ),
         }
+
+    def get_music_categories(self) -> List[Dict[str, Any]]:
+        """Gets all available YouTube video categories with focus on music"""
+        try:
+            # Check quota before making the call
+            if self.enable_quota_tracking and not self._check_quota_limit(1):
+                self.logger.warning("YouTube API quota limit reached for categories")
+                return self._get_fallback_music_categories()
+
+            categories_response = self.circuit_breaker.call(
+                self._fetch_video_categories
+            )
+
+            if self.enable_quota_tracking:
+                self.quota_used_today += 1  # Cost per videoCategories.list call
+
+            music_categories = []
+            for category in categories_response.get("items", []):
+                category_info = self._build_category_info(category)
+                if category_info and self._is_music_related_category(category_info):
+                    music_categories.append(category_info)
+
+            # Always include the main music category if not present
+            if not any(cat["id"] == "10" for cat in music_categories):
+                music_categories.insert(
+                    0,
+                    {
+                        "id": "10",
+                        "title": "Music",
+                        "assignable": True,
+                        "is_primary_music": True,
+                    },
+                )
+
+            return music_categories
+
+        except Exception as e:
+            self.logger.error(f"Error getting music categories: {str(e)}")
+            return self._get_fallback_music_categories()
+
+    def _fetch_video_categories(self) -> Dict[str, Any]:
+        """Makes the actual API call to get video categories"""
+        return (
+            self.youtube.videoCategories()
+            .list(part="snippet", regionCode="US")
+            .execute()
+        )
+
+    def _build_category_info(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Builds category information from API data"""
+        try:
+            snippet = category_data["snippet"]
+            return {
+                "id": category_data["id"],
+                "title": snippet["title"],
+                "assignable": snippet.get("assignable", False),
+                "channel_id": snippet.get("channelId", ""),
+                "is_primary_music": category_data["id"] == "10",
+            }
+        except Exception as e:
+            self.logger.error(f"Error building category info: {str(e)}")
+            return None
+
+    def _is_music_related_category(self, category: Dict[str, Any]) -> bool:
+        """Determines if a category is music-related"""
+        music_keywords = [
+            "music",
+            "musical",
+            "song",
+            "audio",
+            "sound",
+            "concert",
+            "performance",
+            "artist",
+            "band",
+        ]
+
+        title_lower = category["title"].lower()
+        return category["id"] == "10" or any(  # Primary music category
+            keyword in title_lower for keyword in music_keywords
+        )
+
+    def _get_fallback_music_categories(self) -> List[Dict[str, Any]]:
+        """Returns fallback music categories when API is not available"""
+        return [
+            {
+                "id": "10",
+                "title": "Music",
+                "assignable": True,
+                "channel_id": "",
+                "is_primary_music": True,
+            }
+        ]
+
+    def search_music_only(
+        self, query: str, options: Optional[SearchOptions] = None
+    ) -> List["YouTubeVideoInfo"]:
+        """Search specifically for music content only - DEPRECATED: Use search_videos() instead"""
+        self.logger.warning(
+            "search_music_only() is deprecated. search_videos() now filters for music automatically."
+        )
+        # Delegate to the main search method which now filters for music
+        return self.search_videos(query, options)
+
+    def _is_music_content(self, video: "YouTubeVideoInfo") -> bool:
+        """Determines if video content is music-related"""
+        # Primary check: Music category (if available)
+        if (
+            hasattr(video, "category_id")
+            and video.category_id
+            and video.category_id == "10"
+        ):
+            # If it's in music category, it's very likely music
+            return True
+
+        # Check for music indicators in title
+        music_indicators = [
+            "music",
+            "song",
+            "audio",
+            "track",
+            "album",
+            "single",
+            "official video",
+            "music video",
+            "mv",
+            "cover",
+            "remix",
+            "acoustic",
+            "live",
+            "concert",
+            "performance",
+            "instrumental",
+            "lyric",
+            "lyrics",
+        ]
+
+        title_lower = video.title.lower()
+        description_lower = getattr(video, "description", "").lower()
+
+        # Title should contain music indicators
+        title_has_music = any(
+            indicator in title_lower for indicator in music_indicators
+        )
+
+        # Tags should contain music-related terms (if available)
+        music_tags = False
+        if hasattr(video, "tags") and video.tags:
+            music_tags = any(
+                tag.lower()
+                in ["music", "song", "audio", "track", "artist", "band", "musical"]
+                for tag in video.tags
+            )
+
+        # Description should mention music (if available)
+        desc_has_music = False
+        if description_lower:
+            desc_has_music = any(
+                indicator in description_lower for indicator in music_indicators[:8]
+            )
+
+        # Exclude obvious non-music content
+        non_music_indicators = [
+            "tutorial",
+            "how to",
+            "news",
+            "sports",
+            "gaming",
+            "tech review",
+            "unboxing",
+            "vlog",
+            "comedy",
+            "prank",
+            "reaction",
+            "documentary",
+        ]
+
+        has_non_music = any(
+            indicator in title_lower or indicator in description_lower
+            for indicator in non_music_indicators
+        )
+
+        if has_non_music:
+            # Only exclude if it has non-music indicators AND doesn't have strong music indicators
+            if not (
+                title_has_music
+                and any(strong in title_lower for strong in ["music", "song", "audio"])
+            ):
+                return False
+
+        # At least 1 strong indicator should be true (more lenient than before)
+        music_score = sum([title_has_music, music_tags, desc_has_music])
+
+        return music_score >= 1

@@ -4,7 +4,7 @@ from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import SongEntity
-from ..domain.repository.Isong_repository import ISongRepository
+from ..domain.repository import ISongRepository
 
 
 class GetSongsByAlbumUseCase(BaseUseCase[str, List[SongEntity]]):

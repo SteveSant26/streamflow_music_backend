@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .infrastructure.models import GenreModel
 from django.utils.html import format_html
 

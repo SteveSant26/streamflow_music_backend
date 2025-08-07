@@ -10,7 +10,7 @@ test/albums/
 ├── conftest.py                    # Configuración pytest
 ├── test_direct.py                 # Tests directos de entidades
 ├── test_use_cases_direct.py       # Tests directos de casos de uso
-├── test_models_direct.py          # Tests directos de modelos (Django)  
+├── test_models_direct.py          # Tests directos de modelos (Django)
 ├── test_serializers_direct.py     # Tests directos de serializadores
 ├── api/                          # Tests de API/Views
 ├── domain/                       # Tests de dominio
@@ -26,7 +26,7 @@ Estos tests se pueden ejecutar directamente con Python, sin pytest:
 
 1. **Entidades** (`test_direct.py`)
    - ✅ Creación de AlbumEntity con datos completos
-   - ✅ Creación con datos mínimos  
+   - ✅ Creación con datos mínimos
    - ✅ Propiedades y validaciones
    - ✅ Representación string
    - ✅ Comparación entre entidades
@@ -39,7 +39,7 @@ Estos tests se pueden ejecutar directamente con Python, sin pytest:
    - ✅ Manejo de excepciones (AlbumNotFoundException)
    - ✅ Casos con resultados vacíos
 
-3. **Serializadores** (`test_serializers_direct.py`) 
+3. **Serializadores** (`test_serializers_direct.py`)
    - ✅ AlbumSerializer - validación y serialización
    - ✅ AlbumSearchSerializer - búsquedas
    - ✅ AlbumSearchResponseSerializer - respuestas
@@ -55,7 +55,7 @@ Estos tests se pueden ejecutar directamente con Python, sin pytest:
 ```bash
 # Ejecutar todos los tests directos
 python test/albums/test_direct.py
-python test/albums/test_use_cases_direct.py  
+python test/albums/test_use_cases_direct.py
 python test/albums/test_serializers_direct.py
 
 # Desde el directorio raíz del proyecto
@@ -80,7 +80,7 @@ pytest test/albums/ -v
 - ✅ Obtener álbum por ID
 - ✅ Obtener todos los álbumes
 - ✅ Buscar álbumes por título
-- ✅ Obtener álbumes por artista  
+- ✅ Obtener álbumes por artista
 - ✅ Manejo de excepciones
 - ✅ Resultados vacíos
 
@@ -113,7 +113,7 @@ Los tests directos son independientes y no requieren configuración especial de 
 
 ### Casos de Uso Faltantes
 - [ ] GetPopularAlbumsUseCase
-- [ ] GetRecentAlbumsUseCase  
+- [ ] GetRecentAlbumsUseCase
 - [ ] GetAlbumsByReleaseYearUseCase
 - [ ] CreateAlbumUseCase (si aplicable)
 - [ ] UpdateAlbumUseCase (si aplicable)
@@ -125,16 +125,16 @@ Los tests directos son independientes y no requieren configuración especial de 
 def test_functionality():
     """Test descripción clara"""
     print("📀 Probando funcionalidad...")
-    
+
     # Arrange - preparar datos
     test_data = create_test_data()
-    
+
     # Act - ejecutar funcionalidad
     result = execute_functionality(test_data)
-    
+
     # Assert - verificar resultados
     assert result.is_valid()
-    
+
     print("✅ Funcionalidad probada correctamente")
     return True
 ```
@@ -153,9 +153,9 @@ def create_mock_album(album_id, title, artist_name="Test Artist"):
 
 ## 🎉 Estado Actual
 
-**Tests Implementados:** ✅ 3/4 archivos principales  
-**Tests Pasando:** ✅ 17/17 tests directos  
-**Coverage Dominio:** ✅ ~85% cubierto  
+**Tests Implementados:** ✅ 3/4 archivos principales
+**Tests Pasando:** ✅ 17/17 tests directos
+**Coverage Dominio:** ✅ ~85% cubierto
 **Tests Ejecutables:** ✅ Todos funcionando
 
 Los tests de Albums están en buen estado y siguen los mismos patrones establecidos en `user_profile`, `songs` y `artists`.

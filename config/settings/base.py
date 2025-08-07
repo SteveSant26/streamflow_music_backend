@@ -4,10 +4,19 @@ from src.common.utils import LoggingConfig
 
 from .apps_settings import INSTALLED_APPS, SPECTACULAR_SETTINGS  # noqa: F401
 from .auth_settings import AUTH_PASSWORD_VALIDATORS  # noqa: F401
-from .test_database_settings import DATABASES  # noqa: F401
+from .database_settings import DATABASES  # noqa: F401
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: F401
 from .middleware_settings import MIDDLEWARE  # noqa: F401
 from .rest_framework_settings import REST_FRAMEWORK  # noqa: F401
+
+# Temporarily disabled Stripe settings for migrations
+from .stripe_settings import (  # noqa: F401
+    STRIPE_PREMIUM_MONTHLY_PRICE_ID,
+    STRIPE_PREMIUM_YEARLY_PRICE_ID,
+    STRIPE_PUBLISHABLE_KEY,
+    STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET,
+)
 from .supabase_settings import (  # noqa: F401
     SUPABASE_ANON_KEY,
     SUPABASE_JWT_ALGORITHM,
@@ -23,8 +32,7 @@ from .youtube_settings import (  # noqa: F401
     YOUTUBE_API_KEY,
     YOUTUBE_API_SERVICE_NAME,
     YOUTUBE_API_VERSION,
-    YOUTUBE_CATEGORIES,
-    YT_DLP_AUDIO_OPTS,
+    YOUTUBE_MUSIC_GENRES,
 )
 
 SECRET_KEY = env("SECRET_KEY")
@@ -61,17 +69,20 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# STATICFILES_DIRS = [BASE_DIR / "static"]
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = "/media/"
+
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGGING = LoggingConfig.get_logging_config(bool(DEBUG), ENVIRONMENT)
+
+DJANGO_ALLOW_ASYNC_UNSAFE = True
 
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

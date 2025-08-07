@@ -16,8 +16,12 @@ class IReadOnlyRepository(ABC, Generic[EntityType, ModelType]):
         """Obtiene todas las entidades, opcionalmente filtradas."""
 
     @abstractmethod
-    def _model_to_entity(self, model: ModelType) -> EntityType:
-        """Convierte un modelo a su entidad correspondiente."""
+    async def exists(self, entity_id: str) -> bool:
+        """Verifica si una entidad existe."""
+
+    @abstractmethod
+    async def count(self) -> int:
+        """Cuenta el número total de entidades activas."""
 
 
 class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
@@ -28,21 +32,16 @@ class IWriteOnlyRepository(ABC, Generic[EntityType, ModelType]):
         """Guarda una entidad."""
 
     @abstractmethod
-    async def delete(self, entity_id: str) -> None:
+    async def delete(self, entity_id: str) -> bool:
         """Elimina una entidad por ID."""
 
     @abstractmethod
     async def update(self, entity_id: str, entity: EntityType) -> EntityType:
         """Actualiza una entidad."""
 
-    @abstractmethod
-    def _entity_to_model(self, entity: EntityType) -> ModelType:
-        """Convierte una entidad a su modelo correspondiente."""
-
 
 class IBaseRepository(
     IReadOnlyRepository[EntityType, ModelType],
     IWriteOnlyRepository[EntityType, ModelType],
-    Generic[EntityType, ModelType],
 ):
-    """Repositorio completo que combina operaciones de lectura y escritura."""
+    """Repositorio base que combina operaciones de lectura y escritura."""

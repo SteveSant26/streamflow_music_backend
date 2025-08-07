@@ -16,15 +16,17 @@ class GetPopularGenresUseCase(BaseUseCase[None, List[GenreEntity]]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=1.0)
-    async def execute(self, limit: int = 10) -> List[GenreEntity]:
+    async def execute(
+        self,
+    ) -> List[GenreEntity]:
         """
-        Obtiene géneros populares
+        Obtiene géneros populares ordenados por puntuación de popularidad.
 
         Args:
-            limit: Límite de resultados
+            request_dto: DTO con el límite de resultados
 
         Returns:
             Lista de géneros populares
         """
-        self.logger.debug(f"Getting popular genres with limit: {limit}")
-        return await self.repository.get_popular_genres(limit)
+        self.logger.info("Getting popular genres")
+        return await self.repository.get_popular_genres()
