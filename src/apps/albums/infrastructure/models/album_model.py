@@ -41,7 +41,7 @@ class AlbumModel(models.Model):
     source_id = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
+        null=True,  # noqa
         db_index=True,  # noqa
         verbose_name="ID de fuente externa",
     )

@@ -34,7 +34,7 @@ class IAlbumRepository(IBaseRepository[AlbumEntity, Any]):
         """Busca álbumes por año de lanzamiento"""
 
     @abstractmethod
-    def find_or_create_by_title_and_artist(
+    async def find_or_create_by_title_and_artist(
         self,
         title: str,
         artist_id: str,

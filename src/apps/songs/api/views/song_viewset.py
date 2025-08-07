@@ -1,5 +1,6 @@
 from typing import Any
 
+from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
@@ -84,6 +85,7 @@ class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
         .all()
         .order_by("-created_at")
     )
+
     filterset_class = SongModelFilter
     permission_classes = [AllowAny]
     lookup_field = "id"
@@ -150,7 +152,9 @@ class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
                     self.logger.info(
                         f"Local results ({local_count}) < min_results ({min_results}), searching YouTube"
                     )
-                    self._fetch_youtube_results(title_query, min_results - local_count)
+                    async_to_sync(self._fetch_youtube_results)(
+                        title_query, min_results - local_count
+                    )
                     # Refrescar queryset después de agregar nuevas canciones
                     queryset = (
                         super()
@@ -168,7 +172,7 @@ class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
 
         return queryset
 
-    def _fetch_youtube_results(self, query: str, needed_count: int):
+    async def _fetch_youtube_results(self, query: str, needed_count: int):
         """
         Busca canciones en YouTube y las guarda en la BD si no existen
         """
@@ -188,7 +192,7 @@ class SongViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
 
             # Ejecutar búsqueda usando el caso de uso existente (sin asyncio)
             self.logger.info("Starting YouTube search execution...")
-            songs = self.search_songs_use_case.execute(request_dto)
+            songs = await self.search_songs_use_case.execute(request_dto)
             self.logger.info(
                 f"Successfully fetched {len(songs)} songs from YouTube for title: '{query}'"
             )

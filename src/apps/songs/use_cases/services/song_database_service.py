@@ -16,7 +16,7 @@ class SongDatabaseService:
         self.logger = logging.getLogger(__name__)
         self.song_repository = song_repository
 
-    def save_song_to_database(
+    async def save_song_to_database(
         self, song_entity: SongEntity, title: str
     ) -> Optional[SongEntity]:
         """
@@ -30,7 +30,7 @@ class SongDatabaseService:
             Entidad guardada o None si falla
         """
         try:
-            saved_song = self.song_repository.save(song_entity)
+            saved_song = await self.song_repository.save(song_entity)
 
             if saved_song:
                 self.logger.info(

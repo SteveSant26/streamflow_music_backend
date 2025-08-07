@@ -61,7 +61,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             self.logger.error(f"Failed to build YouTube client: {str(e)}")
             raise
 
-    def search_videos(
+    async def search_videos(
         self, query: str, options: Optional[SearchOptions] = None
     ) -> List[YouTubeVideoInfo]:
         """Search videos on YouTube with configurable options - MUSIC ONLY"""
@@ -84,7 +84,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
         try:
             videos = (
-                self.retry_manager.execute_with_retry(
+                await self.retry_manager.execute_with_retry(
                     self._search_videos_with_circuit_breaker, query, options
                 )
                 or []
@@ -105,13 +105,13 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             self.logger.error(f"Error searching videos with query '{query}': {str(e)}")
             return []
 
-    def _search_videos_with_circuit_breaker(
+    async def _search_videos_with_circuit_breaker(
         self, query: str, options: SearchOptions
     ) -> List[YouTubeVideoInfo]:
         """Search videos using circuit breaker"""
-        return self.circuit_breaker.call(self._perform_search, query, options)
+        return await self.circuit_breaker.call(self._perform_search, query, options)
 
-    def _perform_search(
+    async def _perform_search(
         self, query: str, options: SearchOptions
     ) -> List[YouTubeVideoInfo]:
         """Performs the actual search on the API"""
@@ -139,7 +139,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 self.logger.warning(f"No videos found for query: {query}")
                 return []
 
-            return self._get_videos_details(video_ids)
+            return await self._get_videos_details(video_ids)
 
         except HttpError as e:
             if e.resp.status == 403:  # Quota exceeded
@@ -174,21 +174,21 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
         return search_params
 
-    def get_video_details(self, video_id: str) -> Optional[YouTubeVideoInfo]:
+    async def get_video_details(self, video_id: str) -> Optional[YouTubeVideoInfo]:
         """Gets details of a specific video"""
         if not video_id or not isinstance(video_id, str):
             self.logger.error("Invalid video ID provided")
             return None
 
         try:
-            videos = self._get_videos_details([video_id])
+            videos = await self._get_videos_details([video_id])
             return videos[0] if videos else None
 
         except Exception as e:
             self.logger.error(f"Error getting video details for {video_id}: {str(e)}")
             return None
 
-    def get_random_videos(
+    async def get_random_videos(
         self, options: Optional[SearchOptions] = None
     ) -> List[YouTubeVideoInfo]:
         """Gets random videos using predefined queries"""
@@ -205,7 +205,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             query = secrets.SystemRandom().choice(random_queries)
             self.logger.debug(f"Using random query: {query}")
 
-            return self.search_videos(query, options)
+            return await self.search_videos(query, options)
 
         except Exception as e:
             self.logger.error(f"Error getting random videos: {str(e)}")
@@ -215,8 +215,10 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
         """Gets random queries for search"""
         return settings.RANDOM_MUSIC_QUERIES
 
-    def _get_videos_details(self, video_ids: List[str]) -> List[YouTubeVideoInfo]:
+    async def _get_videos_details(self, video_ids: List[str]) -> List[YouTubeVideoInfo]:
         """Gets complete details of a list of videos"""
+        import asyncio
+
         if not video_ids:
             return []
 
@@ -226,8 +228,10 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 self.logger.warning("YouTube API quota limit reached for video details")
                 return []
 
-            videos_response = self.circuit_breaker.call(
-                self._fetch_videos_details, video_ids
+            # Run the sync function in a thread using asyncio.to_thread
+            videos_response = await self.circuit_breaker.call(
+                lambda ids: asyncio.to_thread(self._fetch_videos_details, ids),
+                video_ids,
             )
 
             if self.enable_quota_tracking:
@@ -361,7 +365,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             ),
         }
 
-    def get_music_categories(self) -> List[Dict[str, Any]]:
+    async def get_music_categories(self) -> List[Dict[str, Any]]:
         """Gets all available YouTube video categories with focus on music"""
         try:
             # Check quota before making the call
@@ -369,7 +373,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 self.logger.warning("YouTube API quota limit reached for categories")
                 return self._get_fallback_music_categories()
 
-            categories_response = self.circuit_breaker.call(
+            categories_response = await self.circuit_breaker.call(
                 self._fetch_video_categories
             )
 
@@ -456,7 +460,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             }
         ]
 
-    def search_music_only(
+    async def search_music_only(
         self, query: str, options: Optional[SearchOptions] = None
     ) -> List["YouTubeVideoInfo"]:
         """Search specifically for music content only - DEPRECATED: Use search_videos() instead"""
@@ -464,7 +468,7 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
             "search_music_only() is deprecated. search_videos() now filters for music automatically."
         )
         # Delegate to the main search method which now filters for music
-        return self.search_videos(query, options)
+        return await self.search_videos(query, options)
 
     def _is_music_content(self, video: "YouTubeVideoInfo") -> bool:
         """Determines if video content is music-related"""

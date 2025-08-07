@@ -1,9 +1,13 @@
+"""
+Procesador para archivos multimedia
+"""
+
 import logging
 from typing import Optional, Tuple
 
-from common.adapters.media.media_types import MusicTrackData
 from common.factories import StorageServiceFactory
 from common.factories.media_service_factory import MediaServiceFactory
+from common.types.media_types.audio_types import MusicTrackData
 
 from ..validators.media_validators import MediaValidators
 
@@ -18,7 +22,7 @@ class MediaProcessor:
         self.media_file_service = file_service
         self.validators = MediaValidators()
 
-    def download_media(
+    async def download_media(
         self, track: MusicTrackData
     ) -> Tuple[Optional[bytes], Optional[bytes]]:
         """
@@ -37,7 +41,9 @@ class MediaProcessor:
         if not track.audio_file_name and track.video_id:
             self.logger.info(f"🎵 Downloading audio for track: {track.title}")
             try:
-                audio_bytes = self.media_download_service.download_audio(track.video_id)
+                audio_bytes = await self.media_download_service.download_audio(
+                    track.video_id
+                )
                 if not audio_bytes:
                     self.logger.error(
                         f"❌ Failed to download audio for track: {track.title} (video_id: {track.video_id})"
@@ -55,7 +61,7 @@ class MediaProcessor:
         if track.thumbnail_url:
             self.logger.info(f"🖼️ Downloading thumbnail for track: {track.title}")
             try:
-                thumbnail_bytes = self.media_download_service.download_thumbnail(
+                thumbnail_bytes = await self.media_download_service.download_thumbnail(
                     track.thumbnail_url
                 )
                 if not thumbnail_bytes:
@@ -88,7 +94,7 @@ class MediaProcessor:
             return storage_service.get_item_url(audio_file_name)
         return None
 
-    def process_media_files(
+    async def process_media_files(
         self, music_track: MusicTrackData
     ) -> Optional[Tuple[Optional[str], Optional[str]]]:
         """
@@ -101,7 +107,7 @@ class MediaProcessor:
             Tuple[file_url, updated_thumbnail_url] o None si falla
         """
         # Descargar medios
-        audio_bytes, thumbnail_bytes = self.download_media(music_track)
+        audio_bytes, thumbnail_bytes = await self.download_media(music_track)
 
         # Validar descarga de audio
         if not self.validators.validate_audio_download(music_track, audio_bytes):
@@ -112,7 +118,7 @@ class MediaProcessor:
             audio_file_name,
             _,
             updated_thumbnail_url,
-        ) = self.media_file_service.upload_media_files(
+        ) = await self.media_file_service.upload_media_files(
             audio_bytes, thumbnail_bytes, music_track.video_id
         )
 

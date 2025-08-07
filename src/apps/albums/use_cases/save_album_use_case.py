@@ -1,5 +1,6 @@
+import traceback
 import uuid
-from typing import Optional, cast
+from typing import Optional
 
 from django.utils import timezone
 
@@ -8,7 +9,6 @@ from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import AlbumEntity
 from ..domain.repository import IAlbumRepository
-from ..infrastructure.repository.album_repository import AlbumRepository
 
 
 class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
@@ -20,7 +20,7 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=2.0)
-    def execute(self, album_data: dict) -> Optional[AlbumEntity]:
+    async def execute(self, album_data: dict) -> Optional[AlbumEntity]:
         """
         Guarda un álbum desde datos externos
 
@@ -47,8 +47,10 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
             cover_image_url = album_data.get("cover_image_url")
 
             # Buscar por título y artista o crear nuevo
-            existing_album = self.album_repository.find_or_create_by_title_and_artist(
-                title, artist_id, artist_name, cover_image_url
+            existing_album = (
+                await self.album_repository.find_or_create_by_title_and_artist(
+                    title, artist_id, artist_name, cover_image_url
+                )
             )
 
             if existing_album:
@@ -66,9 +68,7 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
                 updated_at=timezone.now(),
             )
 
-            saved_album = cast(AlbumRepository, self.album_repository).save(
-                album_entity
-            )
+            saved_album = await self.album_repository.save(album_entity)
             self.logger.info(
                 f"✅ Created new album: {title} by {artist_name} (ID: {saved_album.id})"
             )
@@ -76,4 +76,5 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
 
         except Exception as e:
             self.logger.error(f"Error saving album: {str(e)}")
+            traceback.print_exc()
             return None

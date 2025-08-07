@@ -1,6 +1,6 @@
 from typing import Optional
 
-import requests
+import aiohttp
 
 from common.interfaces.imedia_download_service import IMediaDownloadService
 from common.utils.logging_config import get_logger
@@ -15,7 +15,7 @@ class MediaDownloadService(IMediaDownloadService):
         self.music_service = music_service
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def download_thumbnail(self, url: str) -> Optional[bytes]:
+    async def download_thumbnail(self, url: str) -> Optional[bytes]:
         """
         Descarga una imagen thumbnail desde una URL
 
@@ -26,20 +26,21 @@ class MediaDownloadService(IMediaDownloadService):
             Bytes de la imagen o None si falla
         """
         try:
-            response = requests.get(url, timeout=30)
-            if response.status_code == 200:
-                return response.content
-            else:
-                self.logger.warning(
-                    f"Failed to download thumbnail: HTTP {response.status_code}"
-                )
-                return None
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        return await response.read()
+                    else:
+                        self.logger.warning(
+                            f"Failed to download thumbnail: HTTP {response.status}"
+                        )
+                        return None
         except Exception as e:
             self.logger.error(f"Error downloading thumbnail from {url}: {str(e)}")
             return None
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
-    def download_audio(self, video_id: str) -> Optional[bytes]:
+    async def download_audio(self, video_id: str) -> Optional[bytes]:
         """
         Descarga audio desde un video ID
 
@@ -54,9 +55,7 @@ class MediaDownloadService(IMediaDownloadService):
                 self.logger.error("Music service not available for audio download")
                 return None
 
-            # Suponiendo que la versión síncrona existe:
-            return self.music_service.download_audio_from_video(video_id)
-
+            return await self.music_service.download_audio_from_video(video_id)
         except Exception as e:
             self.logger.error(f"Error downloading audio for video {video_id}: {str(e)}")
             return None

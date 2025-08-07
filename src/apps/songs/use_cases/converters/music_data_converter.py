@@ -1,10 +1,10 @@
 """
 Conversor para transformar tipos de datos de música
 """
+
 from typing import Union
 
-from common.adapters.media.media_types import MusicTrackData
-from common.types.media_types import AudioTrackData
+from common.types.media_types import AudioTrackData, MusicTrackData
 
 
 class MusicDataConverter:
@@ -12,7 +12,7 @@ class MusicDataConverter:
 
     @staticmethod
     def convert_to_music_track_data(
-        track: Union[MusicTrackData, AudioTrackData]
+        track: Union[MusicTrackData, AudioTrackData],
     ) -> MusicTrackData:
         """
         Convierte AudioTrackData a MusicTrackData si es necesario

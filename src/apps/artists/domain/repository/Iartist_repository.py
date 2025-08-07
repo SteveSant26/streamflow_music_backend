@@ -10,5 +10,5 @@ class IArtistRepository(IBaseRepository[ArtistEntity, Any]):
     """Interface del repositorio de artistas"""
 
     @abstractmethod
-    def find_by_name(self, name: str) -> Optional[ArtistEntity]:
+    async def find_by_name(self, name: str) -> Optional[ArtistEntity]:
         """Busca un artista por nombre exacto"""

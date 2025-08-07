@@ -18,21 +18,19 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
     def __init__(self):
         super().__init__(AlbumModel, AlbumEntityModelMapper())
 
-    def save(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, entity: AlbumEntity
-    ) -> AlbumEntity:
+    async def save(self, entity: AlbumEntity) -> AlbumEntity:
         try:
             model_data = self.mapper.entity_to_model_data(entity)
 
-            model_instance, created = self.model_class.objects.update_or_create(
-                id=getattr(entity, "id", None), defaults=model_data
-            )
+            model_instance, created = await self.model_class.objects.select_related(
+                "artist"
+            ).aupdate_or_create(id=getattr(entity, "id", None), defaults=model_data)
 
             action = "created" if created else "updated"
             self.logger.info(
                 f"{self.model_class.__name__} {action} with id {model_instance.pk}"
             )
-            return self.mapper.model_to_entity(model_instance)
+            return await sync_to_async(self.mapper.model_to_entity)(model_instance)
         except Exception as e:
             self.logger.error(f"Error saving {self.model_class.__name__}: {str(e)}")
             raise
@@ -102,7 +100,7 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         )()
         return self.mapper.models_to_entities(models)
 
-    def find_or_create_by_title_and_artist(
+    async def find_or_create_by_title_and_artist(
         self,
         title: str,
         artist_id: str,
@@ -112,12 +110,11 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
         """Busca un álbum por título y artista, si no existe lo crea (versión síncrona)"""
         # Primero intentar encontrar por título y artista
         try:
-            model = self.model_class.objects.select_related("artist").get(
+            model = await self.model_class.objects.select_related("artist").aget(
                 title__iexact=title, artist__id=artist_id
             )
             return self.mapper.model_to_entity(model)
         except self.model_class.DoesNotExist:
-            # Si no existe, crear uno nuevo
             album_entity = AlbumEntity(
                 id=str(uuid.uuid4()),
                 title=title,
@@ -128,7 +125,7 @@ class AlbumRepository(BaseDjangoRepository[AlbumEntity, AlbumModel], IAlbumRepos
                 updated_at=timezone.now(),
             )
 
-        return self.save(album_entity)
+        return await self.save(album_entity)
 
     async def get_by_source(
         self, source_type: str, source_id: str

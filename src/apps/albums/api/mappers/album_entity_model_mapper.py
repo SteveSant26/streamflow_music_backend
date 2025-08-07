@@ -16,11 +16,15 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
         Convierte un modelo Django AlbumModel a entidad del dominio AlbumEntity.
         """
         self.logger.debug(f"Converting model to entity for album {model.id}")
+        artist_name = (
+            model.artist.name if hasattr(model, "artist") and model.artist else ""
+        )
+
         return AlbumEntity(
             id=str(model.id),
             title=model.title,
             artist_id=str(model.artist.id) if model.artist else None,
-            artist_name=model.artist.name if model.artist else "",
+            artist_name=artist_name,
             release_date=model.release_date,
             description=model.description,
             cover_image_url=model.cover_image_url,

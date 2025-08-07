@@ -23,6 +23,7 @@ from apps.user_profile.infrastructure.models.user_profile import UserProfileMode
 from common.factories import StorageServiceFactory
 from common.mixins import CRUDViewSetMixin
 from src.apps.user_profile.infrastructure.permissions import IsPlaylistOwner
+from src.common.utils.schema_decorators import paginated_list_endpoint
 
 from ..api.dtos import UploadProfilePictureRequestDTO
 from ..infrastructure.repository import UserRepository
@@ -79,6 +80,7 @@ class UserProfileViewSet(CRUDViewSetMixin):
         action_to_serializer = {
             "me": RetrieveUserProfileSerializer,
             "upload_profile_picture": UploadProfilePictureSerializer,
+            "playlists": PlaylistResponseSerializer,
         }
         return action_to_serializer.get(self.action, RetrieveUserProfileSerializer)
 
@@ -144,6 +146,11 @@ class UserProfileViewSet(CRUDViewSetMixin):
             status=status.HTTP_200_OK,
         )
 
+    @paginated_list_endpoint(
+        serializer_class=PlaylistResponseSerializer,
+        tags=["User Playlists"],
+        description="Get random songs from the database",
+    )
     @action(
         detail=False,
         methods=["get"],
@@ -167,7 +174,6 @@ class UserProfileViewSet(CRUDViewSetMixin):
 
         # Convertir a DTOs y serializar
         playlist_dtos = self.playlist_mapper.entities_to_dtos(playlists)
-        serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
 
         self.logger.info(f"Retrieved {len(playlists)} playlists for user {user_id}")
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.paginate_and_respond(playlist_dtos, request)

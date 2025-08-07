@@ -1,6 +1,5 @@
 from typing import Generic, TypeVar
 
-from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
@@ -37,7 +36,7 @@ class BaseWriteOnlyDjangoRepository(
             self.logger.info(
                 f"{self.model_class.__name__} {action} with id {model_instance.pk}"
             )
-            return await sync_to_async(self.mapper.model_to_entity)(model_instance)
+            return self.mapper.model_to_entity(model_instance)
         except Exception as e:
             self.logger.error(f"Error saving {self.model_class.__name__}: {str(e)}")
             raise

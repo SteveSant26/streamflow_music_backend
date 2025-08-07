@@ -1,6 +1,3 @@
-"""
-Validadores para URLs y datos de medios
-"""
 import re
 from typing import Optional
 from urllib.parse import urlparse
