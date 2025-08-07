@@ -48,6 +48,11 @@ coverage.xml
 *.cover
 *.py.cover
 .hypothesis/
+pytest.xml
+pytest-results.xml
+test-reports/pytest-results.xml
+test-reports/coverage.xml
+test-reports/htmlcov/
 .pytest_cache/
 cover/
 
