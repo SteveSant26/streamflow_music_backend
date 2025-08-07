@@ -1,22 +1,22 @@
 from common.interfaces.imapper import AbstractEntityModelMapper
 
-from ...domain.entities import Payment
+from ...domain.entities import PaymentEntity
 from ...domain.enums.payment_status import PaymentStatus
 from ...infrastructure.models import PaymentModel
 
 
-class PaymentEntityModelMapper(AbstractEntityModelMapper[Payment, PaymentModel]):
+class PaymentEntityModelMapper(AbstractEntityModelMapper[PaymentEntity, PaymentModel]):
     """Mapper para convertir entre entidades del dominio y modelos de Payment."""
 
     def __init__(self):
         super().__init__()
 
-    def model_to_entity(self, model: PaymentModel) -> Payment:
+    def model_to_entity(self, model: PaymentModel) -> PaymentEntity:
         """
         Convierte un modelo Django PaymentModel a entidad del dominio Payment.
         """
         self.logger.info(f"Converting PaymentModel {model.id} to entity")
-        return Payment(
+        return PaymentEntity(
             id=str(model.id),
             user_id=str(model.user.pk),
             invoice_id=str(model.invoice.id) if model.invoice else None,
@@ -30,7 +30,7 @@ class PaymentEntityModelMapper(AbstractEntityModelMapper[Payment, PaymentModel])
             created_at=model.created_at,
         )
 
-    def entity_to_model(self, entity: Payment) -> PaymentModel:
+    def entity_to_model(self, entity: PaymentEntity) -> PaymentModel:
         """
         Convierte una entidad Payment a una instancia del modelo Django PaymentModel.
         """
@@ -48,7 +48,7 @@ class PaymentEntityModelMapper(AbstractEntityModelMapper[Payment, PaymentModel])
             created_at=entity.created_at,
         )
 
-    def entity_to_model_data(self, entity: Payment) -> dict:
+    def entity_to_model_data(self, entity: PaymentEntity) -> dict:
         """
         Convierte una entidad Payment a datos para crear/actualizar un modelo Django.
         """

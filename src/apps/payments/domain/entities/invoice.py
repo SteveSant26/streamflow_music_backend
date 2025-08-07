@@ -6,7 +6,7 @@ from ..enums.invoice_status import InvoiceStatus
 
 
 @dataclass
-class Invoice:
+class InvoiceEntity:
     """Factura de suscripción"""
 
     id: str

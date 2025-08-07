@@ -1,22 +1,22 @@
 from ..enums import InvoiceStatus, PaymentStatus, SubscriptionStatus
-from .billing_portal_session import BillingPortalSession
-from .checkout_session import CheckoutSession
-from .invoice import Invoice
-from .payment import Payment
-from .payment_method import PaymentMethod
+from .billing_portal_session import BillingPortalSessionEntity
+from .checkout_session import CheckoutSessionEntity
+from .invoice import InvoiceEntity
+from .payment import PaymentEntity
+from .payment_method import PaymentMethodEntity
 from .stripe_webhook_event import StripeWebhookEventEntity
-from .subscription import Subscription
-from .subscription_plan import SubscriptionPlan
+from .subscription import SubscriptionEntity
+from .subscription_plan import SubscriptionPlanEntity
 
 __all__ = [
-    "SubscriptionPlan",
-    "PaymentMethod",
-    "Subscription",
-    "Invoice",
-    "Payment",
+    "SubscriptionPlanEntity",
+    "PaymentMethodEntity",
+    "SubscriptionEntity",
+    "InvoiceEntity",
+    "PaymentEntity",
     "StripeWebhookEventEntity",
-    "CheckoutSession",
-    "BillingPortalSession",
+    "CheckoutSessionEntity",
+    "BillingPortalSessionEntity",
     "SubscriptionStatus",
     "PaymentStatus",
     "InvoiceStatus",

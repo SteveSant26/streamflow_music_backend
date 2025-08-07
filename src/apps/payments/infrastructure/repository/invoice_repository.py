@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from common.core.repositories import BaseDjangoRepository
 
 from ...api.mappers import InvoiceEntityModelMapper
-from ...domain.entities import Invoice as InvoiceEntity
+from ...domain.entities import InvoiceEntity
 from ...domain.repository import IInvoiceRepository
 from ..models import InvoiceModel
 

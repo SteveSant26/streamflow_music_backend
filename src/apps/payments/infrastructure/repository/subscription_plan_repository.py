@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from apps.payments.api.mappers import SubscriptionPlanEntityModelMapper
 from common.core.repositories import BaseDjangoRepository
 
-from ...domain.entities import SubscriptionPlan as SubscriptionPlanEntity
+from ...domain.entities import SubscriptionPlanEntity as SubscriptionPlanEntity
 from ...domain.repository import ISubscriptionPlanRepository
 from ..models import SubscriptionPlanModel
 

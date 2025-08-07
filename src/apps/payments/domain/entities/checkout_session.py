@@ -4,7 +4,7 @@ from typing import Optional
 
 
 @dataclass
-class CheckoutSession:
+class CheckoutSessionEntity:
     """Sesión de checkout de Stripe"""
 
     id: str

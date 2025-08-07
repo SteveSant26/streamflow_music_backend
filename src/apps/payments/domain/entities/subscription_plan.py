@@ -4,7 +4,7 @@ from typing import List, Optional
 
 
 @dataclass
-class SubscriptionPlan:
+class SubscriptionPlanEntity:
     """Plan de suscripción"""
 
     id: str

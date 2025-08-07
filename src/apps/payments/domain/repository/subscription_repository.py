@@ -3,20 +3,20 @@ from typing import Any, Optional
 
 from common.interfaces.ibase_repository import IBaseRepository
 
-from ..entities import Subscription
+from ..entities import SubscriptionEntity
 
 
-class ISubscriptionRepository(IBaseRepository[Subscription, Any]):
+class ISubscriptionRepository(IBaseRepository[SubscriptionEntity, Any]):
     """Interface para el repositorio de suscripciones"""
 
     @abstractmethod
-    async def get_by_user_id(self, user_id: str) -> Optional[Subscription]:
+    async def get_by_user_id(self, user_id: str) -> Optional[SubscriptionEntity]:
         """Obtiene la suscripción activa de un usuario"""
 
     @abstractmethod
     async def get_by_stripe_subscription_id(
         self, stripe_subscription_id: str
-    ) -> Optional[Subscription]:
+    ) -> Optional[SubscriptionEntity]:
         """Obtiene una suscripción por su ID de Stripe"""
 
     @abstractmethod

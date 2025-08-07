@@ -1,24 +1,24 @@
 from common.interfaces.imapper import AbstractEntityModelMapper
 
-from ...domain.entities import Subscription
+from ...domain.entities import SubscriptionEntity
 from ...domain.enums.subscription_status import SubscriptionStatus
 from ...infrastructure.models import SubscriptionModel
 
 
 class SubscriptionEntityModelMapper(
-    AbstractEntityModelMapper[Subscription, SubscriptionModel]
+    AbstractEntityModelMapper[SubscriptionEntity, SubscriptionModel]
 ):
     """Mapper para convertir entre entidades del dominio y modelos de Subscription."""
 
     def __init__(self):
         super().__init__()
 
-    def model_to_entity(self, model: SubscriptionModel) -> Subscription:
+    def model_to_entity(self, model: SubscriptionModel) -> SubscriptionEntity:
         """
         Convierte un modelo Django SubscriptionModel a entidad del dominio Subscription.
         """
         self.logger.info(f"Converting SubscriptionModel {model.id} to entity")
-        return Subscription(
+        return SubscriptionEntity(
             id=str(model.id),
             user_id=str(model.user.pk),
             stripe_subscription_id=model.stripe_subscription_id,
@@ -35,7 +35,7 @@ class SubscriptionEntityModelMapper(
             updated_at=model.updated_at,
         )
 
-    def entity_to_model(self, entity: Subscription) -> SubscriptionModel:
+    def entity_to_model(self, entity: SubscriptionEntity) -> SubscriptionModel:
         """
         Convierte una entidad Subscription a una instancia del modelo Django SubscriptionModel.
         """
@@ -57,7 +57,7 @@ class SubscriptionEntityModelMapper(
             ended_at=entity.ended_at,
         )
 
-    def entity_to_model_data(self, entity: Subscription) -> dict:
+    def entity_to_model_data(self, entity: SubscriptionEntity) -> dict:
         """
         Convierte una entidad Subscription a datos para crear/actualizar un modelo Django.
         """

@@ -1,18 +1,18 @@
-from apps.payments.domain.entities import PaymentMethod
+from apps.payments.domain.entities import PaymentMethodEntity
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 
 from ..dtos import PaymentMethodResponseDTO
 
 
 class PaymentMethodEntityDTOMapper(
-    AbstractEntityDtoMapper[PaymentMethod, PaymentMethodResponseDTO]
+    AbstractEntityDtoMapper[PaymentMethodEntity, PaymentMethodResponseDTO]
 ):
     """Mapper para convertir entre entidades del dominio y DTOs de PaymentMethod."""
 
     def __init__(self):
         super().__init__()
 
-    def entity_to_dto(self, entity: PaymentMethod) -> PaymentMethodResponseDTO:
+    def entity_to_dto(self, entity: PaymentMethodEntity) -> PaymentMethodResponseDTO:
         """
         Convierte una entidad del dominio PaymentMethod a DTO de respuesta PaymentMethodResponseDTO.
         """

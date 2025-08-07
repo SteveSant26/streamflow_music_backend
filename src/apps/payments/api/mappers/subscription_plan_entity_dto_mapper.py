@@ -1,18 +1,20 @@
-from apps.payments.domain.entities import SubscriptionPlan
+from apps.payments.domain.entities import SubscriptionPlanEntity
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 
 from ..dtos import SubscriptionPlanResponseDTO
 
 
 class SubscriptionPlanEntityDTOMapper(
-    AbstractEntityDtoMapper[SubscriptionPlan, SubscriptionPlanResponseDTO]
+    AbstractEntityDtoMapper[SubscriptionPlanEntity, SubscriptionPlanResponseDTO]
 ):
     """Mapper para convertir entre entidades del dominio y DTOs de SubscriptionPlan."""
 
     def __init__(self):
         super().__init__()
 
-    def entity_to_dto(self, entity: SubscriptionPlan) -> SubscriptionPlanResponseDTO:
+    def entity_to_dto(
+        self, entity: SubscriptionPlanEntity
+    ) -> SubscriptionPlanResponseDTO:
         """
         Convierte una entidad del dominio SubscriptionPlan a DTO de respuesta SubscriptionPlanResponseDTO.
         """
@@ -33,11 +35,11 @@ class SubscriptionPlanEntityDTOMapper(
             updated_at=entity.updated_at,
         )
 
-    def dto_to_entity(self, dto: SubscriptionPlanResponseDTO) -> SubscriptionPlan:
+    def dto_to_entity(self, dto: SubscriptionPlanResponseDTO) -> SubscriptionPlanEntity:
         """
         Convierte un DTO SubscriptionPlanResponseDTO a entidad del dominio SubscriptionPlan.
         """
-        return SubscriptionPlan(
+        return SubscriptionPlanEntity(
             id=dto.id,
             name=dto.name,
             description=dto.description,

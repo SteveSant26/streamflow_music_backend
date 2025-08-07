@@ -1,22 +1,22 @@
 from common.interfaces.imapper import AbstractEntityModelMapper
 
-from ...domain.entities import Invoice
+from ...domain.entities import InvoiceEntity
 from ...domain.enums.invoice_status import InvoiceStatus
 from ...infrastructure.models import InvoiceModel
 
 
-class InvoiceEntityModelMapper(AbstractEntityModelMapper[Invoice, InvoiceModel]):
+class InvoiceEntityModelMapper(AbstractEntityModelMapper[InvoiceEntity, InvoiceModel]):
     """Mapper para convertir entre entidades del dominio y modelos de Invoice."""
 
     def __init__(self):
         super().__init__()
 
-    def model_to_entity(self, model: InvoiceModel) -> Invoice:
+    def model_to_entity(self, model: InvoiceModel) -> InvoiceEntity:
         """
         Convierte un modelo Django InvoiceModel a entidad del dominio Invoice.
         """
         self.logger.info(f"Converting InvoiceModel {model.id} to entity")
-        return Invoice(
+        return InvoiceEntity(
             id=str(model.id),
             user_id=str(model.user.pk),
             subscription_id=str(model.subscription.id) if model.subscription else "",
@@ -29,7 +29,7 @@ class InvoiceEntityModelMapper(AbstractEntityModelMapper[Invoice, InvoiceModel])
             created_at=model.created_at,
         )
 
-    def entity_to_model(self, entity: Invoice) -> InvoiceModel:
+    def entity_to_model(self, entity: InvoiceEntity) -> InvoiceModel:
         """
         Convierte una entidad Invoice a una instancia del modelo Django InvoiceModel.
         """
@@ -47,7 +47,7 @@ class InvoiceEntityModelMapper(AbstractEntityModelMapper[Invoice, InvoiceModel])
             created_at=entity.created_at,
         )
 
-    def entity_to_model_data(self, entity: Invoice) -> dict:
+    def entity_to_model_data(self, entity: InvoiceEntity) -> dict:
         """
         Convierte una entidad Invoice a datos para crear/actualizar un modelo Django.
         """

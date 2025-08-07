@@ -6,7 +6,7 @@ from ..enums.subscription_status import SubscriptionStatus
 
 
 @dataclass
-class Subscription:
+class SubscriptionEntity:
     """Suscripción de usuario"""
 
     id: str

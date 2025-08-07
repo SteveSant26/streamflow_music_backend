@@ -4,7 +4,7 @@ from typing import Optional
 
 
 @dataclass
-class BillingPortalSession:
+class BillingPortalSessionEntity:
     """Sesión del portal de facturación"""
 
     id: str

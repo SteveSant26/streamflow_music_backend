@@ -3,7 +3,7 @@ from typing import Optional
 from apps.payments.api.mappers import SubscriptionEntityModelMapper
 from common.core.repositories import BaseDjangoRepository
 
-from ...domain.entities import Subscription as SubscriptionEntity
+from ...domain.entities import SubscriptionEntity as SubscriptionEntity
 from ...domain.repository import ISubscriptionRepository
 from ..models import SubscriptionModel
 

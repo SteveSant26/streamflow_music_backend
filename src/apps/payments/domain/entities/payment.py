@@ -6,7 +6,7 @@ from ..enums.payment_status import PaymentStatus
 
 
 @dataclass
-class Payment:
+class PaymentEntity:
     """Pago realizado"""
 
     id: str

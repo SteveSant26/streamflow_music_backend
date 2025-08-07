@@ -4,7 +4,7 @@ from typing import Optional
 
 
 @dataclass
-class PaymentMethod:
+class PaymentMethodEntity:
     """Método de pago del usuario"""
 
     id: str

@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from apps.payments.api.mappers import PaymentMethodEntityModelMapper
 from common.core.repositories import BaseDjangoRepository
 
-from ...domain.entities import PaymentMethod as PaymentMethodEntity
+from ...domain.entities import PaymentMethodEntity as PaymentMethodEntity
 from ...domain.repository import IPaymentMethodRepository
 from ..models.payment_method import PaymentMethodModel
 
