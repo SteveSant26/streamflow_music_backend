@@ -1,11 +1,8 @@
 import uuid
 
-from django.contrib.auth import get_user_model
 from django.db import models
 
 from .subscription_plan import SubscriptionPlanModel
-
-User = get_user_model()
 
 
 class SubscriptionModel(models.Model):
@@ -21,8 +18,10 @@ class SubscriptionModel(models.Model):
         ("trialing", "En Prueba"),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="subscription"
+    user_profile = models.ForeignKey(
+        "user_profile.UserProfile",
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
     )
     plan = models.ForeignKey(SubscriptionPlanModel, on_delete=models.PROTECT)
     stripe_subscription_id = models.CharField(max_length=100, unique=True)
@@ -42,7 +41,7 @@ class SubscriptionModel(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user.email} - {self.plan.name} ({self.status})"
+        return f"{self.user_profile.email} - {self.plan.name} ({self.status})"
 
     @property
     def is_active(self):

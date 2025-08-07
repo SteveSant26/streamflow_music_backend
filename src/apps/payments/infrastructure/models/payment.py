@@ -1,12 +1,10 @@
 import uuid
 
-from django.contrib.auth import get_user_model
 from django.db import models
 
 from .invoice import InvoiceModel
 from .payment_method import PaymentMethodModel
 
-User = get_user_model()
 AMOUNT_HELP_TEXT = "Monto en centavos"
 
 
@@ -20,7 +18,11 @@ class PaymentModel(models.Model):
         ("canceled", "Cancelado"),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
+    user_profile = models.ForeignKey(
+        "user_profile.UserProfile",
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
     stripe_payment_intent_id = models.CharField(max_length=100, unique=True)
     invoice = models.ForeignKey(
         InvoiceModel,
