@@ -69,7 +69,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# STATICFILES_DIRS = [BASE_DIR / "static"]
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
@@ -81,6 +81,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGGING = LoggingConfig.get_logging_config(bool(DEBUG), ENVIRONMENT)
+
+DJANGO_ALLOW_ASYNC_UNSAFE = True
 
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

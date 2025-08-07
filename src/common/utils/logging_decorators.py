@@ -3,6 +3,8 @@ import functools
 import time
 from typing import Any, Callable, Tuple
 
+from django.db.models.query import QuerySet  # Import the QuerySet class
+
 from .logging_config import get_logger
 
 logger = get_logger("decorators")
@@ -21,13 +23,23 @@ def _should_include_args(include_args: bool, args: tuple, kwargs: dict) -> bool:
 
 
 def _format_arguments(args: tuple, kwargs: dict, has_class: bool) -> str:
-    """Format function arguments for logging."""
+    """
+    Format function arguments for logging, handling QuerySet objects
+    to prevent synchronous database calls in async contexts.
+    """
     if not args and not kwargs:
         return ""
 
+    # Helper function to safely represent an argument for logging
+    def safe_repr(arg: Any) -> str:
+        if isinstance(arg, QuerySet):
+            # Format QuerySet without evaluating it, to prevent database access
+            return f"<QuerySet for {arg.model.__name__} at 0x...>"
+        return repr(arg)
+
     display_args = args[1:] if has_class else args
-    args_str = ", ".join([repr(arg) for arg in display_args])
-    kwargs_str = ", ".join([f"{k}={repr(v)}" for k, v in kwargs.items()])
+    args_str = ", ".join([safe_repr(arg) for arg in display_args])
+    kwargs_str = ", ".join([f"{k}={safe_repr(v)}" for k, v in kwargs.items()])
     all_args = ", ".join(filter(None, [args_str, kwargs_str]))
     return f"({all_args})" if all_args else "()"
 
@@ -159,7 +171,6 @@ def log_execution(
 ):
     """
     Decorador que registra la ejecución de métodos/funciones, soporta async y sync.
-
     Args:
         include_args: Si incluir los argumentos en el log
         include_result: Si incluir el resultado en el log

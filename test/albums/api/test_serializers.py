@@ -58,20 +58,35 @@ class MockAlbumSerializer:
                 "title": instance.title,
                 "artist_id": str(instance.artist_id),
                 "artist_name": instance.artist_name,
+<<<<<<< HEAD
                 "release_date": (
                     instance.release_date.isoformat() if instance.release_date else None
                 ),
+=======
+                "release_date": instance.release_date.isoformat()
+                if instance.release_date
+                else None,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 "description": instance.description,
                 "cover_image_url": instance.cover_image_url,
                 "total_tracks": instance.total_tracks,
                 "play_count": instance.play_count,
                 "is_active": instance.is_active,
+<<<<<<< HEAD
                 "created_at": (
                     instance.created_at.isoformat() if instance.created_at else None
                 ),
                 "updated_at": (
                     instance.updated_at.isoformat() if instance.updated_at else None
                 ),
+=======
+                "created_at": instance.created_at.isoformat()
+                if instance.created_at
+                else None,
+                "updated_at": instance.updated_at.isoformat()
+                if instance.updated_at
+                else None,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             }
         return instance
 
@@ -238,12 +253,20 @@ def test_album_search_serializer():
     search_data = {"q": "rock", "artist_id": str(uuid4()), "artist_name": "Pink Floyd"}
 
     search_serializer = MockAlbumSearchSerializer(data=search_data)
+<<<<<<< HEAD
     assert search_serializer.is_valid() == True  # nosec B101
+=======
+    assert search_serializer.is_valid( == True)  # nosec B101
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     assert search_serializer.validated_data["q"] == "rock"  # nosec B101
     invalid_search_data = {"artist_name": "Pink Floyd"}
 
     invalid_search_serializer = MockAlbumSearchSerializer(data=invalid_search_data)
+<<<<<<< HEAD
     assert invalid_search_serializer.is_valid() == False  # nosec B101
+=======
+    assert invalid_search_serializer.is_valid( == False)  # nosec B101
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     print("✅ Serializer de búsqueda funciona")
     print(f"   - Query válida: {search_serializer.validated_data['q']}")

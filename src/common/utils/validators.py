@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 """
 Validadores para URLs y datos de medios
 """
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 import re
 from typing import Optional
 from urllib.parse import urlparse

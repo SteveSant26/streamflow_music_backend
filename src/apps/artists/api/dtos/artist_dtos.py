@@ -10,12 +10,12 @@ class ArtistResponseDTO:
     id: str
     name: str
     biography: Optional[str] = None
-    country: Optional[str] = None
     image_url: Optional[str] = None
     followers_count: int = 0
     is_verified: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+<<<<<<< HEAD
 
 
 @dataclass
@@ -95,3 +95,5 @@ class GetVerifiedArtistsRequestDTO:
     """DTO para obtener artistas verificados"""
 
     limit: int = 10
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

@@ -133,6 +133,7 @@ def test_song_model_queries():
 
     # Test filtrado por género
     rock_songs = Song.objects.filter(genre_name="Rock")
+<<<<<<< HEAD
     assert rock_songs.count() >= 2  # nosec B101
 
     pop_songs = Song.objects.filter(genre_name="Pop")
@@ -145,6 +146,20 @@ def test_song_model_queries():
     assert rock_title_songs.count() >= 2  # nosec B101
     active_songs = Song.objects.filter(is_active=True)
     assert active_songs.count() >= 3  # nosec B101
+=======
+    assert rock_songs.count( >= 2)  # nosec B101
+
+    pop_songs = Song.objects.filter(genre_name="Pop")
+    assert pop_songs.count( >= 1)  # nosec B101
+
+    # Test ordenamiento por play_count
+    popular_songs = Song.objects.order_by("-play_count")
+    assert popular_songs.count( >= 3)  # nosec B101
+    rock_title_songs = Song.objects.filter(title__icontains="Rock")
+    assert rock_title_songs.count( >= 2)  # nosec B101
+    active_songs = Song.objects.filter(is_active=True)
+    assert active_songs.count( >= 3)  # nosec B101
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     print("✅ Consultas del modelo Song funcionan correctamente")
     print(f"   - Canciones Rock: {rock_songs.count()}")

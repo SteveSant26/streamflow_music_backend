@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from .artist_dtos import (
     ArtistResponseDTO,
     CreateArtistRequestDTO,
@@ -16,4 +17,10 @@ __all__ = [
     "GetArtistsByCountryRequestDTO",
     "GetPopularArtistsRequestDTO",
     "GetVerifiedArtistsRequestDTO",
+=======
+from .artist_dtos import ArtistResponseDTO
+
+__all__ = [
+    "ArtistResponseDTO",
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 ]

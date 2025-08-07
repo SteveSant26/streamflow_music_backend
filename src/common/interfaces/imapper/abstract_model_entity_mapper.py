@@ -1,13 +1,25 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Generic, Iterable, TypeVar
 
+<<<<<<< HEAD
 from common.mixins.logging_mixin import LoggingMixin
+=======
+from src.common.utils.logging_config import get_logger
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 EntityType = TypeVar("EntityType")
 ModelType = TypeVar("ModelType")
 
 
+<<<<<<< HEAD
 class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC, LoggingMixin):
+=======
+class AbstractEntityModelMapper(Generic[EntityType, ModelType], ABC):
+    def __init__(self):
+        # Añadir logging sin importación circular
+        self.logger = get_logger(self.__class__.__name__)
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     @abstractmethod
     def model_to_entity(self, model: ModelType) -> EntityType:
         """

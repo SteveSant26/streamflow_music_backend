@@ -52,6 +52,7 @@ class SongSearchRequestDTO:
 
 
 @dataclass
+<<<<<<< HEAD
 class SongSearchResponseDTO:
     """DTO para respuesta de búsqueda de canciones"""
 
@@ -62,6 +63,8 @@ class SongSearchResponseDTO:
 
 
 @dataclass
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 class RandomSongsRequestDTO:
     """DTO para solicitud de canciones aleatorias"""
 

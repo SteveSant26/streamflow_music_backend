@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 from unittest.mock import Mock
 
 import pytest
 
+=======
+import pytest
+import io
+from unittest.mock import Mock, AsyncMock
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from common.adapters.media.media_file_service import MediaFileService
 
 
@@ -16,7 +22,11 @@ class TestMediaFileService:
     def test_generate_audio_filename(self):
         """Test generación de nombre de archivo de audio"""
         filename = self.service.generate_audio_filename("video123")
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         assert filename.startswith("audio/video123_")
         assert filename.endswith(".mp3")
 
@@ -24,7 +34,11 @@ class TestMediaFileService:
         """Test generación de nombre de archivo de thumbnail"""
         image_bytes = b"\xff\xd8\xff"  # JPG header
         filename = self.service.generate_thumbnail_filename("video123", image_bytes)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         assert filename.startswith("thumbnails/video123_")
         assert filename.endswith(".jpg")
 
@@ -66,7 +80,11 @@ class TestMediaFileService:
 
         audio_bytes = b"fake_audio"
         thumbnail_bytes = b"\xff\xd8\xff"  # JPG
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         audio_name, thumb_name, thumb_url = await self.service.upload_media_files(
             audio_bytes, thumbnail_bytes, "video123"
         )

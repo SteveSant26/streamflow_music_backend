@@ -10,6 +10,15 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     """Interface para el repositorio de canciones"""
 
     # Métodos específicos del dominio de canciones
+<<<<<<< HEAD
+=======
+
+    @abstractmethod
+    async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, song_entity: SongEntity
+    ) -> Optional[SongEntity]:
+        """Guarda una canción en la base de datos"""
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     @abstractmethod
     async def get_by_source(
@@ -40,22 +49,6 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
         """Obtiene las canciones más reproducidas"""
 
     @abstractmethod
-    async def get_most_favorited(self, limit: int = 10) -> List[SongEntity]:
-        """Obtiene las canciones más agregadas a favoritos"""
-
-    @abstractmethod
-    async def get_recently_played(self, limit: int = 20) -> List[SongEntity]:
-        """Obtiene las canciones reproducidas recientemente"""
-
-    @abstractmethod
-    async def get_trending_artists(self, limit: int = 10) -> List[dict]:
-        """Obtiene los artistas más populares basado en reproducciones"""
-
-    @abstractmethod
-    async def get_trending_albums(self, limit: int = 10) -> List[dict]:
-        """Obtiene los álbumes más populares basado en reproducciones"""
-
-    @abstractmethod
     async def increment_play_count(self, song_id: str) -> bool:
         """Incrementa el contador de reproducciones"""
 
@@ -66,7 +59,10 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     @abstractmethod
     async def increment_download_count(self, song_id: str) -> bool:
         """Incrementa el contador de descargas"""
+<<<<<<< HEAD
 
     @abstractmethod
     async def exists_by_source(self, source_type: str, source_id: str) -> bool:
         """Verifica si existe una canción con la fuente específica"""
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

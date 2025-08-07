@@ -1,17 +1,23 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
+<<<<<<< HEAD
 from ..mixins.logging_mixin import LoggingMixin
+=======
+from src.common.utils.logging_config import get_logger
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from ..types import EntityType, InputType, ModelType, ReturnType
 from ..utils.logging_decorators import log_execution, log_performance
 from .ibase_repository import IReadOnlyRepository
 
 
-class BaseUseCase(ABC, Generic[InputType, ReturnType], LoggingMixin):
+class BaseUseCase(ABC, Generic[InputType, ReturnType]):
     """Clase base para casos de uso."""
 
     def __init__(self):
         super().__init__()
+        self.logger = get_logger(self.__class__.__name__)
 
     @abstractmethod
     async def execute(self, *args, **kwargs) -> ReturnType:

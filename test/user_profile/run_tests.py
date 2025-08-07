@@ -2,7 +2,10 @@
 Test runner principal para user_profile
 Ejecuta todos los tests de la aplicación user_profile
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 import os
 import sys
 import unittest

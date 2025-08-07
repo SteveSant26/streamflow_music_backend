@@ -1,7 +1,11 @@
 from typing import List, Optional, cast
 
 from asgiref.sync import sync_to_async
+<<<<<<< HEAD
 from django.db.models import Count, Q, Sum
+=======
+from django.db.models import Q
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 from apps.artists.infrastructure.models.artist_model import ArtistModel
 from apps.songs.api.mappers import SongEntityModelMapper
@@ -18,18 +22,36 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     def __init__(self):
         super().__init__(SongModel, SongEntityModelMapper())
 
+<<<<<<< HEAD
     async def save(self, entity: SongEntity) -> SongEntity:
+=======
+    async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, entity: SongEntity
+    ) -> SongEntity:
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         """Guarda una canción"""
         try:
             song_data = self.mapper.entity_to_model_data(entity)
 
+<<<<<<< HEAD
+=======
+            # Log para debugging - verificar que los IDs están en song_data
+            self.logger.debug(
+                f"Saving song with data: artist_id={song_data.get('artist_id')}, album_id={song_data.get('album_id')}"
+            )
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             if entity.id:
                 try:
                     song_obj = await self.model_class.objects.aget(id=entity.id)
                     for key, value in song_data.items():
                         setattr(song_obj, key, value)
                     await song_obj.asave()
+<<<<<<< HEAD
                 except SongModel.DoesNotExist:
+=======
+                except self.model_class.DoesNotExist:
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                     self.logger.warning(
                         f"Song with ID {entity.id} not found, creating new one"
                     )
@@ -40,17 +62,30 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             song_mapper = cast(SongEntityModelMapper, self.mapper)
             if entity.genre_ids:
                 await song_mapper.set_entity_genres_to_model(song_obj, entity.genre_ids)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             else:
                 await song_obj.genres.aclear()
 
             # Recargar el objeto con las relaciones para el mapper
+<<<<<<< HEAD
             song_obj = (
                 await self.model_class.objects.select_related()
+=======
+            song_obj = await (
+                self.model_class.objects.select_related("artist", "album")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 .prefetch_related("genres")
                 .aget(id=song_obj.id)
             )
 
+<<<<<<< HEAD
             return await sync_to_async(self.mapper.model_to_entity)(song_obj)
+=======
+            return self.mapper.model_to_entity(song_obj)
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
         except Exception as e:
             self.logger.error(f"Error saving song: {str(e)}")
@@ -61,6 +96,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     ) -> Optional[SongEntity]:
         """Obtiene una canción por fuente y ID de fuente"""
         try:
+<<<<<<< HEAD
             song = (
                 await self.model_class.objects.select_related()
                 .prefetch_related("genres")
@@ -70,6 +106,14 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
                 )
             )
             return await sync_to_async(self.mapper.model_to_entity)(song)
+=======
+            song = await (
+                self.model_class.objects.select_related("artist", "album")
+                .prefetch_related("genres")
+                .aget(source_type=source_type, source_id=source_id)
+            )
+            return self.mapper.model_to_entity(song)
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         except SongModel.DoesNotExist:
             return None
         except Exception as e:
@@ -83,7 +127,11 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
+<<<<<<< HEAD
                     SongModel.objects.select_related()
+=======
+                    SongModel.objects.select_related("artist", "album")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                     .prefetch_related("genres")
                     .all()
                     .order_by("?")[:limit]
@@ -95,8 +143,8 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             return []
 
     async def search(self, query: str, limit: int = 20) -> List[SongEntity]:
-        """Busca canciones por título o artista"""
         try:
+<<<<<<< HEAD
             # Primero buscar artistas que coincidan con el query
             matching_artist_ids = await sync_to_async(
                 lambda: list(
@@ -120,6 +168,28 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
                 )
             )()
             return await sync_to_async(self.mapper.models_to_entities)(songs)
+=======
+            # Mover consultas bloqueantes a hilos separados
+            matching_artist_ids = await sync_to_async(list)(
+                ArtistModel.objects.filter(name__icontains=query).values_list(
+                    "id", flat=True
+                )
+            )
+
+            songs = await sync_to_async(list)(
+                SongModel.objects.select_related("artist", "album")
+                .prefetch_related("genres")
+                .filter(
+                    Q(title__icontains=query)
+                    | Q(artist__in=matching_artist_ids)
+                    | Q(album__title__icontains=query)
+                )
+                .order_by("-play_count", "-created_at")[:limit]
+            )
+
+            return self.mapper.models_to_entities(songs)
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         except Exception as e:
             self.logger.error(f"Error searching songs with query '{query}': {str(e)}")
             return []
@@ -140,12 +210,21 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
 
             songs = await sync_to_async(
                 lambda: list(
+<<<<<<< HEAD
                     SongModel.objects.select_related()
                     .prefetch_related("genres")
                     .filter(
                         artist_id__in=artist_ids,
                     )
                     .order_by("-play_count", "album_title", "track_number")[:limit]
+=======
+                    SongModel.objects.select_related("artist", "album")
+                    .prefetch_related("genres")
+                    .filter(
+                        artist__in=artist_ids,
+                    )
+                    .order_by("-play_count", "album__title", "track_number")[:limit]
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 )
             )()
             return await sync_to_async(self.mapper.models_to_entities)(songs)
@@ -160,10 +239,17 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
+<<<<<<< HEAD
                     SongModel.objects.select_related()
                     .prefetch_related("genres")
                     .filter(
                         album_title__iexact=album_title,
+=======
+                    SongModel.objects.select_related("artist", "album")
+                    .prefetch_related("genres")
+                    .filter(
+                        album__title__iexact=album_title,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                     )
                     .order_by("track_number", "title")[:limit]
                 )
@@ -178,7 +264,11 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
         try:
             songs = await sync_to_async(
                 lambda: list(
+<<<<<<< HEAD
                     SongModel.objects.select_related()
+=======
+                    SongModel.objects.select_related("artist", "album")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                     .prefetch_related("genres")
                     .all()
                     .order_by("-play_count", "-created_at")[:limit]
@@ -189,6 +279,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             self.logger.error(f"Error getting most played songs: {str(e)}")
             return []
 
+<<<<<<< HEAD
     async def get_most_favorited(self, limit: int = 10) -> List[SongEntity]:
         """Obtiene las canciones más agregadas a favoritos"""
         try:
@@ -261,6 +352,8 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             self.logger.error(f"Error getting trending albums: {str(e)}")
             return []
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     async def increment_play_count(self, song_id: str) -> bool:
         """Incrementa el contador de reproducciones"""
         try:
@@ -311,6 +404,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
                 f"Error incrementing download count for song {song_id}: {str(e)}"
             )
             return False
+<<<<<<< HEAD
 
     async def exists_by_source(self, source_type: str, source_id: str) -> bool:
         """Verifica si existe una canción con la fuente específica"""
@@ -324,3 +418,5 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
                 f"Error checking existence for source {source_type}:{source_id}: {str(e)}"
             )
             return False
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

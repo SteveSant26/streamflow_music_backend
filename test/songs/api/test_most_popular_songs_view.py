@@ -1,7 +1,10 @@
 """
 Tests específicos para MostPopularSongsView
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 import sys
 import unittest
 from pathlib import Path

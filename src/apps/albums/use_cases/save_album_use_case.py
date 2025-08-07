@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import traceback
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 import uuid
 from typing import Optional
 
@@ -29,9 +33,12 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
                 - artist_id (str): ID del artista
                 - artist_name (str): Nombre del artista
                 - cover_image_url (str, opcional): URL de la portada
+<<<<<<< HEAD
                 - source_type (str, opcional): Tipo de fuente (youtube, spotify, etc.)
                 - source_id (str, opcional): ID en la fuente externa
                 - source_url (str, opcional): URL en la fuente externa
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
         Returns:
             Entidad de álbum guardada o None si falla
@@ -45,6 +52,7 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
                 self.logger.error("Album title, artist_id and artist_name are required")
                 return None
 
+<<<<<<< HEAD
             # Normalizar datos de entrada
             source_type = album_data.get("source_type", "youtube")
             source_id = album_data.get("source_id")
@@ -63,12 +71,19 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
                     return existing_album
 
             # Buscar por título y artista como fallback
+=======
+            # Obtener datos de entrada
+            cover_image_url = album_data.get("cover_image_url")
+
+            # Buscar por título y artista o crear nuevo
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             existing_album = (
                 await self.album_repository.find_or_create_by_title_and_artist(
                     title, artist_id, artist_name, cover_image_url
                 )
             )
 
+<<<<<<< HEAD
             # Si el álbum existía pero no tiene información de fuente, actualizarla
             if (
                 existing_album
@@ -90,15 +105,25 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
                 return existing_album
 
             # Crear nuevo álbum
+=======
+            if existing_album:
+                self.logger.info(f"Album '{title}' by {artist_name} found or created")
+                return existing_album
+
+            # Si falla la creación mediante find_or_create, crear manualmente
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             album_entity = AlbumEntity(
                 id=str(uuid.uuid4()),
                 title=title,
                 artist_id=artist_id,
                 artist_name=artist_name,
                 cover_image_url=cover_image_url,
+<<<<<<< HEAD
                 source_type=source_type,
                 source_id=source_id,
                 source_url=source_url,
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 created_at=timezone.now(),
                 updated_at=timezone.now(),
             )
@@ -111,4 +136,8 @@ class SaveAlbumUseCase(BaseUseCase[dict, Optional[AlbumEntity]]):
 
         except Exception as e:
             self.logger.error(f"Error saving album: {str(e)}")
+<<<<<<< HEAD
+=======
+            traceback.print_exc()
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             return None

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from common.interfaces.ibase_repository import IBaseRepository
 
@@ -12,6 +12,7 @@ class IArtistRepository(IBaseRepository[ArtistEntity, Any]):
     @abstractmethod
     async def find_by_name(self, name: str) -> Optional[ArtistEntity]:
         """Busca un artista por nombre exacto"""
+<<<<<<< HEAD
 
     @abstractmethod
     async def search_by_name(self, name: str, limit: int = 10) -> List[ArtistEntity]:
@@ -42,3 +43,5 @@ class IArtistRepository(IBaseRepository[ArtistEntity, Any]):
         self, source_type: str, source_id: str
     ) -> Optional[ArtistEntity]:
         """Busca un artista por fuente externa (YouTube channel, etc.)"""
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

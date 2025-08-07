@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from asgiref.sync import async_to_sync
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -5,9 +6,16 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+=======
+from typing import Any
+
+from drf_spectacular.utils import extend_schema, extend_schema_view
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 from apps.artists.api.serializers import ArtistResponseSerializer
+from apps.artists.infrastructure.filters import ArtistModelFilter
 from apps.artists.infrastructure.models import ArtistModel
+<<<<<<< HEAD
 from common.mixins.logging_mixin import LoggingMixin
 
 from ..api.dtos import (
@@ -29,23 +37,49 @@ from ..use_cases import (
 
 # Instancia global del repositorio (idealmente esto debería ser inyección de dependencias)
 artist_repository = ArtistRepository()
+=======
+from common.mixins import FilteredViewSetMixin
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 
 @extend_schema_view(
-    list=extend_schema(tags=["Artists"]),
-    retrieve=extend_schema(tags=["Artists"]),
-    popular=extend_schema(tags=["Artists"], description="Get popular artists"),
-    verified=extend_schema(tags=["Artists"], description="Get verified artists"),
-    search=extend_schema(tags=["Artists"], description="Search artists by name"),
-    by_country=extend_schema(tags=["Artists"], description="Get artists by country"),
+    list=extend_schema(
+        tags=["Artists"],
+        description="""
+        List all artists with optional filtering.
+
+        **Available Filters:**
+        - `name`: Search by name (contains)
+        - `country`: Filter by exact country
+        - `is_verified`: Only verified artists
+        - `min_followers_count`/`max_followers_count`: Followers count range
+        - `popular`: Only popular artists (>1000 followers)
+        - `verified`: Only verified artists
+        - `recent`: Only recently added artists
+        - `search`: General search in name, biography, and country
+        - `has_biography`: Only artists with biography
+        - `has_image`: Only artists with image
+        - `created_after`/`created_before`: Creation date range
+        - `source_type`: Source type (manual, youtube, spotify, etc.)
+
+        **Ordering:**
+        Use `ordering` parameter with: name, followers_count, created_at, updated_at
+        """,
+        summary="Get artists list",
+    ),
+    retrieve=extend_schema(
+        tags=["Artists"],
+        description="Get a specific artist by ID",
+        summary="Get artist details",
+    ),
 )
-class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
-    """ViewSet para gestión de artistas (solo lectura)"""
+class ArtistViewSet(FilteredViewSetMixin):
+    """ViewSet para gestión de artistas (solo lectura) con filtros integrados"""
 
-    queryset = ArtistModel.objects.all()
-    serializer_class = ArtistResponseSerializer
-    permission_classes = [AllowAny]
+    queryset = ArtistModel.objects.all().order_by("-created_at")
+    filterset_class = ArtistModelFilter
 
+<<<<<<< HEAD
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.mapper = ArtistMapper()
@@ -54,11 +88,16 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         """Define permisos según la acción"""
         permission_classes = [AllowAny]
         return [permission() for permission in permission_classes]
+=======
+    def get_serializer_class(self) -> Any:
+        return ArtistResponseSerializer
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
-    def list(self, request, *args, **kwargs):
-        """Obtiene todos los artistas"""
-        self.logger.info("Getting all artists")
+    # Campos por los que se puede ordenar
+    ordering_fields = ["name", "followers_count", "created_at", "updated_at"]
+    ordering = ["-created_at"]  # Ordenamiento por defecto
 
+<<<<<<< HEAD
         get_all_artists = GetAllArtistsUseCase(artist_repository)
         artists = async_to_sync(get_all_artists.execute)()
 
@@ -204,3 +243,10 @@ class ArtistViewSet(viewsets.ReadOnlyModelViewSet, LoggingMixin):
         serializer = self.get_serializer(artist_dtos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+=======
+    # Búsqueda simple
+    search_fields = [
+        "name",
+        "biography",
+    ]
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

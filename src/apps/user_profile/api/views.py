@@ -1,19 +1,32 @@
 from asgiref.sync import async_to_sync
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 
+<<<<<<< HEAD
+=======
+from apps.playlists.api.mappers import PlaylistEntityDTOMapper
+from apps.playlists.api.serializers import PlaylistResponseSerializer
+from apps.playlists.infrastructure.repository import PlaylistRepository
+from apps.playlists.use_cases import (
+    EnsureDefaultPlaylistUseCase,
+    GetUserPlaylistsUseCase,
+)
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from apps.user_profile.api.mappers import UserProfileMapper
 from apps.user_profile.api.serializers import (
     RetrieveUserProfileSerializer,
     UploadProfilePictureSerializer,
 )
+from apps.user_profile.infrastructure.filters import UserProfileFilter
 from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 from common.factories import StorageServiceFactory
-from common.mixins.logging_mixin import LoggingMixin
+from common.mixins import CRUDViewSetMixin
+from src.apps.user_profile.infrastructure.permissions import IsPlaylistOwner
+from src.common.utils.schema_decorators import paginated_list_endpoint
 
 from ..api.dtos import UploadProfilePictureRequestDTO
 from ..infrastructure.repository import UserRepository
@@ -21,43 +34,63 @@ from ..use_cases import GetUserProfileUseCase, UploadProfilePicture
 
 
 @extend_schema_view(
-    list=extend_schema(tags=["User Profile"]),
-    retrieve=extend_schema(tags=["User Profile"]),
-    create=extend_schema(tags=["User Profile"]),
-    update=extend_schema(tags=["User Profile"]),
-    destroy=extend_schema(tags=["User Profile"]),
+    list=extend_schema(
+        tags=["User Profile"], description="List user profiles with optional filtering"
+    ),
+    retrieve=extend_schema(
+        tags=["User Profile"], description="Get a specific user profile by ID"
+    ),
+    create=extend_schema(
+        tags=["User Profile"],
+        description="Profile creation is blocked - profiles are created automatically",
+    ),
+    update=extend_schema(tags=["User Profile"], description="Update user profile"),
+    destroy=extend_schema(tags=["User Profile"], description="Delete user profile"),
     me=extend_schema(tags=["User Profile"], description="Get current user's profile"),
     upload_profile_picture=extend_schema(
         tags=["User Profile"], description="Upload a new profile picture"
     ),
+    playlists=extend_schema(tags=["User Profile"], description="Get user's playlists"),
 )
-class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
+class UserProfileViewSet(CRUDViewSetMixin):
     queryset = UserProfileModel.objects.all()
-    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     http_method_names = ["get", "post", "delete"]
+    filterset_class = UserProfileFilter
+    ordering = ["email"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.user_repository = UserRepository()
+<<<<<<< HEAD
         self.storage_service = StorageServiceFactory.create_profile_pictures_service()
         self.mapper = UserProfileMapper()
 
     def get_permissions(self):
+=======
+        self.playlist_repository = PlaylistRepository()
+        self.playlist_mapper = PlaylistEntityDTOMapper()
+        self.storage_service = StorageServiceFactory.create_profile_pictures_service()
+        self.mapper = UserProfileMapper()
+
+    def get_permissions(self) -> list[BasePermission]:
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         action_permissions = {
-            "me": IsAuthenticated,
-            "upload_profile_picture": IsAuthenticated,
-            "update": IsAuthenticated,
-            "partial_update": IsAuthenticated,
-            "destroy": IsAuthenticated,
+            "me": [IsAuthenticated],
+            "upload_profile_picture": [IsAuthenticated],
+            "update": [IsAuthenticated],
+            "partial_update": [IsAuthenticated],
+            "destroy": [IsAuthenticated],
+            "playlists": [IsPlaylistOwner],
         }
-        permission_class = action_permissions.get(self.action, AllowAny)
-        return [permission_class()]
+        permission_classes = action_permissions.get(self.action, [AllowAny])
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         action_to_serializer = {
             "me": RetrieveUserProfileSerializer,
             "upload_profile_picture": UploadProfilePictureSerializer,
+            "playlists": PlaylistResponseSerializer,
         }
         return action_to_serializer.get(self.action, RetrieveUserProfileSerializer)
 
@@ -122,3 +155,35 @@ class UserProfileViewSet(viewsets.ModelViewSet, LoggingMixin):
             RetrieveUserProfileSerializer(user_dto).data,
             status=status.HTTP_200_OK,
         )
+
+    @paginated_list_endpoint(
+        serializer_class=PlaylistResponseSerializer,
+        tags=["User Playlists"],
+        description="Get random songs from the database",
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="playlists",
+    )
+    def playlists(
+        self,
+        request,
+    ):
+        """Obtiene todas las playlists de un usuario específico"""
+        user_id = str(request.user.id)
+        self.logger.info(f"Requesting playlists for user ID: {user_id}")
+
+        # Asegurar que existe la playlist por defecto
+        ensure_use_case = EnsureDefaultPlaylistUseCase(self.playlist_repository)
+        async_to_sync(ensure_use_case.execute)(user_id)
+
+        # Obtener playlists del usuario
+        get_use_case = GetUserPlaylistsUseCase(self.playlist_repository)
+        playlists = async_to_sync(get_use_case.execute)(user_id)
+
+        # Convertir a DTOs y serializar
+        playlist_dtos = self.playlist_mapper.entities_to_dtos(playlists)
+
+        self.logger.info(f"Retrieved {len(playlists)} playlists for user {user_id}")
+        return self.paginate_and_respond(playlist_dtos, request)

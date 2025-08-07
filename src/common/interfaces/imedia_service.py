@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 """
 Interfaces para servicios de medios (video, audio, etc.)
 """
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -91,7 +94,10 @@ class IAudioProcessingService(ABC):
 class IMusicService(IAudioProcessingService):
     """Interface específica para servicios de música"""
 
+<<<<<<< HEAD
     # Métodos para compatibilidad con implementación existente
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     @abstractmethod
     async def search_and_process_music(
         self, query: str, max_results: int = 6

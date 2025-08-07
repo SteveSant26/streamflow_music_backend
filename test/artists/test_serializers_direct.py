@@ -149,7 +149,11 @@ def test_create_artist_serializer_validation():
     # Test campo requerido faltante
     invalid_data = {
         "biography": "Biografía sin nombre",
+<<<<<<< HEAD
         "country": "Test Country",
+=======
+        "country": "Test Country"
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Falta 'name' (requerido)
     }
 

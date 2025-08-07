@@ -1,7 +1,10 @@
 """
 Repository interfaces for payment domain
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
@@ -167,7 +170,11 @@ class IStripeService(ABC):
         price_id: str,
         success_url: str,
         cancel_url: str,
+<<<<<<< HEAD
         **kwargs,
+=======
+        **kwargs
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     ) -> Dict[str, Any]:
         """Crea una sesión de checkout"""
 

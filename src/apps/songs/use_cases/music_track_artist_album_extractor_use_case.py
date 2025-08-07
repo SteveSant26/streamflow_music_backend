@@ -2,13 +2,20 @@ import re
 from typing import Dict, Optional
 
 from common.interfaces.ibase_use_case import BaseUseCase
+<<<<<<< HEAD
+=======
+from common.types.media_types import MusicTrackData
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from common.utils.logging_decorators import log_execution, log_performance
 
 from ...albums.domain.repository import IAlbumRepository
 from ...albums.use_cases.save_album_use_case import SaveAlbumUseCase
 from ...artists.domain.repository import IArtistRepository
 from ...artists.use_cases.save_artist_use_case import SaveArtistUseCase
+<<<<<<< HEAD
 from ...music_search.domain.interfaces import MusicTrackData
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 
 class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
@@ -26,7 +33,11 @@ class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
         self.save_album_use_case = SaveAlbumUseCase(album_repository)
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
+<<<<<<< HEAD
     @log_performance(threshold_seconds=3.0)
+=======
+    @log_performance(threshold_seconds=2.0)  # Reduced threshold for better monitoring
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     async def execute(self, track: MusicTrackData) -> Dict:
         """
         Extrae y guarda información de artista y álbum desde un track de música
@@ -51,6 +62,7 @@ class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
         }
 
         try:
+<<<<<<< HEAD
             # 1. Extraer y procesar información del artista
             artist_info = self._extract_artist_info(track)
             if artist_info:
@@ -75,6 +87,62 @@ class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
                         self.logger.info(
                             f"✅ Album processed: {saved_album.title} (ID: {saved_album.id})"
                         )
+=======
+            # Early validation
+            if not track or not track.title:
+                self.logger.warning("Invalid track data provided")
+                return result
+
+            # 1. Extraer y procesar información del artista
+            try:
+                artist_info = self._extract_artist_info(track)
+                if artist_info:
+                    saved_artist = await self.save_artist_use_case.execute(artist_info)
+                    if saved_artist:
+                        result["artist_id"] = saved_artist.id
+                        result["artist_name"] = saved_artist.name
+                        self.logger.info(
+                            f"✅ Artist processed: {saved_artist.name} (ID: {saved_artist.id})"
+                        )
+                    else:
+                        self.logger.warning(
+                            f"⚠️  Failed to save artist: {artist_info.get('name', 'Unknown')}"
+                        )
+                else:
+                    self.logger.info("No artist information found in track")
+            except Exception as e:
+                self.logger.warning(f"Artist processing failed: {str(e)}")
+
+            # 2. Extraer y procesar información del álbum (solo si hay artista y título de álbum)
+            if result["artist_id"] and result["artist_name"] and track.album_title:
+                try:
+                    album_info = self._extract_album_info(
+                        track, result["artist_id"], result["artist_name"]
+                    )
+                    if album_info:
+                        saved_album = await self.save_album_use_case.execute(album_info)
+                        if saved_album:
+                            result["album_id"] = saved_album.id
+                            result["album_title"] = saved_album.title
+                            self.logger.info(
+                                f"✅ Album processed: {saved_album.title} (ID: {saved_album.id})"
+                            )
+                        else:
+                            self.logger.warning(
+                                f"⚠️  Failed to save album: {album_info.get('title', 'Unknown')}"
+                            )
+                    else:
+                        self.logger.info("No valid album information extracted")
+                except Exception as e:
+                    self.logger.warning(f"Album processing failed: {str(e)}")
+            else:
+                if not result["artist_id"]:
+                    self.logger.info("Skipping album processing: no artist ID")
+                elif not track.album_title:
+                    self.logger.info(
+                        "Skipping album processing: no album title in track"
+                    )
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
             return result
 
@@ -183,9 +251,12 @@ class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
                                 "channel_url": f"https://www.youtube.com/channel/{channel_id}",
                             }
 
+<<<<<<< HEAD
             # Si no encontramos en tags, intentar extraer de la URL si es posible
             # (esto sería más efectivo si tuviéramos acceso a metadatos completos del video)
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             return None
 
         except Exception as e:

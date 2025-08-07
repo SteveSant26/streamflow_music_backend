@@ -21,13 +21,27 @@ class AlbumSerializer(BaseEntitySerializer):
     # Definición de campos (opcional, solo para documentación/validación)
     id = serializers.CharField(read_only=True)
     title = serializers.CharField(read_only=True)
+<<<<<<< HEAD
     artist_id = serializers.CharField(read_only=True)
     artist_name = serializers.CharField(read_only=True)
+=======
+    artist_id = serializers.CharField(read_only=True, allow_null=True)
+    artist_name = serializers.CharField(read_only=True, allow_null=True)
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     release_date = serializers.DateField(read_only=True, allow_null=True)
     description = serializers.CharField(read_only=True, allow_null=True)
     cover_image_url = serializers.URLField(read_only=True, allow_null=True)
     total_tracks = serializers.IntegerField(read_only=True)
     play_count = serializers.IntegerField(read_only=True)
+<<<<<<< HEAD
+=======
+
+    # Metadatos de origen
+    source_type = serializers.CharField(read_only=True)
+    source_id = serializers.CharField(read_only=True, allow_null=True)
+    source_url = serializers.URLField(read_only=True, allow_null=True)
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     created_at = serializers.DateTimeField(read_only=True, allow_null=True)
     updated_at = serializers.DateTimeField(read_only=True, allow_null=True)
 

@@ -70,15 +70,22 @@ repos:
     rev: 1.7.5
     hooks:
       - id: bandit
+<<<<<<< HEAD
         args: ["-s", "B101", "-x", "test/,tests/,test_precommit.py,run_working_tests.py", "--format", "json"]
+=======
+        args: ["-s", "B101", "-x", "test/,tests/", "--format", "json"]
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         exclude: |
           (?x)(
             ^tests/
             |^migrations/
             |^\.venv/
             |^src/apps/.*/migrations/
+<<<<<<< HEAD
             |^test_precommit\.py$
             |^run_working_tests\.py$
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             |^generate_simple_coverage\.py$
             |^generate_sonar_reports\.py$
           )

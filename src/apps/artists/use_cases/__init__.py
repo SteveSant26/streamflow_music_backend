@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from .get_active_artists_use_case import GetActiveArtistsUseCase
 from .get_all_artists_use_case import GetAllArtistsUseCase
 from .get_artist_by_name_use_case import GetArtistByNameUseCase
@@ -23,3 +24,8 @@ __all__ = [
     "GetArtistStatsUseCase",
     "GetTopArtistsByFollowersUseCase",
 ]
+=======
+from .save_artist_use_case import SaveArtistUseCase
+
+__all__ = ["SaveArtistUseCase"]
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

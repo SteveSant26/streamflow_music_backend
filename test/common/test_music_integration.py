@@ -2,6 +2,7 @@
 Tests para el servicio de integración musical mejorado
 """
 
+<<<<<<< HEAD
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -18,6 +19,23 @@ from src.common.types.media_types import (
 
 # from src.common.adapters.media.music_service_builder import MusicIntegrationService
 from src.common.utils.music_metadata_extractor import MusicMetadataExtractor
+=======
+import pytest
+from unittest.mock import Mock, AsyncMock, patch
+from datetime import datetime
+
+from src.common.adapters.media.youtube_service import YouTubeAPIService
+
+# from src.common.adapters.media.music_service_builder import MusicIntegrationService
+from src.common.utils.music_metadata_extractor import MusicMetadataExtractor
+from src.common.types.media_types import (
+    YouTubeVideoInfo,
+    ExtractedArtistInfo,
+    ExtractedAlbumInfo,
+    YouTubeServiceConfig,
+)
+from src.apps.artists.domain.entities import ArtistEntity
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 
 class TestMusicMetadataExtractor:

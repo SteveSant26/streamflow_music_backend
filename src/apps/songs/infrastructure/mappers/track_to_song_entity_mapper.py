@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from django.utils import timezone
 
+<<<<<<< HEAD
 from ....genres.infrastructure.repository.genre_repository import GenreRepository
 from ....music_search.domain.interfaces import MusicTrackData
 from ...domain.entities import SongEntity
@@ -15,6 +16,24 @@ class TrackToSongEntityMapper:
         self.genre_repository = GenreRepository()
 
     async def map(
+=======
+from common.adapters.media.media_types import MusicTrackData
+from common.mixins.logging_mixin import LoggingMixin
+
+from ....genres.infrastructure.models import GenreModel
+from ....genres.infrastructure.repository.genre_repository import GenreRepository
+from ...domain.entities import SongEntity
+
+
+class TrackToSongEntityMapper(LoggingMixin):
+    """Mapper para convertir MusicTrackData a SongEntity"""
+
+    def __init__(self):
+        super().__init__()
+        self.genre_repository = GenreRepository()
+
+    def map(
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         self,
         track: MusicTrackData,
         file_url: Optional[str] = None,
@@ -41,17 +60,28 @@ class TrackToSongEntityMapper:
         genre_ids = []
         if analyzed_genres:
             try:
+<<<<<<< HEAD
                 genre_ids = await self._get_genre_ids_from_names(analyzed_genres)
             except Exception as e:
                 # Si hay error obteniendo los IDs, continuar sin géneros
                 print(f"Error obteniendo IDs de géneros: {str(e)}")
+=======
+                genre_ids = self._get_genre_ids_from_names(analyzed_genres)
+            except Exception as e:
+                self.logger.error(f"Error obteniendo IDs de géneros: {str(e)}")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 genre_ids = []
 
         return SongEntity(
             id=str(uuid.uuid4()),
             title=track.title,
+<<<<<<< HEAD
             artist_id=artist_id,  # Usar el artist_id proporcionado
             album_id=album_id,  # Usar el album_id proporcionado
+=======
+            artist_id=artist_id,
+            album_id=album_id,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             album_title=track.album_title,
             duration_seconds=track.duration_seconds,
             file_url=file_url,
@@ -62,10 +92,17 @@ class TrackToSongEntityMapper:
             audio_quality="standard",
             created_at=timezone.now(),
             release_date=timezone.now(),
+<<<<<<< HEAD
             genre_ids=genre_ids,  # Asignar los IDs de géneros obtenidos
         )
 
     async def _get_genre_ids_from_names(self, genre_names: List[str]) -> List[str]:
+=======
+            genre_ids=genre_ids,
+        )
+
+    def _get_genre_ids_from_names(self, genre_names: List[str]) -> List[str]:
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         """
         Convierte una lista de nombres de géneros a una lista de IDs de géneros
 
@@ -75,14 +112,18 @@ class TrackToSongEntityMapper:
         Returns:
             Lista de IDs de géneros (como strings)
         """
+<<<<<<< HEAD
         from asgiref.sync import sync_to_async
 
         from ....genres.infrastructure.models import GenreModel
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         genre_ids = []
 
         for genre_name in genre_names:
             try:
+<<<<<<< HEAD
                 # Buscar el género por nombre (case insensitive) directamente en el modelo
                 genre_model = await sync_to_async(
                     lambda name=genre_name: GenreModel.objects.filter(
@@ -95,6 +136,13 @@ class TrackToSongEntityMapper:
             except Exception as e:
                 # Si hay error con un género específico, continuar con los demás
                 print(f"Error buscando género '{genre_name}': {str(e)}")
+=======
+                genre_model = GenreModel.objects.filter(name__iexact=genre_name).first()
+                if genre_model:
+                    genre_ids.append(str(genre_model.id))
+            except Exception as e:
+                self.logger.error(f"Error buscando género '{genre_name}': {str(e)}")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 continue
 
         return genre_ids

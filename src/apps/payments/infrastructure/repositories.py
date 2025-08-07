@@ -1,7 +1,10 @@
 """
 Repository implementations for payments
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
@@ -389,9 +392,15 @@ class PaymentRepository(IPaymentRepository):
             amount=model.amount,
             currency=model.currency,
             status=PaymentStatus(model.status),
+<<<<<<< HEAD
             payment_method_id=(
                 str(model.payment_method.id) if model.payment_method else None
             ),
+=======
+            payment_method_id=str(model.payment_method.id)
+            if model.payment_method
+            else None,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             invoice_id=str(model.invoice.id) if model.invoice else None,
             metadata=model.metadata,
             created_at=model.created_at,

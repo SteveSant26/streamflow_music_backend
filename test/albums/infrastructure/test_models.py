@@ -258,12 +258,21 @@ def test_album_model_queries():
     active_albums = MockAlbumModel.objects.filter(is_active=True)
     inactive_albums = MockAlbumModel.objects.filter(is_active=False)
 
+<<<<<<< HEAD
     assert all_albums.count() >= 3  # nosec B101
     assert active_albums.count() >= 2  # nosec B101
     assert inactive_albums.count() >= 1  # nosec B101
     wall_albums = MockAlbumModel.objects.filter(title__icontains="Wall")
     assert wall_albums.count() >= 1  # nosec B101
     assert wall_albums.first().title == "The Wall"  # nosec B101
+=======
+    assert all_albums.count( >= 3)  # nosec B101
+    assert active_albums.count( >= 2)  # nosec B101
+    assert inactive_albums.count( >= 1)  # nosec B101
+    wall_albums = MockAlbumModel.objects.filter(title__icontains="Wall")
+    assert wall_albums.count( >= 1)  # nosec B101
+    assert wall_albums.first(.title == "The Wall")  # nosec B101
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     print("✅ Consultas del modelo funcionan correctamente")
     print(f"   - Total álbumes: {all_albums.count()}")

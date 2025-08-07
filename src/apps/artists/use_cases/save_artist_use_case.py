@@ -21,17 +21,24 @@ class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
     @log_performance(threshold_seconds=2.0)
     async def execute(self, artist_data: dict) -> Optional[ArtistEntity]:
         """
+<<<<<<< HEAD
         Guarda un artista desde datos externos como YouTube
+=======
+        Guarda un artista desde datos externos
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
         Args:
             artist_data: Diccionario con datos del artista
                 - name (str): Nombre del artista
                 - image_url (str, opcional): URL de la imagen
+<<<<<<< HEAD
                 - source_type (str, opcional): Tipo de fuente (youtube, spotify, etc.)
                 - source_id (str, opcional): ID en la fuente externa
                 - source_url (str, opcional): URL en la fuente externa
                 - channel_id (str, opcional): ID del canal de YouTube (para compatibilidad)
                 - channel_url (str, opcional): URL del canal (para compatibilidad)
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
         Returns:
             Entidad de artista guardada o None si falla
@@ -42,6 +49,7 @@ class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
                 self.logger.error("Artist name is required")
                 return None
 
+<<<<<<< HEAD
             # Normalizar datos de entrada
             source_type = artist_data.get("source_type", "youtube")
             source_id = artist_data.get("source_id") or artist_data.get("channel_id")
@@ -74,6 +82,15 @@ class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
                     return updated_artist
 
                 self.logger.info(f"Artist '{name}' already exists by name")
+=======
+            # Obtener datos de entrada
+            image_url = artist_data.get("image_url")
+
+            # Buscar si ya existe el artista por nombre
+            existing_artist = await self.artist_repository.find_by_name(name)
+            if existing_artist:
+                self.logger.info(f"Artist '{name}' already exists")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 return existing_artist
 
             # Crear nuevo artista
@@ -81,9 +98,12 @@ class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
                 id=str(uuid.uuid4()),
                 name=name,
                 image_url=image_url,
+<<<<<<< HEAD
                 source_type=source_type,
                 source_id=source_id,
                 source_url=source_url,
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
                 created_at=timezone.now(),
                 updated_at=timezone.now(),
             )

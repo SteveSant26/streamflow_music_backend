@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+=======
+import pytest
+import asyncio
+from unittest.mock import Mock, AsyncMock, patch
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from common.adapters.media.media_download_service import MediaDownloadService
 
 
@@ -23,10 +29,15 @@ class TestMediaDownloadService:
         mock_session = AsyncMock()
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
+<<<<<<< HEAD
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await self.service.download_thumbnail(
                 "http://example.com/image.jpg"
             )
+=======
+        with patch('aiohttp.ClientSession', return_value=mock_session):
+            result = await self.service.download_thumbnail("http://example.com/image.jpg")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
         assert result == b"fake_image_data"
 
@@ -39,10 +50,15 @@ class TestMediaDownloadService:
         mock_session = AsyncMock()
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
+<<<<<<< HEAD
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await self.service.download_thumbnail(
                 "http://example.com/image.jpg"
             )
+=======
+        with patch('aiohttp.ClientSession', return_value=mock_session):
+            result = await self.service.download_thumbnail("http://example.com/image.jpg")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
         assert result is None
 
@@ -56,15 +72,23 @@ class TestMediaDownloadService:
         result = await self.service.download_audio("video123")
 
         assert result == b"fake_audio_data"
+<<<<<<< HEAD
         self.mock_music_service.download_audio_from_video.assert_called_once_with(
             "video123"
         )
+=======
+        self.mock_music_service.download_audio_from_video.assert_called_once_with("video123")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     @pytest.mark.asyncio
     async def test_download_audio_no_service(self):
         """Test descarga de audio sin servicio de música"""
         service_without_music = MediaDownloadService(None)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         result = await service_without_music.download_audio("video123")
 
         assert result is None

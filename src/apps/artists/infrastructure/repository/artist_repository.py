@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 import uuid
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
 from django.utils import timezone
 
+=======
+from typing import Optional
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from apps.artists.api.mappers import ArtistEntityModelMapper
 from apps.artists.domain.repository import IArtistRepository
 from common.core import BaseDjangoRepository
@@ -20,6 +25,28 @@ class ArtistRepository(
     def __init__(self):
         super().__init__(ArtistModel, ArtistEntityModelMapper())
 
+<<<<<<< HEAD
+=======
+    async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, entity: ArtistEntity
+    ) -> ArtistEntity:
+        try:
+            model_data = self.mapper.entity_to_model_data(entity)
+
+            model_instance, created = await self.model_class.objects.aupdate_or_create(
+                id=getattr(entity, "id", None), defaults=model_data
+            )
+
+            action = "created" if created else "updated"
+            self.logger.info(
+                f"{self.model_class.__name__} {action} with id {model_instance.pk}"
+            )
+            return self.mapper.model_to_entity(model_instance)
+        except Exception as e:
+            self.logger.error(f"Error saving {self.model_class.__name__}: {str(e)}")
+            raise
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     async def find_by_name(self, name: str) -> Optional[ArtistEntity]:
         """Busca un artista por nombre exacto"""
         try:
@@ -29,6 +56,7 @@ class ArtistRepository(
             return self.mapper.model_to_entity(model)
         except self.model_class.DoesNotExist:
             return None
+<<<<<<< HEAD
 
     async def search_by_name(self, name: str, limit: int = 10) -> List[ArtistEntity]:
         """Busca artistas por nombre (búsqueda parcial)"""
@@ -111,3 +139,5 @@ class ArtistRepository(
             return self.mapper.model_to_entity(model)
         except self.model_class.DoesNotExist:
             return None
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

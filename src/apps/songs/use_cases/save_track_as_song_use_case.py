@@ -1,21 +1,40 @@
 from typing import List, Optional, Union
 
+<<<<<<< HEAD
 from common.factories.media_service_factory import MediaServiceFactory
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.types.media_types import AudioTrackData
+=======
+from common.interfaces.ibase_use_case import BaseUseCase
+from common.types.media_types import AudioTrackData, MusicTrackData
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from common.utils.logging_decorators import log_execution, log_performance
 
 from ...albums.infrastructure.repository.album_repository import AlbumRepository
 from ...artists.infrastructure.repository.artist_repository import ArtistRepository
 from ...genres.services.music_genre_analyzer import MusicGenreAnalyzer
+<<<<<<< HEAD
 from ...music_search.domain.interfaces import MusicTrackData
 from ..domain.entities import SongEntity
 from ..domain.repository import ISongRepository
 from ..infrastructure.mappers.track_to_song_entity_mapper import TrackToSongEntityMapper
+=======
+from ..domain.entities import SongEntity
+from ..domain.repository import ISongRepository
+from .converters.music_data_converter import MusicDataConverter
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from .music_track_artist_album_extractor_use_case import (
     MusicTrackArtistAlbumExtractorUseCase,
 )
 
+<<<<<<< HEAD
+=======
+# Importar los nuevos módulos
+from .processors.media_processor import MediaProcessor
+from .processors.song_entity_processor import TrackToSongEntityMapper
+from .services.song_database_service import SongDatabaseService
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 class SaveTrackAsSongUseCase(
     BaseUseCase[Union[MusicTrackData, AudioTrackData], Optional[SongEntity]]
@@ -27,6 +46,7 @@ class SaveTrackAsSongUseCase(
         song_repository: ISongRepository,
     ):
         super().__init__()
+<<<<<<< HEAD
         self.song_repository = song_repository
 
         download_service, file_service = MediaServiceFactory.create_media_services()
@@ -34,6 +54,16 @@ class SaveTrackAsSongUseCase(
         self.media_file_service = file_service
 
         self.mapper = TrackToSongEntityMapper()
+=======
+
+        # Inicializar servicios modulares
+        self.media_processor = MediaProcessor()
+        self.song_entity_processor = TrackToSongEntityMapper()
+        self.database_service = SongDatabaseService(song_repository)
+        self.data_converter = MusicDataConverter()
+
+        # Servicios específicos que se mantienen aquí
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         self.genre_analyzer = MusicGenreAnalyzer()
 
         # Repositorios para artistas y álbumes
@@ -63,6 +93,7 @@ class SaveTrackAsSongUseCase(
         """
         try:
             # Convertir AudioTrackData a MusicTrackData si es necesario
+<<<<<<< HEAD
             music_track = self._convert_to_music_track_data(track)
 
             # 1. Extraer y guardar información de artistas y álbumes PRIMERO
@@ -123,11 +154,41 @@ class SaveTrackAsSongUseCase(
                 self.logger.info(f"   💿 Album: {album_title} (ID: {album_id})")
 
             return await self.song_repository.save(song_entity)
+=======
+            music_track = self.data_converter.convert_to_music_track_data(track)
+
+            # 1. Procesar información de artistas y álbumes
+            artist_album_info = await self._process_artist_album_info(music_track)
+
+            # 2. Procesar archivos multimedia y storage
+            media_result = await self.media_processor.process_media_files(music_track)
+            if not media_result:
+                return None
+
+            file_url, updated_thumbnail_url = media_result
+
+            # 3. Analizar géneros y crear entidad
+            analyzed_genres = await self._analyze_track_genres(music_track)
+            song_entity = await self.song_entity_processor.map(
+                music_track,
+                file_url,
+                updated_thumbnail_url,
+                analyzed_genres,
+                artist_album_info.get("artist_id"),
+                artist_album_info.get("album_id"),
+            )
+
+            # 4. Guardar en base de datos
+            return await self.database_service.save_song_to_database(
+                song_entity, music_track.title
+            )
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
         except Exception as e:
             self.logger.error(f"Error saving track as song: {str(e)}")
             return None
 
+<<<<<<< HEAD
     async def _download_media(
         self, track: MusicTrackData
     ) -> tuple[Optional[bytes], Optional[bytes]]:
@@ -186,6 +247,22 @@ class SaveTrackAsSongUseCase(
             storage_service = StorageServiceFactory.create_music_files_service()
             return storage_service.get_item_url(audio_file_name)
         return None
+=======
+    async def _process_artist_album_info(self, music_track: MusicTrackData) -> dict:
+        """
+        Procesa información de artistas y álbumes
+
+        Args:
+            music_track: Datos del track de música
+
+        Returns:
+            Diccionario con información de artista y álbum
+        """
+        self.logger.info(
+            f"🎤 Processing artist and album information for: {music_track.title}"
+        )
+        return await self.artist_album_extractor.execute(music_track)
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     async def _analyze_track_genres(self, track: MusicTrackData) -> List[str]:
         """
@@ -246,6 +323,7 @@ class SaveTrackAsSongUseCase(
             )
             # En caso de error, retornar el género original si existe
             return [track.genre] if track.genre else []
+<<<<<<< HEAD
 
     def _convert_to_music_track_data(
         self, track: Union[MusicTrackData, AudioTrackData]
@@ -277,3 +355,5 @@ class SaveTrackAsSongUseCase(
             audio_file_data=track.audio_file_data,
             audio_file_name=track.audio_file_name,
         )
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

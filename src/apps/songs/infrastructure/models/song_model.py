@@ -2,6 +2,7 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class SongModel(models.Model):
@@ -13,6 +14,7 @@ class SongModel(models.Model):
     title = models.CharField(max_length=255)
 
     # Relaciones
+<<<<<<< HEAD
     album_id = models.UUIDField(null=True, blank=True, db_index=True)
     artist_id = models.UUIDField(null=True, blank=True, db_index=True)
 
@@ -28,6 +30,32 @@ class SongModel(models.Model):
     album_title = models.CharField(
         max_length=255, null=True, blank=True, db_index=True  # NOSONAR
     )  # NOSONAR
+=======
+    album = models.ForeignKey(
+        "albums.AlbumModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="songs",
+        help_text="Álbum de la canción",
+    )
+    artist = models.ForeignKey(
+        "artists.ArtistModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="songs",
+        help_text="Artista de la canción",
+    )
+
+    # Relación con géneros - Many to Many para permitir múltiples géneros por canción
+    genres = models.ManyToManyField(
+        "genres.GenreModel",
+        blank=True,
+        related_name="songs",
+        help_text="Géneros musicales asociados a esta canción",
+    )
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     # Metadatos de la canción
     duration_seconds = models.IntegerField(
@@ -86,7 +114,10 @@ class SongModel(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["source_type", "source_id"]),
+<<<<<<< HEAD
             models.Index(fields=["album_title", "track_number"]),
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             models.Index(fields=["play_count"], name="songs_most_played_idx"),
             models.Index(fields=["favorite_count"], name="songs_most_favorited_idx"),
             models.Index(fields=["last_played_at"], name="songs_recently_played_idx"),
@@ -111,7 +142,6 @@ class SongModel(models.Model):
 
     async def increment_play_count(self):
         """Incrementa el contador de reproducciones y actualiza last_played_at"""
-        from django.utils import timezone
 
         self.play_count += 1
         self.last_played_at = timezone.now()
