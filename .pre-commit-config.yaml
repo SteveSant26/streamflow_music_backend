@@ -70,7 +70,7 @@ repos:
         name: pytest
         entry: pytest
         language: system
-        args: [test/unit/, --tb=short, --quiet, --no-header]
+        args: [test/, --tb=short, --quiet, --no-header]
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
