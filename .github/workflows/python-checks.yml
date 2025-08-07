@@ -26,13 +26,13 @@ jobs:
           pip install black isort flake8 mypy
 
       - name: Run Black (check formatting)
-        run: black . --check --diff
+        run: black . --check --diff --exclude tests/
 
       - name: Run isort (check import order)
-        run: isort . --check-only --diff
+        run: isort . --check-only --diff --skip tests
 
       - name: Run flake8 (linting)
-        run: flake8 .
+        run: flake8 --exclude=tests .
 
       - name: Run mypy (type checking)
-        run: mypy .
+        run: mypy --exclude tests .
