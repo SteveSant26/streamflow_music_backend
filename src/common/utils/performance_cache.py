@@ -1,6 +1,7 @@
 """
 Simple in-memory cache for song search results to avoid repeated YouTube API calls
 """
+
 import threading
 import time
 from typing import Any, Dict, Optional

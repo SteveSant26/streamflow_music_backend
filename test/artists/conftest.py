@@ -1,6 +1,7 @@
 """
 Configuración compartida para los tests de artists
 """
+
 from datetime import datetime
 
 import pytest

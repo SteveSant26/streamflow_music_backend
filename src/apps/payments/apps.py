@@ -1,6 +1,7 @@
 """
 Django app configuration for payments
 """
+
 from django.apps import AppConfig
 
 

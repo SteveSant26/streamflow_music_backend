@@ -46,9 +46,11 @@ class SubscriptionEntityModelMapper(
             id=entity.id,
             stripe_subscription_id=entity.stripe_subscription_id,
             stripe_customer_id=entity.stripe_customer_id,
-            status=entity.status.value
-            if hasattr(entity.status, "value")
-            else entity.status,
+            status=(
+                entity.status.value
+                if hasattr(entity.status, "value")
+                else entity.status
+            ),
             current_period_start=entity.current_period_start,
             current_period_end=entity.current_period_end,
             trial_start=entity.trial_start,
