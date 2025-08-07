@@ -26,5 +26,5 @@ RANDOM_MUSIC_QUERIES: List[str] = [
 ]
 
 
-with open("./config/settings/music_genres.json", "r", encoding="utf-8") as f:
+with open("config/settings/music_genres.json", "r", encoding="utf-8") as f:
     YOUTUBE_MUSIC_GENRES = json.load(f)
