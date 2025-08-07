@@ -15,12 +15,15 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     async def get_by_source(
         self, source_type: str, source_id: str
     ) -> Optional[SongEntity]:
+        """Obtiene una canción por su fuente y ID"""
+        pass
 
+    @abstractmethod
     async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, song_entity: SongEntity
     ) -> Optional[SongEntity]:
         """Guarda una canción en la base de datos"""
-
+        pass
 
 
     @abstractmethod
