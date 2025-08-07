@@ -6,7 +6,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from apps.playlists.api.dtos import (
@@ -57,7 +57,7 @@ class PlaylistSongViewSet(CRUDViewSetMixin):
     # Atributos requeridos para DRF y drf-spectacular
     queryset = PlaylistModel.objects.all()
     serializer_class = PlaylistSongResponseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Temporalmente para debug
     http_method_names = ["get", "post", "delete"]
 
     def __init__(self, *args, **kwargs):
