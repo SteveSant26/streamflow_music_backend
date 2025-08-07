@@ -1,6 +1,7 @@
 """
 Tests para los casos de uso de user_profile
 """
+
 import unittest
 from unittest.mock import Mock
 

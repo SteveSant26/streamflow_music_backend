@@ -1,11 +1,11 @@
 from django_filters import rest_framework as filters
 
 from apps.payments.infrastructure.models import (
-    Invoice,
-    Payment,
-    PaymentMethod,
-    Subscription,
-    SubscriptionPlan,
+    InvoiceModel,
+    PaymentMethodModel,
+    PaymentModel,
+    SubscriptionModel,
+    SubscriptionPlanModel,
 )
 
 
@@ -20,7 +20,7 @@ class SubscriptionPlanFilter(filters.FilterSet):
     created_before = filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
 
     class Meta:
-        model = SubscriptionPlan
+        model = SubscriptionPlanModel
         fields = [
             "name",
             "currency",
@@ -41,7 +41,7 @@ class SubscriptionFilter(filters.FilterSet):
             ("trialing", "En Prueba"),
         ]
     )
-    plan = filters.ModelChoiceFilter(queryset=SubscriptionPlan.objects.all())
+    plan = filters.ModelChoiceFilter(queryset=SubscriptionPlanModel.objects.all())
     user_email = filters.CharFilter(field_name="user__email", lookup_expr="icontains")
     period_start_after = filters.DateTimeFilter(
         field_name="current_period_start", lookup_expr="gte"
@@ -62,7 +62,7 @@ class SubscriptionFilter(filters.FilterSet):
     created_before = filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
 
     class Meta:
-        model = Subscription
+        model = SubscriptionModel
         fields = [
             "status",
             "plan",
@@ -80,7 +80,7 @@ class PaymentMethodFilter(filters.FilterSet):
     created_before = filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
 
     class Meta:
-        model = PaymentMethod
+        model = PaymentMethodModel
         fields = [
             "type",
             "card_brand",
@@ -110,7 +110,7 @@ class InvoiceFilter(filters.FilterSet):
     created_before = filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
 
     class Meta:
-        model = Invoice
+        model = InvoiceModel
         fields = [
             "status",
             "currency",
@@ -130,12 +130,14 @@ class PaymentFilter(filters.FilterSet):
     min_amount = filters.NumberFilter(field_name="amount", lookup_expr="gte")
     max_amount = filters.NumberFilter(field_name="amount", lookup_expr="lte")
     currency = filters.CharFilter(lookup_expr="iexact")
-    payment_method = filters.ModelChoiceFilter(queryset=PaymentMethod.objects.all())
+    payment_method = filters.ModelChoiceFilter(
+        queryset=PaymentMethodModel.objects.all()
+    )
     created_after = filters.DateTimeFilter(field_name="created_at", lookup_expr="gte")
     created_before = filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
 
     class Meta:
-        model = Payment
+        model = PaymentModel
         fields = [
             "status",
             "currency",
