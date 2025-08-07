@@ -6,13 +6,13 @@ def add_logging_to_instance(instance):
     Añade funcionalidad de logging a una instancia de clase.
     Esta función es útil para evitar problemas de importación circular.
     """
-    if not hasattr(instance, '_logger'):
+    if not hasattr(instance, "_logger"):
         instance._logger = get_logger(instance.__class__.__name__)
-    
+
     # Añadir propiedad logger como un atributo simple
-    if not hasattr(instance, 'logger'):
+    if not hasattr(instance, "logger"):
         instance.logger = instance._logger
-    
+
     return instance
 
 
