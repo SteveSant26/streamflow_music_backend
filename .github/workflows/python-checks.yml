@@ -1,38 +1,38 @@
-name: Python Quality Checks
+  name: Python Quality Checks
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  on:
+    push:
+      branches: [main]
+    pull_request:
+      branches: [main]
 
-jobs:
-  quality:
-    name: Lint, Format & Type Check
-    runs-on: ubuntu-latest
+  jobs:
+    quality:
+      name: Lint, Format & Type Check
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
+        - name: Set up Python
+          uses: actions/setup-python@v4
+          with:
+            python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install black isort flake8 mypy
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install black isort flake8 mypy
 
-      - name: Run Black (check formatting)
-        run: black . --check --diff --exclude '(^test/|test_.*\.py$)'
+        - name: Run Black (check formatting)
+          run: black . --check --diff --exclude '(^test/|test_.*\.py$)'
 
-      - name: Run isort (check import order)
-        run: isort . --check-only --diff --exclude '(^test/|test_.*\.py$)'
+        - name: Run isort (check import order)
+          run: isort . --check-only --diff --skip test --skip test_*.py --profile=black
 
-      - name: Run flake8 (linting)
-        run: flake8 --max-line-length=150 --extend-ignore=E203 --exclude=__init__.py,test
+        - name: Run flake8 (linting)
+          run: flake8 --max-line-length=150 --extend-ignore=E203 --exclude=__init__.py,test
 
-      - name: Run mypy (type checking)
-        run: mypy --exclude '(^test/|test_.*\.py$)' .
+        - name: Run mypy (type checking)
+          run: mypy --exclude '(^test/|test_.*\.py$)' .
