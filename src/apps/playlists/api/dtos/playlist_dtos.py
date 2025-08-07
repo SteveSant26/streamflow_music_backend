@@ -27,9 +27,11 @@ class PlaylistSongResponseDTO:
     song_id: str
     position: int
     added_at: Optional[datetime] = None
-    song_title: Optional[str] = None
-    song_artist: Optional[str] = None
-    song_duration: Optional[int] = None
+    title: Optional[str] = None
+    artist_name: Optional[str] = None
+    album_name: Optional[str] = None
+    duration_seconds: Optional[int] = None
+    thumbnail_url: Optional[str] = None
 
 
 @dataclass

@@ -39,9 +39,11 @@ class PlaylistSongEntityDTOMapper(
             song_id=entity.song_id,
             position=entity.position,
             added_at=entity.added_at,
-            song_title=song_info.get("title"),
-            song_artist=song_info.get("artist"),
-            song_duration=song_info.get("duration"),
+            title=song_info.get("title"),
+            artist_name=song_info.get("artist"),
+            album_name=song_info.get("album"),
+            duration_seconds=song_info.get("duration"),
+            thumbnail_url=song_info.get("thumbnail"),
         )
 
     def dto_to_entity(self, dto: PlaylistSongResponseDTO) -> PlaylistSongEntity:
@@ -79,12 +81,14 @@ class PlaylistSongEntityDTOMapper(
         try:
             from apps.songs.infrastructure.models import SongModel
 
-            song = SongModel.objects.select_related("artist").get(id=song_id)
+            song = SongModel.objects.select_related("artist", "album").get(id=song_id)
 
             return {
                 "title": song.title,
                 "artist": song.artist.name if song.artist else None,
+                "album": song.album.title if song.album else None,
                 "duration": song.duration_seconds,
+                "thumbnail": song.thumbnail_url,
             }
 
         except Exception as e:
@@ -92,7 +96,9 @@ class PlaylistSongEntityDTOMapper(
             return {
                 "title": None,
                 "artist": None,
+                "album": None,
                 "duration": None,
+                "thumbnail": None,
             }
 
     def entities_to_dtos(
@@ -142,9 +148,11 @@ class PlaylistSongEntityDTOMapper(
                 song_id=entity.song_id,
                 position=entity.position,
                 added_at=entity.added_at,
-                song_title=song_info.get("title"),
-                song_artist=song_info.get("artist"),
-                song_duration=song_info.get("duration"),
+                title=song_info.get("title"),
+                artist_name=song_info.get("artist"),
+                album_name=song_info.get("album"),
+                duration_seconds=song_info.get("duration"),
+                thumbnail_url=song_info.get("thumbnail"),
             )
             dtos.append(dto)
 
@@ -163,14 +171,16 @@ class PlaylistSongEntityDTOMapper(
         try:
             from apps.songs.infrastructure.models import SongModel
 
-            songs = SongModel.objects.select_related("artist").filter(id__in=song_ids)
+            songs = SongModel.objects.select_related("artist", "album").filter(id__in=song_ids)
 
             songs_info = {}
             for song in songs:
                 songs_info[str(song.id)] = {
                     "title": song.title,
                     "artist": song.artist.name if song.artist else None,
+                    "album": song.album.title if song.album else None,
                     "duration": song.duration_seconds,
+                    "thumbnail": song.thumbnail_url,
                 }
 
             return songs_info
