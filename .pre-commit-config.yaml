@@ -3,6 +3,9 @@
 # Expresión común para excluir test y archivos test_*.py
 # ^test/       => Carpeta test en la raíz
 # test_.*\.py$ => Archivos que empiezan con test_ y terminan en .py
+# exclude_tests: '(^test/|test_.*\.py$)'
+
+
 repos:
   # Elimina imports y variables no usados automáticamente
   - repo: https://github.com/PyCQA/autoflake
