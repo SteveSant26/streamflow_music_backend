@@ -27,7 +27,7 @@ class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=2.0)  # Reduced threshold for better monitoring
-    def execute(self, track: MusicTrackData) -> Dict:
+    async def execute(self, track: MusicTrackData) -> Dict:
         """
         Extrae y guarda información de artista y álbum desde un track de música
 
@@ -60,7 +60,7 @@ class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
             try:
                 artist_info = self._extract_artist_info(track)
                 if artist_info:
-                    saved_artist = self.save_artist_use_case.execute(artist_info)
+                    saved_artist = await self.save_artist_use_case.execute(artist_info)
                     if saved_artist:
                         result["artist_id"] = saved_artist.id
                         result["artist_name"] = saved_artist.name
@@ -83,7 +83,7 @@ class MusicTrackArtistAlbumExtractorUseCase(BaseUseCase[MusicTrackData, Dict]):
                         track, result["artist_id"], result["artist_name"]
                     )
                     if album_info:
-                        saved_album = self.save_album_use_case.execute(album_info)
+                        saved_album = await self.save_album_use_case.execute(album_info)
                         if saved_album:
                             result["album_id"] = saved_album.id
                             result["album_title"] = saved_album.title

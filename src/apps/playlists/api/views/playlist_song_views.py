@@ -1,5 +1,3 @@
-from typing import Any
-
 from asgiref.sync import async_to_sync
 from django.http import Http404
 from drf_spectacular.types import OpenApiTypes
@@ -74,10 +72,6 @@ class PlaylistSongViewSet(CRUDViewSetMixin):
             "remove_song": None,
         }
         return action_to_serializer.get(self.action, PlaylistSongResponseSerializer)
-
-    def get_queryset(self) -> Any:
-        """Retorna el queryset base"""
-        return PlaylistModel.objects.all()
 
     @extend_schema(
         responses={200: PlaylistSongResponseSerializer(many=True)},

@@ -23,3 +23,7 @@ class PlaylistSongNotFoundException(NotFoundException):
 
 class PlaylistSongAlreadyExistsException(DomainException):
     """Excepción lanzada cuando la canción ya existe en la playlist"""
+
+
+class PlaylistImageUploadException(DomainException):
+    """Excepción lanzada cuando hay un error al subir la imagen de la playlist"""

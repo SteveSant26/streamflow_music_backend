@@ -4,6 +4,7 @@ from asgiref.sync import async_to_sync
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -26,8 +27,8 @@ from apps.user_profile.infrastructure.permissions import (
     IsPlaylistOwner,
     IsPlaylistOwnerOrPublic,
 )
+from src.common.factories.storage_service_factory import StorageServiceFactory
 from src.common.mixins.crud_viewset_mixin import CRUDViewSetMixin
-from src.common.utils.schema_decorators import paginated_list_endpoint
 
 from ..dtos import CreatePlaylistRequestDTO, UpdatePlaylistRequestDTO
 from ..mappers import PlaylistEntityDTOMapper
@@ -68,10 +69,12 @@ class PlaylistViewSet(CRUDViewSetMixin):
     serializer_class = PlaylistResponseSerializer
     filterset_class = PlaylistModelFilter
     http_method_names = ["get", "post", "put", "delete"]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.playlist_repository = PlaylistRepository()
+        self.storage_service = StorageServiceFactory.create_playlist_images_service()
         self.mapper = PlaylistEntityDTOMapper()
 
     def get_serializer_class(self) -> type:
@@ -100,45 +103,40 @@ class PlaylistViewSet(CRUDViewSetMixin):
         permission_classes = action_permissions.get(self.action, [AllowAny])
         return [permission() for permission in permission_classes]
 
-    @paginated_list_endpoint(
-        serializer_class=PlaylistResponseSerializer,
-        tags=["Playlists"],
-        description="Get popular playlists from the database",
-    )
     def list(self, request):
         """Lista las playlists públicas y del usuario autenticado"""
         self.logger.debug(
             f"user_id={request.user.id if request.user.is_authenticated else 'anonymous'}",
         )
 
-        # Configurar parámetros sin límites - DRF se encarga de la paginación
-        params = {}
+        queryset = self.filter_queryset(self.get_queryset())
 
-        # Solo agregar user_id si el usuario está autenticado
-        if request.user.is_authenticated:
-            params["user_id"] = str(request.user.id)
+        user_id = str(request.user.id) if request.user.is_authenticated else None
 
-        # Ejecutar caso de uso de manera sincrónica
         get_use_case = GetPublicAndUserPlaylistsUseCase(self.playlist_repository)
-        playlists = async_to_sync(get_use_case.execute)(params)
+        self.logger.info(
+            f"Executing GetPublicAndUserPlaylistsUseCase for user: {user_id}"
+        )
+
+        playlists = async_to_sync(get_use_case.execute)(queryset, user_id)
 
         user_info = (
             f"user {request.user.id}"
             if request.user.is_authenticated
             else "anonymous user"
         )
-        # Usar la paginación de DRF
+
+        # Paso 3: Paginación y serialización de la lista de entidades en memoria.
         page = self.paginate_queryset(playlists)
+
         if page is not None:
             playlist_dtos = self.mapper.entities_to_dtos(page)
             serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
             self.logger.info(f"Retrieved {len(page)} playlists for {user_info}")
             return self.get_paginated_response(serializer.data)
 
-        # Fallback sin paginación si no se puede paginar
         playlist_dtos = self.mapper.entities_to_dtos(playlists)
         serializer = PlaylistResponseSerializer(playlist_dtos, many=True)
-
         self.logger.info(f"Retrieved {len(playlists)} playlists for {user_info}")
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -151,18 +149,19 @@ class PlaylistViewSet(CRUDViewSetMixin):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Usar los datos del request después de la validación
         name = request.data.get("name", "")
         description = request.data.get("description")
         is_public = request.data.get("is_public", False)
+        playlist_img_file = serializer.validated_data.get("playlist_img")  # type: ignore
 
         create_dto = CreatePlaylistRequestDTO(
             name=name,
             description=description,
             is_public=is_public,
+            playlist_img_file=playlist_img_file,
         )
 
-        use_case = CreatePlaylistUseCase(self.playlist_repository)
+        use_case = CreatePlaylistUseCase(self.playlist_repository, self.storage_service)
         playlist = async_to_sync(use_case.execute)(create_dto, user_id)
 
         playlist_dto = self.mapper.entity_to_dto(playlist)
@@ -208,32 +207,28 @@ class PlaylistViewSet(CRUDViewSetMixin):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Usar los datos del request después de la validación
         name = request.data.get("name")
         description = request.data.get("description")
         is_public = request.data.get("is_public")
+        playlist_img_file = serializer.validated_data.get("playlist_img_file")  # type: ignore
 
         update_dto = UpdatePlaylistRequestDTO(
             playlist_id=playlist_id,
             name=name,
             description=description,
             is_public=is_public,
+            playlist_img_file=playlist_img_file,
         )
 
-        use_case = UpdatePlaylistUseCase(self.playlist_repository)
-        playlist = async_to_sync(use_case.execute)(
-            {
-                "playlist_id": playlist_id,
-                "user_id": user_id,
-                "update_dto": update_dto,
-            }
-        )
+        use_case = UpdatePlaylistUseCase(self.playlist_repository, self.storage_service)
+        playlist = async_to_sync(use_case.execute)(user_id, update_dto)
 
         playlist_dto = self.mapper.entity_to_dto(playlist)
-        response_serializer = PlaylistResponseSerializer(playlist_dto)
 
         self.logger.info(f"Updated playlist {playlist_id} for user {user_id}")
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            PlaylistResponseSerializer(playlist_dto).data, status=status.HTTP_200_OK
+        )
 
     def destroy(self, request, pk=None):
         """Elimina una playlist"""

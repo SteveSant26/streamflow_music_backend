@@ -1,5 +1,7 @@
 from typing import List
 
+from django.db.models import Q, QuerySet
+
 from apps.playlists.domain.entities import PlaylistEntity
 from apps.playlists.domain.repository.iplaylist_repository import IPlaylistRepository
 from common.interfaces.ibase_use_case import BaseUseCase
@@ -19,58 +21,45 @@ class GetPublicAndUserPlaylistsUseCase(BaseUseCase[dict, List[PlaylistEntity]]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=1.0)
-    async def execute(self, params: dict) -> List[PlaylistEntity]:
+    async def execute(self, queryset: QuerySet, user_id: str) -> List[PlaylistEntity]:
         """
-        Ejecuta el caso de uso para obtener playlists públicas y del usuario.
+        Ejecuta el caso de uso para obtener playlists públicas y del usuario,
+        aplicando los filtros del queryset.
 
         Args:
-            params: Diccionario con parámetros:
-                - user_id: ID del usuario autenticado (opcional)
-                - limit: Límite de playlists públicas a obtener (default: 50)
-                - offset: Offset para paginación de playlists públicas (default: 0)
+            queryset: El QuerySet de Django, pre-filtrado por la vista.
+            user_id: ID del usuario autenticado (opcional).
 
         Returns:
-            Lista de entidades de playlist (públicas + del usuario)
+            Lista de entidades de playlist (públicas + del usuario).
         """
-        user_id = params.get("user_id")
-
-        self.logger.info(f"Getting public and user playlists for user: {user_id}")
+        self.logger.info(f"Getting playlists for user: {user_id}")
 
         try:
-            # Obtener playlists públicas
-            public_playlists = await self.playlist_repository.get_public_playlists()
-
-            # Si hay usuario autenticado, obtener también sus playlists
             if user_id:
-                user_playlists = await self.playlist_repository.get_by_user_id(user_id)
+                # Usa un Q object para combinar filtros en el queryset de manera eficiente.
+                # Busca playlists públicas o playlists del usuario autenticado.
+                combined_filter = Q(is_public=True) | Q(user__id=user_id)
+                final_queryset = queryset.filter(combined_filter)
 
-                # Crear un conjunto para evitar duplicados (playlists públicas del usuario)
-                playlist_ids = set()
-                combined_playlists = []
-
-                # Primero agregar las playlists del usuario (tienen prioridad)
-                for playlist in user_playlists:
-                    combined_playlists.append(playlist)
-                    playlist_ids.add(playlist.id)
-
-                # Luego agregar las playlists públicas que no sean del usuario
-                for playlist in public_playlists:
-                    if playlist.id not in playlist_ids:
-                        combined_playlists.append(playlist)
-
-                # Ordenar por fecha de creación (más recientes primero)
-                combined_playlists.sort(key=lambda p: p.created_at, reverse=True)
-
-                self.logger.info(
-                    f"Retrieved {len(combined_playlists)} playlists "
-                    f"({len(user_playlists)} user, {len(public_playlists)} public)"
+                # El repositorio se encarga de ejecutar el queryset y mapear a entidades.
+                playlists = await self.playlist_repository.get_from_queryset(
+                    final_queryset
                 )
 
-                return combined_playlists
+                self.logger.info(
+                    f"Retrieved {len(playlists)} combined playlists for user: {user_id}"
+                )
+                return playlists
             else:
-                # Si no hay usuario autenticado, solo devolver playlists públicas
-                self.logger.info(f"Retrieved {len(public_playlists)} public playlists")
-                return public_playlists
+                # Para usuarios anónimos, solo se buscan las playlists públicas.
+                public_playlists_queryset = queryset.filter(is_public=True)
+                playlists = await self.playlist_repository.get_from_queryset(
+                    public_playlists_queryset
+                )
+
+                self.logger.info(f"Retrieved {len(playlists)} public playlists")
+                return playlists
 
         except Exception as e:
             self.logger.error(f"Error getting public and user playlists: {str(e)}")

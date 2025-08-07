@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, cast
+from typing import Optional
 
 from django.utils import timezone
 
@@ -8,7 +8,6 @@ from common.utils.logging_decorators import log_execution, log_performance
 
 from ..domain.entities import ArtistEntity
 from ..domain.repository import IArtistRepository
-from ..infrastructure.repository.artist_repository import ArtistRepository
 
 
 class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
@@ -20,7 +19,7 @@ class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=2.0)
-    def execute(self, artist_data: dict) -> Optional[ArtistEntity]:
+    async def execute(self, artist_data: dict) -> Optional[ArtistEntity]:
         """
         Guarda un artista desde datos externos
 
@@ -42,9 +41,7 @@ class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
             image_url = artist_data.get("image_url")
 
             # Buscar si ya existe el artista por nombre
-            existing_artist = cast(
-                ArtistRepository, self.artist_repository
-            ).find_by_name(name)
+            existing_artist = await self.artist_repository.find_by_name(name)
             if existing_artist:
                 self.logger.info(f"Artist '{name}' already exists")
                 return existing_artist
@@ -58,9 +55,7 @@ class SaveArtistUseCase(BaseUseCase[dict, Optional[ArtistEntity]]):
                 updated_at=timezone.now(),
             )
 
-            saved_artist = cast(ArtistRepository, self.artist_repository).save(
-                artist_entity
-            )
+            saved_artist = await self.artist_repository.save(artist_entity)
             self.logger.info(f"✅ Created new artist: {name} (ID: {saved_artist.id})")
             return saved_artist
 

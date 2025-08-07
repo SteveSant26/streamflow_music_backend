@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from asgiref.sync import sync_to_async
 from django.db import models
+from django.db.models import QuerySet
 
 from apps.playlists.api.mappers.playlist_entity_model_mapper import (
     PlaylistEntityModelMapper,
@@ -25,7 +26,6 @@ class PlaylistRepository(
         self.logger.info(f"Creating playlist: {entity.name}")
 
         model_data = self.mapper.entity_to_model_data(entity)
-        model_data.pop("id", None)  # Remover id para que Django genere uno nuevo
         model_data.pop("created_at", None)
         model_data.pop("updated_at", None)
 
@@ -258,12 +258,6 @@ class PlaylistRepository(
             models.append(model)
         return [self.mapper.model_to_entity(model) for model in models]
 
-    async def get_playlist_song_count(self, playlist_id: str) -> int:
-        """Obtiene el número de canciones en una playlist"""
-        self.logger.debug(f"Getting song count for playlist: {playlist_id}")
-
-        return await PlaylistSongModel.objects.filter(playlist_id=playlist_id).acount()
-
     async def is_song_in_playlist(self, playlist_id: str, song_id: str) -> bool:
         """Verifica si una canción está en una playlist específica"""
         self.logger.debug(f"Checking if song {song_id} is in playlist {playlist_id}")
@@ -271,3 +265,9 @@ class PlaylistRepository(
         return await PlaylistSongModel.objects.filter(
             playlist_id=playlist_id, song_id=song_id
         ).aexists()
+
+    @sync_to_async
+    def _get_playlists_from_queryset_sync(
+        self, queryset: QuerySet
+    ) -> List[PlaylistEntity]:
+        return self.mapper.models_to_entities(list(queryset))

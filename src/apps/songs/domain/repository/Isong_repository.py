@@ -12,13 +12,15 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     # Métodos específicos del dominio de canciones
 
     @abstractmethod
-    def save(  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, song_entity: SongEntity
     ) -> Optional[SongEntity]:
         """Guarda una canción en la base de datos"""
 
     @abstractmethod
-    def get_by_source(self, source_type: str, source_id: str) -> Optional[SongEntity]:
+    async def get_by_source(
+        self, source_type: str, source_id: str
+    ) -> Optional[SongEntity]:
         """Obtiene una canción por fuente y ID de fuente"""
 
     @abstractmethod
@@ -26,7 +28,7 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
         """Obtiene canciones aleatorias"""
 
     @abstractmethod
-    def search(self, query: str, limit: int = 20) -> List[SongEntity]:
+    async def search(self, query: str, limit: int = 20) -> List[SongEntity]:
         """Busca canciones por título o artista"""
 
     @abstractmethod

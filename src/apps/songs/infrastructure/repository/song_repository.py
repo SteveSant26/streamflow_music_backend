@@ -1,6 +1,6 @@
 from typing import List, Optional, cast
 
-from asgiref.sync import async_to_sync, sync_to_async
+from asgiref.sync import sync_to_async
 from django.db.models import Q
 
 from apps.artists.infrastructure.models.artist_model import ArtistModel
@@ -18,7 +18,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
     def __init__(self):
         super().__init__(SongModel, SongEntityModelMapper())
 
-    def save(  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, entity: SongEntity
     ) -> SongEntity:
         """Guarda una canción"""
@@ -32,31 +32,30 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
 
             if entity.id:
                 try:
-                    song_obj = self.model_class.objects.get(id=entity.id)
+                    song_obj = await self.model_class.objects.aget(id=entity.id)
                     for key, value in song_data.items():
                         setattr(song_obj, key, value)
-                    song_obj.save()
+                    await song_obj.asave()
                 except self.model_class.DoesNotExist:
                     self.logger.warning(
                         f"Song with ID {entity.id} not found, creating new one"
                     )
-                    song_obj = self.model_class.objects.create(**song_data)
+                    song_obj = await self.model_class.objects.acreate(**song_data)
             else:
-                song_obj = self.model_class.objects.create(**song_data)
+                song_obj = await self.model_class.objects.acreate(**song_data)
 
             song_mapper = cast(SongEntityModelMapper, self.mapper)
             if entity.genre_ids:
-                async_to_sync(song_mapper.set_entity_genres_to_model)(
-                    song_obj, entity.genre_ids
-                )
+                await song_mapper.set_entity_genres_to_model(song_obj, entity.genre_ids)
+
             else:
-                song_obj.genres.clear()
+                await song_obj.genres.aclear()
 
             # Recargar el objeto con las relaciones para el mapper
-            song_obj = (
+            song_obj = await (
                 self.model_class.objects.select_related("artist", "album")
                 .prefetch_related("genres")
-                .get(id=song_obj.id)
+                .aget(id=song_obj.id)
             )
 
             return self.mapper.model_to_entity(song_obj)
@@ -65,16 +64,15 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             self.logger.error(f"Error saving song: {str(e)}")
             raise
 
-    def get_by_source(self, source_type: str, source_id: str) -> Optional[SongEntity]:
+    async def get_by_source(
+        self, source_type: str, source_id: str
+    ) -> Optional[SongEntity]:
         """Obtiene una canción por fuente y ID de fuente"""
         try:
-            song = (
+            song = await (
                 self.model_class.objects.select_related("artist", "album")
                 .prefetch_related("genres")
-                .get(
-                    source_type=source_type,
-                    source_id=source_id,
-                )
+                .aget(source_type=source_type, source_id=source_id)
             )
             return self.mapper.model_to_entity(song)
         except SongModel.DoesNotExist:
@@ -101,18 +99,16 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
             self.logger.error(f"Error getting random songs: {str(e)}")
             return []
 
-    def search(self, query: str, limit: int = 20) -> List[SongEntity]:
-        """Busca canciones por título o artista"""
+    async def search(self, query: str, limit: int = 20) -> List[SongEntity]:
         try:
-            # Buscar IDs de artistas que coincidan con el query
-            matching_artist_ids = list(
+            # Mover consultas bloqueantes a hilos separados
+            matching_artist_ids = await sync_to_async(list)(
                 ArtistModel.objects.filter(name__icontains=query).values_list(
                     "id", flat=True
                 )
             )
 
-            # Construir la consulta para canciones
-            songs = list(
+            songs = await sync_to_async(list)(
                 SongModel.objects.select_related("artist", "album")
                 .prefetch_related("genres")
                 .filter(
@@ -123,8 +119,8 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
                 .order_by("-play_count", "-created_at")[:limit]
             )
 
-            # Mapear modelos a entidades
             return self.mapper.models_to_entities(songs)
+
         except Exception as e:
             self.logger.error(f"Error searching songs with query '{query}': {str(e)}")
             return []

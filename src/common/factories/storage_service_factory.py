@@ -32,3 +32,8 @@ class StorageServiceFactory:
     def create_album_covers_service() -> IStorageService:
         """Crea un servicio específico para portadas de álbumes."""
         return StorageServiceFactory.__create_storage_service("album-covers")
+
+    @staticmethod
+    def create_playlist_images_service() -> IStorageService:
+        """Crea un servicio específico para imágenes de playlists."""
+        return StorageServiceFactory.__create_storage_service("playlist-images")

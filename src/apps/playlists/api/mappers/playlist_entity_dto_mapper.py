@@ -1,10 +1,8 @@
-"""
-Mapper entre entidades de playlist y DTOs
-"""
+from datetime import datetime
 
-from typing import Iterable, List
 
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
+from src.common.factories.storage_service_factory import StorageServiceFactory
 
 from ...domain.entities import PlaylistEntity
 from ..dtos import PlaylistResponseDTO
@@ -37,6 +35,15 @@ class PlaylistEntityDTOMapper(
             else self._get_playlist_song_count_sync(entity.id)
         )
 
+        playlist_img = None
+        if entity.playlist_img:
+            self.logger.debug(f"Playlist image path: {entity.playlist_img}")
+            playlist_img_service = (
+                StorageServiceFactory.create_playlist_images_service()
+            )
+            playlist_img = playlist_img_service.get_item_url(entity.playlist_img)
+            self.logger.debug(f"Generated playlist image URL: {playlist_img}")
+
         return PlaylistResponseDTO(
             id=entity.id,
             name=entity.name,
@@ -45,6 +52,7 @@ class PlaylistEntityDTOMapper(
             is_default=entity.is_default,
             is_public=entity.is_public,
             song_count=song_count,
+            playlist_img=playlist_img,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )
@@ -61,8 +69,6 @@ class PlaylistEntityDTOMapper(
         """
         self.logger.debug(f"Converting DTO to entity for playlist {dto.id}")
 
-        from datetime import datetime
-
         return PlaylistEntity(
             id=dto.id,
             name=dto.name,
@@ -70,6 +76,7 @@ class PlaylistEntityDTOMapper(
             user_id=dto.user_id,
             is_default=dto.is_default,
             is_public=dto.is_public,
+            playlist_img=dto.playlist_img,
             created_at=dto.created_at or datetime.now(),
             updated_at=dto.updated_at,
         )
@@ -92,45 +99,3 @@ class PlaylistEntityDTOMapper(
         except Exception as e:
             self.logger.error(f"Error obteniendo conteo de canciones: {str(e)}")
             return 0
-
-    def entities_to_dtos(
-        self, entities: Iterable[PlaylistEntity]
-    ) -> List[PlaylistResponseDTO]:
-        """
-        Convierte una lista de entidades a DTOs
-
-        Args:
-            entities: Lista de entidades de playlist
-
-        Returns:
-            Lista de DTOs de respuesta de playlist
-        """
-        return [self.entity_to_dto(entity) for entity in entities]
-
-    def entity_to_dto_with_songs(self, entity: PlaylistEntity) -> PlaylistResponseDTO:
-        """
-        Convierte una entidad a DTO asegurándose de que las canciones estén cargadas
-
-        Args:
-            entity: Entidad de playlist
-
-        Returns:
-            DTO de respuesta de playlist con conteo de canciones preciso
-        """
-        # Si la entidad no tiene canciones cargadas, usar el método de conteo
-        if entity.songs is None:
-            song_count = self._get_playlist_song_count_sync(entity.id)
-        else:
-            song_count = entity.song_count
-
-        return PlaylistResponseDTO(
-            id=entity.id,
-            name=entity.name,
-            description=entity.description,
-            user_id=entity.user_id,
-            is_default=entity.is_default,
-            is_public=entity.is_public,
-            song_count=song_count,
-            created_at=entity.created_at,
-            updated_at=entity.updated_at,
-        )

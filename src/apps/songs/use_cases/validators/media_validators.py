@@ -1,10 +1,7 @@
-"""
-Validadores para el procesamiento de archivos multimedia
-"""
 import logging
 from typing import Optional
 
-from common.adapters.media.media_types import MusicTrackData
+from common.types.media_types.audio_types import MusicTrackData
 
 
 class MediaValidators:
