@@ -59,8 +59,8 @@ class LyricsService(LoggingMixin):
         self.logger.info(f"Buscando letras para: {artist} - {title}")
         
         # Limpiar y normalizar los datos de entrada
-        clean_title = self.text_cleaner.clean_song_title(title)
-        clean_artist = self.text_cleaner.clean_artist_name(artist)
+        clean_title = self.text_cleaner.clean_title(title)
+        clean_artist = self.text_cleaner.clean_title(artist)
         
         # Intentar diferentes fuentes en orden de preferencia
         sources = [
