@@ -1,0 +1,21 @@
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["test"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--color=yes",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "unit: Tests unitarios (entidades, value objects)",
+    "integration: Tests de integración (repositorios, servicios)",
+    "slow: Tests que tardan más tiempo en ejecutarse",
+    "asyncio: Tests asíncronos",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
