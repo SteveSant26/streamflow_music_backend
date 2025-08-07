@@ -6,6 +6,7 @@ from .apps_settings import INSTALLED_APPS, SPECTACULAR_SETTINGS  # noqa: F401
 from .auth_settings import AUTH_PASSWORD_VALIDATORS  # noqa: F401
 from .database_settings import DATABASES  # noqa: F401
 from .jazzmin_settings import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: F401
+from .lyrics_settings import GENIUS_CLIENT_ID, GENIUS_CLIENT_SECRET  # noqa: F401
 from .middleware_settings import MIDDLEWARE  # noqa: F401
 from .rest_framework_settings import REST_FRAMEWORK  # noqa: F401
 
@@ -34,9 +35,6 @@ from .youtube_settings import (  # noqa: F401
     YOUTUBE_API_VERSION,
     YOUTUBE_MUSIC_GENRES,
 )
-
-# Lyrics Services Settings (opcional)
-GENIUS_API_KEY = env("GENIUS_API_KEY", default=None)  # Opcional para mejores letras
 
 SECRET_KEY = env("SECRET_KEY")
 

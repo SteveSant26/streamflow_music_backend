@@ -58,7 +58,7 @@ class SongRepository(BaseDjangoRepository[SongEntity, SongModel], ISongRepositor
                 .aget(id=song_obj.id)
             )
 
-            return self.mapper.model_to_entity(song_obj)
+            return await sync_to_async(self.mapper.model_to_entity)(song_obj)
 
         except Exception as e:
             self.logger.error(f"Error saving song: {str(e)}")

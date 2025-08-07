@@ -12,12 +12,6 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     # Métodos específicos del dominio de canciones
 
     @abstractmethod
-    async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, song_entity: SongEntity
-    ) -> Optional[SongEntity]:
-        """Guarda una canción en la base de datos"""
-
-    @abstractmethod
     async def get_by_source(
         self, source_type: str, source_id: str
     ) -> Optional[SongEntity]:

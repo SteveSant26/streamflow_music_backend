@@ -7,6 +7,7 @@ from .views import (
     RandomSongsView,
     SongViewSet,
 )
+from .views.lyrics_viewset import LyricsView
 
 # Router para el ViewSet
 router = DefaultRouter()
@@ -21,8 +22,13 @@ urlpatterns = [
     path("most-popular/", MostPopularSongsView.as_view(), name="most-popular-songs"),
     # Nueva vista API para incrementar contador (más consistente)
     path(
-        "api/<uuid:song_id>/increment-play-count/",
+        "<uuid:song_id>/increment-play-count/",
         IncrementPlayCountAPIView.as_view(),
-        name="increment-play-count-api",
+        name="increment-play-count",
+    ),
+    path(
+        "<uuid:song_id>/lyrics/",
+        LyricsView.as_view(),
+        name="get-lyrics",
     ),
 ]
