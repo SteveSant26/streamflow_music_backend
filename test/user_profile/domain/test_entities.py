@@ -1,6 +1,7 @@
 """
 Tests para las entidades del dominio de user_profile
 """
+
 import unittest
 
 from apps.user_profile.domain.entities import UserEntity

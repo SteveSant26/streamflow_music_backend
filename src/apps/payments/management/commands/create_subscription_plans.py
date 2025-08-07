@@ -1,10 +1,11 @@
 """
 Management command to create subscription plans
 """
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from ...infrastructure.models import SubscriptionPlan
+from ...infrastructure.models import SubscriptionPlanModel
 
 
 class Command(BaseCommand):
@@ -62,7 +63,7 @@ class Command(BaseCommand):
                 )
                 continue
 
-            plan, created = SubscriptionPlan.objects.get_or_create(
+            plan, created = SubscriptionPlanModel.objects.get_or_create(
                 stripe_price_id=plan_data["stripe_price_id"], defaults=plan_data
             )
 

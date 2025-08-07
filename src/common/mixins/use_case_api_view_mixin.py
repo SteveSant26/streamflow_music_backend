@@ -2,6 +2,7 @@
 Mixin para vistas APIView que utilizan casos de uso y paginación.
 Elimina redundancia en vistas que heredan de PaginatedAPIView.
 """
+
 from rest_framework.permissions import AllowAny
 
 from .paginated_api_view import PaginatedAPIView

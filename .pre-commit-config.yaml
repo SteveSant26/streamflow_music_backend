@@ -1,6 +1,5 @@
-# Pre-commit hooks para mantener calidad del código
 repos:
-  # Elimina imports no usados AUTOMÁTICAMENTE
+  # Elimina imports y variables no usados automáticamente
   - repo: https://github.com/PyCQA/autoflake
     rev: v2.2.1
     hooks:
@@ -9,34 +8,34 @@ repos:
           - --in-place
           - --remove-all-unused-imports
           - --ignore-init-module-imports
-        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
+        exclude: '(^test/|test_.*\.py$)'
 
-  # Formateo de código
+  # Formatea el código Python siguiendo el estilo Black
   - repo: https://github.com/psf/black
     rev: 23.11.0
     hooks:
       - id: black
         args: [--line-length=88]
         language_version: python3.13
-        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
+        exclude: '(^test/|test_.*\.py$)'
 
-  # Ordenamiento de imports
+  # Ordena los imports automáticamente según el perfil de Black
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
         args: [--profile=black]
-        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
+        exclude: '(^test/|test_.*\.py$)'
 
-  # Linting
+  # Linter para detectar errores de estilo y posibles bugs en Python
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
         args: [--max-line-length=150, --extend-ignore=E203]
-        exclude: '(__init__\.py$|^src/apps/.*/migrations/|^tests?/)' # TODO: Añadido tests/ al exclude
+        exclude: '(__init__\.py$|^src/apps/.*/migrations/|^test/|test_.*\.py$)'
 
-  # Linting de código Python
+  # Verifica tipos estáticos en Python usando mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1
     hooks:
@@ -48,42 +47,40 @@ repos:
         args:
           - --ignore-missing-imports
           - --explicit-package-bases
-        exclude: (^src/apps/.*/migrations/|^tests?/) # TODO: Añadido tests/ al exclude
+        exclude: '(^src/apps/.*/migrations/|^test/|test_.*\.py$)'
 
-  # Seguridad
+  # Analiza el código en busca de vulnerabilidades de seguridad
   - repo: https://github.com/pycqa/bandit
     rev: 1.7.5
     hooks:
       - id: bandit
-        args: ["-s", "B101", "-x", "test/,tests/", "--format", "json"]
+        args: ["-s", "B101", "-x", "test/", "--format", "json"]
         exclude: |
           (?x)(
-            ^tests/
+            ^test/
             |^migrations/
             |^\.venv/
             |^src/apps/.*/migrations/
-            |^generate_simple_coverage\.py$
-            |^generate_sonar_reports\.py$
           )
 
-  # Commit message formatting
+  # Verifica que los mensajes de commit sigan el estándar de Conventional Commits
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
 
-  # Hooks generales
+  # Hooks generales para mantener la calidad y consistencia de archivos
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
+        exclude: '(^test/|test_.*\.py$)'
       - id: end-of-file-fixer
-        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
+        exclude: '(^test/|test_.*\.py$)'
       - id: check-yaml
       - id: check-added-large-files
       - id: check-json
       - id: check-merge-conflict
       - id: debug-statements
-        exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
+        exclude: '(^test/|test_.*\.py$)'

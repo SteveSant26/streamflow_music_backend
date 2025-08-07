@@ -2,7 +2,6 @@
 Configuración temporal para tests de modelos
 """
 
-
 # Configuración temporal de Django solo para testing
 SECRET_KEY = "test-secret-key-for-album-tests"
 DEBUG = True
