@@ -1,5 +1,20 @@
 # Pre-commit hooks para mantener calidad del código
 repos:
+  # Python code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88, --target-version=py38]
+
+  # Import sorting with isort
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile, black, --multi-line, "3", --line-length, "88"]
+
   # Elimina imports no usados AUTOMÁTICAMENTE
   - repo: https://github.com/PyCQA/autoflake
     rev: v2.2.1
@@ -13,10 +28,10 @@ repos:
 
   # Formateo de código
   - repo: https://github.com/psf/black
-    rev: 23.11.0
+    rev: 24.4.2
     hooks:
       - id: black
-        args: [--line-length=88]
+        args: [--line-length=88, --target-version=py312]
         language_version: python3.13
         exclude: (^tests?/|test_.*\.py$) # TODO: Ignorar archivos de test
 
@@ -55,18 +70,36 @@ repos:
     rev: 1.7.5
     hooks:
       - id: bandit
+<<<<<<< HEAD
+        args: ["-s", "B101", "-x", "test/,tests/,test_precommit.py,run_working_tests.py", "--format", "json"]
+=======
         args: ["-s", "B101", "-x", "test/,tests/", "--format", "json"]
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         exclude: |
           (?x)(
             ^tests/
             |^migrations/
             |^\.venv/
             |^src/apps/.*/migrations/
+<<<<<<< HEAD
+            |^test_precommit\.py$
+            |^run_working_tests\.py$
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             |^generate_simple_coverage\.py$
             |^generate_sonar_reports\.py$
           )
 
-  # Commit message formatting
+  # 🧪 Ejecutar tests de módulos funcionales
+  - repo: local
+    hooks:
+      - id: run-working-tests
+        name: Run working tests (user_profile & albums)
+        entry: python test_precommit.py
+        language: system
+        stages: [pre-commit]
+        pass_filenames: false
+        always_run: true  # Commit message formatting
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
     hooks:

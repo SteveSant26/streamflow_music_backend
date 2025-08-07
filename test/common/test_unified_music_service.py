@@ -2,6 +2,22 @@
 Tests para el servicio unificado de música
 """
 
+<<<<<<< HEAD
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+
+from src.common.adapters.media.unified_music_service import UnifiedMusicService
+from src.common.factories.unified_music_service_factory import (
+    UnifiedMusicServiceFactory,
+    get_music_service,
+)
+from src.common.types.media_types import (
+    AudioTrackData,
+    MusicServiceConfig,
+    YouTubeVideoInfo,
+=======
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime
@@ -15,6 +31,7 @@ from src.common.types.media_types import (
     YouTubeVideoInfo,
     AudioTrackData,
     MusicServiceConfig,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 )
 
 

@@ -16,6 +16,13 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
         Convierte un modelo Django AlbumModel a entidad del dominio AlbumEntity.
         """
         self.logger.debug(f"Converting model to entity for album {model.id}")
+<<<<<<< HEAD
+        return AlbumEntity(
+            id=str(model.id),
+            title=model.title,
+            artist_id=str(model.artist_id),
+            artist_name=getattr(model, "artist_name", ""),
+=======
         artist_name = (
             model.artist.name if hasattr(model, "artist") and model.artist else ""
         )
@@ -25,11 +32,18 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
             title=model.title,
             artist_id=str(model.artist.id) if model.artist else None,
             artist_name=artist_name,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             release_date=model.release_date,
             description=model.description,
             cover_image_url=model.cover_image_url,
             total_tracks=model.total_tracks,
             play_count=model.play_count,
+<<<<<<< HEAD
+            source_type=getattr(model, "source_type", "unknown"),
+            source_id=getattr(model, "source_id", None),
+            source_url=getattr(model, "source_url", None),
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
@@ -42,7 +56,12 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
         return AlbumModel(
             id=entity.id,
             title=entity.title,
+<<<<<<< HEAD
+            artist_id=entity.artist_id,
+            artist_name=entity.artist_name,
+=======
             artist=entity.artist_id,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             release_date=entity.release_date,
             description=entity.description,
             cover_image_url=entity.cover_image_url,
@@ -72,7 +91,12 @@ class AlbumEntityModelMapper(AbstractEntityModelMapper[AlbumEntity, AlbumModel])
         }
 
         # Only include new fields if they exist in the entity
+<<<<<<< HEAD
+        if hasattr(entity, "artist_name") and entity.artist_name is not None:
+            model_data["artist_name"] = entity.artist_name
+=======
 
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         if hasattr(entity, "source_type"):
             model_data["source_type"] = entity.source_type
         if hasattr(entity, "source_id") and entity.source_id is not None:

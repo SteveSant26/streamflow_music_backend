@@ -4,8 +4,15 @@ from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
+<<<<<<< HEAD
+from common.mixins.logging_mixin import LoggingMixin
+
+
+class SupabaseAuthentication(BaseAuthentication, LoggingMixin):
+=======
 
 class SupabaseAuthentication(BaseAuthentication):
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     """
     Autenticación basada en tokens de Supabase.
     """
@@ -14,10 +21,13 @@ class SupabaseAuthentication(BaseAuthentication):
     name = "BearerAuth"
 
     def __init__(self):
+<<<<<<< HEAD
+=======
         # Añadir logging sin importación circular
         from common.utils.logging_helper import add_logging_to_instance
         add_logging_to_instance(self)
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         self._user_repository = None
         self._sync_user_use_case = None
 

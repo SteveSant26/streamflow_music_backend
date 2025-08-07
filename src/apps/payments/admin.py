@@ -5,6 +5,10 @@ Django admin conf    readonly_fields = ["id", "created_at", "updated_at"]
     def price_display(self, obj):
         return f"{obj.price/100:.2f} {obj.currency}"ion for payments
 """
+<<<<<<< HEAD
+
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from django.contrib import admin
 
 from .infrastructure.models import (

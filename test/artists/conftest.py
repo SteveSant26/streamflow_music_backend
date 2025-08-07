@@ -1,6 +1,10 @@
 """
 Configuración compartida para los tests de artists
 """
+<<<<<<< HEAD
+
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from datetime import datetime
 
 import pytest

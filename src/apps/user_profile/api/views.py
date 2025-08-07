@@ -6,6 +6,8 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 
+<<<<<<< HEAD
+=======
 from apps.playlists.api.mappers import PlaylistEntityDTOMapper
 from apps.playlists.api.serializers import PlaylistResponseSerializer
 from apps.playlists.infrastructure.repository import PlaylistRepository
@@ -13,6 +15,7 @@ from apps.playlists.use_cases import (
     EnsureDefaultPlaylistUseCase,
     GetUserPlaylistsUseCase,
 )
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from apps.user_profile.api.mappers import UserProfileMapper
 from apps.user_profile.api.serializers import (
     RetrieveUserProfileSerializer,
@@ -59,12 +62,19 @@ class UserProfileViewSet(CRUDViewSetMixin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.user_repository = UserRepository()
+<<<<<<< HEAD
+        self.storage_service = StorageServiceFactory.create_profile_pictures_service()
+        self.mapper = UserProfileMapper()
+
+    def get_permissions(self):
+=======
         self.playlist_repository = PlaylistRepository()
         self.playlist_mapper = PlaylistEntityDTOMapper()
         self.storage_service = StorageServiceFactory.create_profile_pictures_service()
         self.mapper = UserProfileMapper()
 
     def get_permissions(self) -> list[BasePermission]:
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         action_permissions = {
             "me": [IsAuthenticated],
             "upload_profile_picture": [IsAuthenticated],

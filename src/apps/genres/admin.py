@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+# from .infrastructure.models import GenreModel
+# admin.site.register(GenreModel)
+
+from django.contrib import admin
+
+from .infrastructure.models import GenreModel
+
+admin.site.register(GenreModel)
+=======
 from django.contrib import admin
 
 from .infrastructure.models import GenreModel
@@ -36,3 +46,4 @@ class GenreModelAdmin(admin.ModelAdmin):
             )
         return "-"
     color_box.short_description = "Color"
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

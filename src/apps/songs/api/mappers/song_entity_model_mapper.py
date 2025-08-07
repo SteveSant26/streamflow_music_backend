@@ -27,6 +27,14 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         return SongEntity(
             id=str(model.id),
             title=model.title,
+<<<<<<< HEAD
+            album_id=str(model.album_id) if model.album_id else None,
+            artist_id=str(model.artist_id) if model.artist_id else None,
+            genre_ids=genre_ids,
+            duration_seconds=model.duration_seconds,
+            album_title=model.album_title,
+            artist_name=getattr(model, "artist_name", None),  # Backwards compatible
+=======
             album_id=str(model.album.id) if model.album else None,
             artist_id=str(model.artist.id) if model.artist else None,
             genre_ids=genre_ids,
@@ -35,6 +43,7 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
             artist_name=(
                 model.artist.name if model.artist else None
             ),  # Obtener del objeto relacionado
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             track_number=model.track_number,
             file_url=model.file_url,
             thumbnail_url=model.thumbnail_url,
@@ -61,7 +70,14 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         model_instance = SongModel(
             id=entity.id if hasattr(entity, "id") and entity.id is not None else None,
             title=entity.title,
+<<<<<<< HEAD
+            album_id=entity.album_id,
+            artist_id=entity.artist_id,
             duration_seconds=entity.duration_seconds,
+            album_title=entity.album_title,
+=======
+            duration_seconds=entity.duration_seconds,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             track_number=entity.track_number,
             file_url=entity.file_url,
             thumbnail_url=entity.thumbnail_url,
@@ -75,8 +91,11 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
             audio_quality=entity.audio_quality,
             last_played_at=getattr(entity, "last_played_at", None),
             release_date=entity.release_date,
+<<<<<<< HEAD
+=======
             artist_id=entity.artist_id,  # Asignar el ID del artista
             album_id=entity.album_id,  # Asignar el ID del álbum
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         )
 
         return model_instance
@@ -89,7 +108,14 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
 
         model_data = {
             "title": entity.title,
+<<<<<<< HEAD
+            "album_id": entity.album_id,
+            "artist_id": entity.artist_id,
             "duration_seconds": entity.duration_seconds,
+            "album_title": entity.album_title,
+=======
+            "duration_seconds": entity.duration_seconds,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             "track_number": entity.track_number,
             "file_url": entity.file_url,
             "thumbnail_url": entity.thumbnail_url,
@@ -105,6 +131,8 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
             "release_date": entity.release_date,
         }
 
+<<<<<<< HEAD
+=======
         # Asignar las relaciones ForeignKey si están disponibles
         if entity.artist_id:
             model_data["artist_id"] = entity.artist_id
@@ -112,6 +140,7 @@ class SongEntityModelMapper(AbstractEntityModelMapper[SongEntity, SongModel]):
         if entity.album_id:
             model_data["album_id"] = entity.album_id
 
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         return model_data
 
     async def set_entity_genres_to_model(

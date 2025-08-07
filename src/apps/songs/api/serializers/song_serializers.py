@@ -44,6 +44,15 @@ class SongListSerializer(BaseEntitySerializer):
     def get_duration_formatted(self, obj) -> str:
         """Retorna la duración en formato MM:SS"""
         return obj.duration_formatted
+<<<<<<< HEAD
+
+    def get_genre_names_display(self, obj) -> str:
+        """Retorna los nombres de géneros como string separado por comas"""
+        if hasattr(obj, "genre_names") and obj.genre_names:
+            return ", ".join(obj.genre_names)
+        return "Sin género"
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     def get_genre_names_display(self, obj) -> str:
         """Retorna los nombres de géneros como string separado por comas"""

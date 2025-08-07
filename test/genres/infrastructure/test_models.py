@@ -262,7 +262,11 @@ def test_model_to_entity_conversion():
     assert isinstance(genre_entity, GenreEntity)  # nosec B101
     assert genre_entity.name == "Test Genre"  # nosec B101
     assert genre_entity.description == "Test description"  # nosec B101
+<<<<<<< HEAD
+    assert genre_entity.color_hex == "#FF0000"  # nosec B101
+=======
     assert genre_entity.color_hex == "  # nosec B101
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     assert genre_entity.popularity_score == 80  # nosec B101
     assert genre_entity.is_active == True  # nosec B101
 
@@ -288,7 +292,11 @@ def test_model_edge_cases():
     edge_genre.save()
 
     assert edge_genre.popularity_score == 100  # nosec B101
+<<<<<<< HEAD
+    assert edge_genre.color_hex == "#FF0000"  # nosec B101
+=======
     assert edge_genre.color_hex == "  # nosec B101
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     # Test búsqueda que no existe
     try:

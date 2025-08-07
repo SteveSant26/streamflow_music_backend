@@ -1,6 +1,10 @@
 """
 Tests para serializers de Songs API
 """
+<<<<<<< HEAD
+
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 # Configurar path antes de importar
 import sys
 import unittest

@@ -41,7 +41,11 @@ class AlbumModel(models.Model):
     source_id = models.CharField(
         max_length=100,
         blank=True,
+<<<<<<< HEAD
+        null=True,
+=======
         null=True,  # noqa
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         db_index=True,  # noqa
         verbose_name="ID de fuente externa",
     )
@@ -67,6 +71,16 @@ class AlbumModel(models.Model):
             models.Index(fields=["release_date"]),
             models.Index(fields=["play_count"]),
             models.Index(fields=["source_type", "source_id"]),
+<<<<<<< HEAD
+=======
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_type", "source_id"],
+                condition=models.Q(source_id__isnull=False),
+                name="unique_album_source_per_type",
+            ),
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         ]
         constraints = [
             models.UniqueConstraint(
@@ -75,6 +89,11 @@ class AlbumModel(models.Model):
                 name="unique_album_source_per_type",
             ),
         ]
+
+    async def increase_play_count(self):
+        """Incrementa el contador de reproducciones del álbum"""
+        self.play_count += 1
+        await self.asave(update_fields=["play_count"])
 
     async def increase_play_count(self):
         """Incrementa el contador de reproducciones del álbum"""

@@ -10,12 +10,15 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     """Interface para el repositorio de canciones"""
 
     # Métodos específicos del dominio de canciones
+<<<<<<< HEAD
+=======
 
     @abstractmethod
     async def save(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, song_entity: SongEntity
     ) -> Optional[SongEntity]:
         """Guarda una canción en la base de datos"""
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
     @abstractmethod
     async def get_by_source(
@@ -56,3 +59,10 @@ class ISongRepository(IBaseRepository[SongEntity, Any]):
     @abstractmethod
     async def increment_download_count(self, song_id: str) -> bool:
         """Incrementa el contador de descargas"""
+<<<<<<< HEAD
+
+    @abstractmethod
+    async def exists_by_source(self, source_type: str, source_id: str) -> bool:
+        """Verifica si existe una canción con la fuente específica"""
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

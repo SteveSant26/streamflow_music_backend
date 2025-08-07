@@ -2,6 +2,21 @@
 Tests para verificar la integración de artistas y álbumes
 """
 
+<<<<<<< HEAD
+from unittest.mock import AsyncMock, Mock
+
+import pytest
+from django.test import TestCase
+
+from apps.albums.domain.entities import AlbumEntity
+from apps.albums.use_cases.save_album_use_case import SaveAlbumUseCase
+from apps.artists.domain.entities import ArtistEntity
+from apps.artists.use_cases.save_artist_use_case import SaveArtistUseCase
+from apps.music_search.domain.interfaces import MusicTrackData
+from apps.songs.use_cases.music_track_artist_album_extractor_use_case import (
+    MusicTrackArtistAlbumExtractorUseCase,
+)
+=======
 import pytest
 from unittest.mock import Mock, AsyncMock
 from django.test import TestCase
@@ -12,6 +27,7 @@ from apps.albums.domain.entities import AlbumEntity
 from apps.albums.use_cases.save_album_use_case import SaveAlbumUseCase
 from apps.songs.use_cases.music_track_artist_album_extractor_use_case import MusicTrackArtistAlbumExtractorUseCase
 from apps.music_search.domain.interfaces import MusicTrackData
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 
 class TestArtistAlbumIntegration(TestCase):
@@ -20,32 +36,62 @@ class TestArtistAlbumIntegration(TestCase):
     def setUp(self):
         self.mock_artist_repo = Mock()
         self.mock_album_repo = Mock()
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Mock repositories para retornar None (no encontrados)
         self.mock_artist_repo.get_by_source = AsyncMock(return_value=None)
         self.mock_artist_repo.find_by_name = AsyncMock(return_value=None)
         self.mock_album_repo.get_by_source = AsyncMock(return_value=None)
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Mock save methods
         self.mock_artist_repo.save = AsyncMock()
         self.mock_album_repo.save = AsyncMock()
 
     async def test_save_artist_use_case_creates_new_artist(self):
         """Test que SaveArtistUseCase crea un nuevo artista correctamente"""
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Setup
         artist_data = {
             "name": "Test Artist - Topic",
             "source_type": "youtube",
             "source_id": "UC123456789",
+<<<<<<< HEAD
+            "image_url": "https://example.com/image.jpg",
+        }
+
+=======
             "image_url": "https://example.com/image.jpg"
         }
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         expected_artist = ArtistEntity(
             id="test-id",
             name="Test Artist",  # Debe limpiar el " - Topic"
             source_type="youtube",
             source_id="UC123456789",
+<<<<<<< HEAD
+            image_url="https://example.com/image.jpg",
+        )
+
+        self.mock_artist_repo.save.return_value = expected_artist
+
+        use_case = SaveArtistUseCase(self.mock_artist_repo)
+
+        # Execute
+        result = await use_case.execute(artist_data)
+
+=======
             image_url="https://example.com/image.jpg"
         )
         
@@ -56,6 +102,7 @@ class TestArtistAlbumIntegration(TestCase):
         # Execute
         result = await use_case.execute(artist_data)
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Assert
         assert result is not None
         assert result.name == "Test Artist"
@@ -65,22 +112,47 @@ class TestArtistAlbumIntegration(TestCase):
 
     async def test_save_album_use_case_creates_new_album(self):
         """Test que SaveAlbumUseCase crea un nuevo álbum correctamente"""
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Setup
         album_data = {
             "title": "Test Album - Single",
             "artist_id": "artist-123",
             "artist_name": "Test Artist",
             "source_type": "youtube",
+<<<<<<< HEAD
+            "source_id": "album-123",
+        }
+
+=======
             "source_id": "album-123"
         }
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         expected_album = AlbumEntity(
             id="album-id",
             title="Test Album - Single",
             artist_id="artist-123",
             artist_name="Test Artist",
             source_type="youtube",
+<<<<<<< HEAD
+            source_id="album-123",
+        )
+
+        self.mock_album_repo.save.return_value = expected_album
+        self.mock_album_repo.find_or_create_by_title_and_artist = AsyncMock(
+            return_value=expected_album
+        )
+
+        use_case = SaveAlbumUseCase(self.mock_album_repo)
+
+        # Execute
+        result = await use_case.execute(album_data)
+
+=======
             source_id="album-123"
         )
         
@@ -92,6 +164,7 @@ class TestArtistAlbumIntegration(TestCase):
         # Execute
         result = await use_case.execute(album_data)
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Assert
         assert result is not None
         assert result.title == "Test Album - Single"
@@ -100,7 +173,11 @@ class TestArtistAlbumIntegration(TestCase):
 
     async def test_extractor_processes_track_correctly(self):
         """Test que el extractor procesa un track completo correctamente"""
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Setup
         track = MusicTrackData(
             video_id="test123",
@@ -111,6 +188,15 @@ class TestArtistAlbumIntegration(TestCase):
             thumbnail_url="https://example.com/thumb.jpg",
             genre="Pop",
             tags=["music", "artist", "UC123456789"],
+<<<<<<< HEAD
+            url="https://youtube.com/watch?v=test123",
+        )
+
+        # Mock save use cases
+        mock_save_artist = AsyncMock()
+        mock_save_album = AsyncMock()
+
+=======
             url="https://youtube.com/watch?v=test123"
         )
         
@@ -118,17 +204,43 @@ class TestArtistAlbumIntegration(TestCase):
         mock_save_artist = AsyncMock()
         mock_save_album = AsyncMock()
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         expected_artist = ArtistEntity(
             id="artist-123",
             name="Test Artist",
             source_type="youtube",
+<<<<<<< HEAD
+            source_id="UC123456789",
+        )
+
+=======
             source_id="UC123456789"
         )
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         expected_album = AlbumEntity(
             id="album-123",
             title="Test Album",
             artist_id="artist-123",
+<<<<<<< HEAD
+            artist_name="Test Artist",
+        )
+
+        mock_save_artist.execute.return_value = expected_artist
+        mock_save_album.execute.return_value = expected_album
+
+        extractor = MusicTrackArtistAlbumExtractorUseCase(
+            self.mock_artist_repo, self.mock_album_repo
+        )
+
+        # Override the save use cases
+        extractor.save_artist_use_case = mock_save_artist
+        extractor.save_album_use_case = mock_save_album
+
+        # Execute
+        result = await extractor.execute(track)
+
+=======
             artist_name="Test Artist"
         )
         
@@ -147,6 +259,7 @@ class TestArtistAlbumIntegration(TestCase):
         # Execute
         result = await extractor.execute(track)
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Assert
         assert result["artist_id"] == "artist-123"
         assert result["album_id"] == "album-123"
@@ -155,12 +268,20 @@ class TestArtistAlbumIntegration(TestCase):
 
     def test_clean_artist_name(self):
         """Test de limpieza de nombres de artistas"""
+<<<<<<< HEAD
+
+        extractor = MusicTrackArtistAlbumExtractorUseCase(
+            self.mock_artist_repo, self.mock_album_repo
+        )
+
+=======
         
         extractor = MusicTrackArtistAlbumExtractorUseCase(
             self.mock_artist_repo,
             self.mock_album_repo
         )
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         test_cases = [
             ("Artist Name - Topic", "Artist Name"),
             ("Artist VEVO", "Artist"),
@@ -170,19 +291,31 @@ class TestArtistAlbumIntegration(TestCase):
             ("Normal Artist", "Normal Artist"),
             ("  Spaced Artist  ", "Spaced Artist"),
         ]
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         for input_name, expected in test_cases:
             result = extractor._clean_artist_name(input_name)
             assert result == expected, f"Failed for input: {input_name}"
 
     def test_clean_album_title(self):
         """Test de limpieza de títulos de álbumes"""
+<<<<<<< HEAD
+
+        extractor = MusicTrackArtistAlbumExtractorUseCase(
+            self.mock_artist_repo, self.mock_album_repo
+        )
+
+=======
         
         extractor = MusicTrackArtistAlbumExtractorUseCase(
             self.mock_artist_repo,
             self.mock_album_repo
         )
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         test_cases = [
             ("Album Title - Single", "Song Title", "Album Title"),
             ("Song Title", "Song Title", "Song Title - Single"),
@@ -190,7 +323,11 @@ class TestArtistAlbumIntegration(TestCase):
             ("Album Title - Album", "Song Title", "Album Title"),
             ("Normal Album", "Song Title", "Normal Album"),
         ]
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         for album_input, song_title, expected in test_cases:
             result = extractor._clean_album_title(album_input, song_title)
             assert result == expected, f"Failed for input: {album_input}, {song_title}"
@@ -199,6 +336,26 @@ class TestArtistAlbumIntegration(TestCase):
 # Ejemplo de test de integración real (requiere configuración de Django)
 class TestDatabaseIntegration(TestCase):
     """Tests de integración con base de datos real"""
+<<<<<<< HEAD
+
+    @pytest.mark.django_db
+    async def test_full_integration_flow(self):
+        """Test del flujo completo con base de datos"""
+
+        # Este test requeriría configuración completa de Django y BD
+        # y se ejecutaría con datos reales
+
+        from apps.albums.infrastructure.repository.album_repository import (
+            AlbumRepository,
+        )
+        from apps.artists.infrastructure.repository.artist_repository import (
+            ArtistRepository,
+        )
+
+        artist_repo = ArtistRepository()
+        album_repo = AlbumRepository()
+
+=======
     
     @pytest.mark.django_db
     async def test_full_integration_flow(self):
@@ -213,6 +370,7 @@ class TestDatabaseIntegration(TestCase):
         artist_repo = ArtistRepository()
         album_repo = AlbumRepository()
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Crear un track de ejemplo
         track = MusicTrackData(
             video_id="integration_test",
@@ -223,6 +381,19 @@ class TestDatabaseIntegration(TestCase):
             thumbnail_url="https://example.com/test.jpg",
             genre="Test",
             tags=["test"],
+<<<<<<< HEAD
+            url="https://youtube.com/test",
+        )
+
+        # Ejecutar el extractor
+        extractor = MusicTrackArtistAlbumExtractorUseCase(artist_repo, album_repo)
+        result = await extractor.execute(track)
+
+        # Verificar que se crearon las entidades
+        assert result["artist_id"] is not None
+        assert result["artist_name"] == "Integration Artist"
+
+=======
             url="https://youtube.com/test"
         )
         
@@ -234,6 +405,7 @@ class TestDatabaseIntegration(TestCase):
         assert result["artist_id"] is not None
         assert result["artist_name"] == "Integration Artist"
         
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         # Verificar en base de datos
         saved_artist = await artist_repo.get(result["artist_id"])
         assert saved_artist is not None

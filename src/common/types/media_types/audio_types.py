@@ -1,5 +1,8 @@
 from dataclasses import dataclass
+<<<<<<< HEAD
+=======
 from datetime import datetime
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from typing import List, Optional
 
 from .extraction_types import ExtractedAlbumInfo, ExtractedArtistInfo
@@ -31,6 +34,10 @@ class AudioTrackData:
 
 
 @dataclass
+<<<<<<< HEAD
+class MusicTrackData(AudioTrackData):
+    """Datos específicos de una pista musical"""
+=======
 class YouTubeVideoInfo:
     """Información detallada de un video de YouTube"""
 
@@ -65,3 +72,4 @@ class MusicTrackData:
     url: str
     audio_file_data: Optional[bytes] = None
     audio_file_name: Optional[str] = None
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

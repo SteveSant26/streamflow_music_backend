@@ -6,6 +6,23 @@ from apps.artists.infrastructure.models.artist_model import ArtistModel
 class ArtistResponseSerializer(serializers.ModelSerializer):
     """Serializer para respuestas de artistas que trabaja directamente con el modelo"""
 
+<<<<<<< HEAD
+    # Configuración para el serializer base
+    mapper_class = ArtistMapper()
+    entity_class = ArtistEntity
+    dto_class = ArtistResponseDTO
+
+    # Definición de campos
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    biography = serializers.CharField(read_only=True, required=False, allow_null=True)
+    country = serializers.CharField(read_only=True, required=False, allow_null=True)
+    image_url = serializers.URLField(read_only=True, required=False, allow_null=True)
+    followers_count = serializers.IntegerField(read_only=True)
+    is_verified = serializers.BooleanField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True, required=False)
+    updated_at = serializers.DateTimeField(read_only=True, required=False)
+=======
     class Meta:
         model = ArtistModel
         fields = [
@@ -21,6 +38,7 @@ class ArtistResponseSerializer(serializers.ModelSerializer):
         read_only_fields = (
             fields  # Todos los campos son de solo lectura para respuestas
         )
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 
 class CreateArtistSerializer(serializers.ModelSerializer):

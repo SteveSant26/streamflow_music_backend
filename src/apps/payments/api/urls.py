@@ -1,3 +1,32 @@
+<<<<<<< HEAD
+from typing import List
+
+from django.urls import URLPattern
+
+# from ..presentation.views import (
+#     BillingPortalSessionView,
+#     CancelSubscriptionView,
+#     CheckoutSessionView,
+#     GetInvoicesView,
+#     GetPaymentHistoryView,
+#     GetSubscriptionPlansView,
+#     GetUserSubscriptionsView,
+#     ProcessPaymentView,
+#     StripeWebhookView,
+# )
+
+# Temporary empty URL patterns for migrations
+urlpatterns: List[URLPattern] = [
+    # path("subscription-plans/", GetSubscriptionPlansView.as_view(), name="subscription-plans"),
+    # path("checkout-session/", CheckoutSessionView.as_view(), name="checkout-session"),
+    # path("stripe-webhook/", StripeWebhookView.as_view(), name="stripe-webhook"),
+    # path("subscriptions/", GetUserSubscriptionsView.as_view(), name="user-subscriptions"),
+    # path("cancel-subscription/", CancelSubscriptionView.as_view(), name="cancel-subscription"),
+    # path("payment-history/", GetPaymentHistoryView.as_view(), name="payment-history"),
+    # path("billing-portal/", BillingPortalSessionView.as_view(), name="billing-portal"),
+    # path("process-payment/", ProcessPaymentView.as_view(), name="process-payment"),
+    # path("invoices/", GetInvoicesView.as_view(), name="invoices"),
+=======
 from django.urls import path
 
 from .views import (
@@ -32,4 +61,5 @@ urlpatterns = [
     path("config/stripe-key/", get_stripe_public_key, name="stripe-public-key"),
     # Webhooks
     path("webhooks/stripe/", StripeWebhookView.as_view(), name="stripe-webhook"),
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 ]

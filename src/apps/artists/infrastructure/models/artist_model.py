@@ -14,6 +14,32 @@ class ArtistModel(models.Model):
     )
     is_verified = models.BooleanField(default=False, verbose_name="Verificado")
 
+<<<<<<< HEAD
+    # # Metadatos de origen
+    source_type = models.CharField(
+        max_length=20,
+        default="manual",
+        choices=[
+            ("manual", "Manual"),
+            ("youtube", "YouTube"),
+            ("spotify", "Spotify"),
+            ("soundcloud", "SoundCloud"),
+        ],
+        verbose_name="Tipo de fuente",
+    )
+    source_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        db_index=True,  # noqa
+        verbose_name="ID de fuente externa",
+    )
+    source_url = models.URLField(
+        blank=True, null=True, verbose_name="URL de fuente externa"
+    )
+
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de creación"
     )
@@ -30,6 +56,14 @@ class ArtistModel(models.Model):
             models.Index(fields=["name"]),
             models.Index(fields=["is_verified"]),
             models.Index(fields=["followers_count"]),
+            models.Index(fields=["source_type", "source_id"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_type", "source_id"],
+                condition=models.Q(source_id__isnull=False),
+                name="unique_artist_source_per_type",
+            ),
         ]
 
     def __str__(self):

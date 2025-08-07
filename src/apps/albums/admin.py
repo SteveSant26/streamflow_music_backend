@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+# Register your models here.
+# from .infrastructure.models import AlbumModel
+# admin.site.register(AlbumModel)
+from django.contrib import admin
+
+from .infrastructure.models import AlbumModel  # Ajusta el nombre según tu modelo
+
+admin.site.register(AlbumModel)
+=======
 from django.contrib import admin
 from .infrastructure.models import AlbumModel
 
@@ -22,3 +32,4 @@ class AlbumModelAdmin(admin.ModelAdmin):
     )
     ordering = ("-created_at",)
     readonly_fields = ("created_at", "updated_at", "play_count")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33

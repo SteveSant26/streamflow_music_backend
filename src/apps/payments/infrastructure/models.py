@@ -1,6 +1,10 @@
 """
 Django models for payments app
 """
+<<<<<<< HEAD
+
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 import uuid
 
 from django.contrib.auth import get_user_model

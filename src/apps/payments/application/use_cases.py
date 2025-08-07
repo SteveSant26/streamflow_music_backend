@@ -1,11 +1,18 @@
 """
 Use cases for payment domain
 """
+<<<<<<< HEAD
+
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+=======
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from common.utils.logging_config import get_logger
 
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from ..domain.entities import Invoice, PaymentMethod, Subscription, SubscriptionPlan
 from ..domain.interfaces import (
     IInvoiceRepository,
@@ -16,8 +23,11 @@ from ..domain.interfaces import (
     ISubscriptionRepository,
 )
 
+<<<<<<< HEAD
+=======
 logger = get_logger(__name__)
 
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 
 @dataclass
 class CreateCheckoutSessionRequest:
@@ -257,7 +267,11 @@ class ProcessStripeWebhookUseCase:
             return True
 
         except Exception as e:
+<<<<<<< HEAD
+            print(f"Error procesando webhook: {e}")
+=======
             logger.error(f"Error procesando webhook: {e}")
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             return False
 
     async def _handle_subscription_created(self, subscription_data: Dict[str, Any]):

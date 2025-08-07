@@ -24,9 +24,19 @@ class ArtistEntityModelMapper(AbstractEntityModelMapper[ArtistEntity, ArtistMode
             id=str(model.id),
             name=model.name,
             biography=model.biography,
+<<<<<<< HEAD
+            country=model.country,
             image_url=model.image_url,
             followers_count=model.followers_count,
             is_verified=model.is_verified,
+            source_type=model.source_type,  # Backwards compatible
+            source_id=model.source_id,  # Backwards compatible
+            source_url=model.source_url,  # Backwards compatible
+=======
+            image_url=model.image_url,
+            followers_count=model.followers_count,
+            is_verified=model.is_verified,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
@@ -40,7 +50,15 @@ class ArtistEntityModelMapper(AbstractEntityModelMapper[ArtistEntity, ArtistMode
             id=entity.id,
             name=entity.name,
             biography=entity.biography,
+<<<<<<< HEAD
+            country=entity.country,
             image_url=entity.image_url,
+            source_type=entity.source_type,
+            source_id=entity.source_id,
+            source_url=entity.source_url,
+=======
+            image_url=entity.image_url,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             followers_count=entity.followers_count,
             is_verified=entity.is_verified,
             created_at=entity.created_at,
@@ -57,6 +75,13 @@ class ArtistEntityModelMapper(AbstractEntityModelMapper[ArtistEntity, ArtistMode
         model_data = {
             "name": entity.name,
             "biography": entity.biography,
+<<<<<<< HEAD
+            "country": entity.country,
+            "source_type": entity.source_type,
+            "source_id": entity.source_id,
+            "source_url": entity.source_url,
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             "image_url": entity.image_url,
             "followers_count": entity.followers_count,
             "is_verified": entity.is_verified,

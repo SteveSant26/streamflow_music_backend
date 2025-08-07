@@ -1,6 +1,10 @@
 """
 Management command to create subscription plans
 """
+<<<<<<< HEAD
+
+=======
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from django.conf import settings
 from django.core.management.base import BaseCommand
 

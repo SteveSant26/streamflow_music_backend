@@ -1,9 +1,16 @@
 """
 Tests para la capa de infraestructura de user_profile
 """
+<<<<<<< HEAD
+
 from django.db import IntegrityError
 from django.test import TestCase
 
+=======
+from django.db import IntegrityError
+from django.test import TestCase
+
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
 
 

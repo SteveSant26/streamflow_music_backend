@@ -1,8 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
+<<<<<<< HEAD
+from ..mixins.logging_mixin import LoggingMixin
+=======
 from src.common.utils.logging_config import get_logger
 
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
 from ..types import EntityType, InputType, ModelType, ReturnType
 from ..utils.logging_decorators import log_execution, log_performance
 from .ibase_repository import IReadOnlyRepository

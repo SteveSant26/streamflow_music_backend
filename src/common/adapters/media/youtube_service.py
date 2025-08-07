@@ -217,8 +217,11 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
 
     async def _get_videos_details(self, video_ids: List[str]) -> List[YouTubeVideoInfo]:
         """Gets complete details of a list of videos"""
+<<<<<<< HEAD
+=======
         import asyncio
 
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
         if not video_ids:
             return []
 
@@ -228,10 +231,15 @@ class YouTubeAPIService(IYouTubeService, LoggingMixin):
                 self.logger.warning("YouTube API quota limit reached for video details")
                 return []
 
+<<<<<<< HEAD
+            videos_response = await self.circuit_breaker.call(
+                self._fetch_videos_details, video_ids
+=======
             # Run the sync function in a thread using asyncio.to_thread
             videos_response = await self.circuit_breaker.call(
                 lambda ids: asyncio.to_thread(self._fetch_videos_details, ids),
                 video_ids,
+>>>>>>> 6ade253d2d17092a2431a2a5ec5d0496c0943e33
             )
 
             if self.enable_quota_tracking:
