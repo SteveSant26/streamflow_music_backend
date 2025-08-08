@@ -7,6 +7,8 @@ from .infrastructure.models import SongModel
 class SongModelAdmin(admin.ModelAdmin):
     list_display = (
         "title",
+        "get_artist",
+        "get_album",
         "duration_formatted",
         "play_count",
         "favorite_count",
@@ -14,6 +16,15 @@ class SongModelAdmin(admin.ModelAdmin):
         "release_date",
         "created_at",
     )
+    list_per_page = 20
+
+    def get_artist(self, obj):
+        return obj.artist if obj.artist else "-"
+    get_artist.short_description = "Artista/Banda"
+
+    def get_album(self, obj):
+        return obj.album if obj.album else "-"
+    get_album.short_description = "Álbum"
     search_fields = (
         "title",
         "source_id",

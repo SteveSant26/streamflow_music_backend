@@ -1,14 +1,12 @@
-# Imagen base de Python
+# Imagen base
 FROM python:3.11-slim
 
-# Evitar prompts durante instalaciones
+# Evita prompts en instalaciones
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Variables comunes en entornos Django
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Directorio de trabajo dentro del contenedor
+# Crear y establecer el directorio de trabajo
 WORKDIR /app
 
 # Instalar dependencias del sistema necesarias para psycopg2
@@ -17,18 +15,22 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar requerimientos e instalar dependencias
+# Copiar requirements.txt e instalar dependencias
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copiar el resto del proyecto
+# Copiar el resto del código del proyecto
 COPY . .
 
-# Recoger archivos estáticos (opcional)
+# Variables de entorno
+ENV DJANGO_SETTINGS_MODULE=config.settings.base
+ENV ENV_FILE_PATH=/app/.env.dev
+
+# Recolectar archivos estáticos
 RUN python manage.py collectstatic --noinput || true
 
-# Exponer el puerto de desarrollo de Django
+# Exponer el puerto del servidor de desarrollo
 EXPOSE 8000
 
-# Comando por defecto para levantar el servidor
+# Comando por defecto
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

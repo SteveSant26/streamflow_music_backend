@@ -9,10 +9,30 @@ class GenreModelAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "popularity_score",
+        "get_featured_artists",
         "color_box",
         "created_at",
         "image_preview",
     )
+    list_per_page = 20
+
+    def get_featured_artists(self, obj):
+        # Suponiendo que hay una relación artists o similar
+        artists = getattr(obj, "artists", None)
+        if artists:
+            from django.urls import reverse
+            from django.utils.html import format_html, format_html_join
+            links = format_html_join(
+                ", ",
+                '<a href="{}">{}</a>',
+                [
+                    (reverse("admin:artists_artistmodel_change", args=[a.id]), str(a))
+                    for a in artists.all()[:3]
+                ]
+            )
+            return links or "-"
+        return "-"
+    get_featured_artists.short_description = "Artistas destacados"
     search_fields = ("name",)
     list_filter = ()
     ordering = ("-popularity_score", "name")
