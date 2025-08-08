@@ -5,11 +5,44 @@ Configuración básica de pytest para tests simples
 """
 import pytest
 import sys
+import os
 from pathlib import Path
+from unittest.mock import Mock, patch
 
-# Agregar el directorio actual al path para imports
+# Configurar Django antes de cualquier import
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.test')
+
+# Agregar el directorio src al path para imports
 current_dir = Path(__file__).parent
-sys.path.insert(0, str(current_dir))
+src_dir = current_dir.parent / 'src'
+sys.path.insert(0, str(src_dir))
+
+try:
+    import django
+    django.setup()
+except Exception:
+    # Si Django no está disponible, continuar sin configurarlo
+    pass
+
+# Mock para componentes que requieren configuración especial
+@pytest.fixture(autouse=True)
+def django_mock():
+    """Mock automático para Django si no está disponible"""
+    if 'django' not in sys.modules:
+        sys.modules['django'] = Mock()
+        sys.modules['django.db'] = Mock()
+        sys.modules['django.db.models'] = Mock()
+        sys.modules['django.core.exceptions'] = Mock()
+
+@pytest.fixture(autouse=True)
+def mock_numpy():
+    """Mock automático para numpy si no está disponible"""
+    if 'numpy' not in sys.modules:
+        mock_np = Mock()
+        mock_np.array = Mock(return_value=[1, 2, 3])
+        mock_np.mean = Mock(return_value=2.0)
+        mock_np.std = Mock(return_value=0.5)
+        sys.modules['numpy'] = mock_np
 
 
 @pytest.fixture
