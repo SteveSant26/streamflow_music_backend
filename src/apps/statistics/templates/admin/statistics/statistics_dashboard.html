@@ -1,0 +1,334 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .statistics-container {
+            padding: 20px;
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .chart-canvas {
+            max-height: 400px;
+        }
+        
+        .tables-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .table-container {
+            background: rgb(0, 0, 0);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .table-header {
+            background: #007bff;
+            color: rgb(0, 0, 0);
+            padding: 15px;
+            font-weight: bold;
+        }
+        
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .stats-table th,
+        .stats-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .stats-table th {
+            background: #000000;
+            font-weight: bold;
+        }
+        
+        .stats-table tr:hover {
+            background: #0b1b2b;
+        }
+        
+        .play-count {
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container,
+            .tables-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="statistics-container">
+    <h1>{{ title }}</h1>
+    
+    <!-- Resumen de estadísticas -->
+    <div class="stats-summary">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats_summary.total_songs|default:0 }}</div>
+            <div class="stat-label">Total Canciones</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats_summary.total_artists|default:0 }}</div>
+            <div class="stat-label">Total Artistas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats_summary.total_plays|default:0 }}</div>
+            <div class="stat-label">Total Reproducciones</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats_summary.avg_plays_per_song|floatformat:0|default:0 }}</div>
+            <div class="stat-label">Promedio por Canción</div>
+        </div>
+    </div>
+    
+    <!-- Gráficos -->
+    <div class="charts-container">
+        <!-- Gráfico de barras - Top 10 Artistas -->
+        <div class="chart-container">
+            <div class="chart-title">Top 10 Artistas Más Escuchados</div>
+            <canvas id="artistsBarChart" class="chart-canvas"></canvas>
+        </div>
+        
+        <!-- Gráfico de pastel - Top 10 Canciones -->
+        <div class="chart-container">
+            <div class="chart-title">Top 10 Canciones Más Reproducidas</div>
+            <canvas id="songsPieChart" class="chart-canvas"></canvas>
+        </div>
+    </div>
+    
+    <!-- Tablas de datos -->
+    <div class="tables-container">
+        <!-- Tabla de artistas -->
+        <div class="table-container">
+            <div class="table-header">Top 10 Artistas Más Escuchados</div>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Artista</th>
+                        <th>Total Reproducciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for artist in top_artists %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ artist.name }}</td>
+                        <td class="play-count">{{ artist.total_plays|default:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 20px; color: #6c757d;">
+                            No hay datos de reproducciones disponibles
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Tabla de canciones -->
+        <div class="table-container">
+            <div class="table-header">Top 10 Canciones Más Reproducidas</div>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Canción</th>
+                        <th>Reproducciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for song in top_songs %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <strong>{{ song.title }}</strong><br>
+                            <small style="color: #6c757d;">{{ song.artist.name|default:"Artista desconocido" }}</small>
+                        </td>
+                        <td class="play-count">{{ song.play_count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 20px; color: #6c757d;">
+                            No hay canciones con reproducciones disponibles
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos para gráficos
+    const artistsData = {{ artists_chart_data|safe }};
+    const songsData = {{ songs_chart_data|safe }};
+    
+    // Colores para los gráficos
+    const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+    ];
+    
+    // Gráfico de barras - Artistas más escuchados
+    const artistsCtx = document.getElementById('artistsBarChart').getContext('2d');
+    new Chart(artistsCtx, {
+        type: 'bar',
+        data: {
+            labels: artistsData.labels,
+            datasets: [{
+                label: 'Total Reproducciones',
+                data: artistsData.data,
+                backgroundColor: '#007bff',
+                borderColor: '#0056b3',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Reproducciones: ' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Gráfico de pastel - Canciones más reproducidas
+    const songsCtx = document.getElementById('songsPieChart').getContext('2d');
+    new Chart(songsCtx, {
+        type: 'pie',
+        data: {
+            labels: songsData.labels,
+            datasets: [{
+                data: songsData.data,
+                backgroundColor: colors,
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10,
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value.toLocaleString()} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
