@@ -1,6 +1,6 @@
 from typing import Optional
 
-from common.exceptions import DomainException, NotFoundException
+from src.common.exceptions import DomainException, NotFoundException
 
 
 class GenreNotFoundException(NotFoundException):

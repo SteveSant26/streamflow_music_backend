@@ -2,7 +2,7 @@
 Excepciones específicas del dominio de playlists
 """
 
-from common.exceptions import DomainException, NotFoundException
+from src.common.exceptions import DomainException, NotFoundException
 
 
 class PlaylistNotFoundException(NotFoundException):

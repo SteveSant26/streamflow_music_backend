@@ -1,1 +1,0 @@
-# Tests API de Artists

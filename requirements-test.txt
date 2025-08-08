@@ -1,0 +1,31 @@
+# ============================================================================
+# 🧪 DEPENDENCIAS DE TESTING PARA STREAMFLOW MUSIC BACKEND
+# ============================================================================
+
+# Testing framework
+pytest==8.3.4
+pytest-django==4.9.0
+pytest-cov==6.0.0
+pytest-xdist==3.6.1
+pytest-mock==3.14.0
+
+# Coverage y reportes
+coverage==7.6.9
+pytest-html==4.1.1
+
+# Debugging y desarrollo
+pytest-sugar==1.0.0
+pytest-clarity==1.0.1
+
+# Performance testing (opcional)
+pytest-benchmark==4.0.0
+
+# Para integration tests con APIs
+requests-mock==1.12.1
+responses==0.25.3
+
+# Factory boy para crear datos de prueba
+factory-boy==3.3.1
+
+# Para testing de modelos Django
+model-bakery==1.19.5
