@@ -20,6 +20,6 @@ class GetPaymentMethodsUseCase(BaseUseCase[str, List[PaymentMethodEntity]]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=2.0)
-    async def execute(self, user_id: str) -> List[PaymentMethodEntity]:
+    async def execute(self, user_profile_id: str) -> List[PaymentMethodEntity]:
         """Obtiene los métodos de pago del usuario"""
-        return await self.payment_method_repository.get_by_user_id(user_id)
+        return await self.payment_method_repository.get_by_user_id(user_profile_id)

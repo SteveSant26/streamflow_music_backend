@@ -7,6 +7,10 @@ from common.mixins import UseCaseAPIViewMixin
 
 from ...infrastructure.repository import PaymentMethodRepository
 from ...use_cases import GetPaymentMethodsUseCase
+from ..serializers.schemas import (
+    ErrorResponseSerializer,
+    PaymentMethodsResponseSerializer,
+)
 
 
 class GetPaymentMethodsAPIView(UseCaseAPIViewMixin):
@@ -24,34 +28,7 @@ class GetPaymentMethodsAPIView(UseCaseAPIViewMixin):
     @extend_schema(
         tags=["Payments"],
         description="Get user payment methods",
-        responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "payment_methods": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {"type": "string"},
-                                "user_id": {"type": "string"},
-                                "type": {"type": "string"},
-                                "last4": {"type": "string"},
-                                "exp_month": {"type": "integer"},
-                                "exp_year": {"type": "integer"},
-                                "brand": {"type": "string"},
-                                "is_default": {"type": "boolean"},
-                                "created_at": {"type": "string", "format": "date-time"},
-                            },
-                        },
-                    }
-                },
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
-        },
+        responses={200: PaymentMethodsResponseSerializer, 500: ErrorResponseSerializer},
     )
     def get(self, request):
         """Obtiene los métodos de pago del usuario autenticado"""

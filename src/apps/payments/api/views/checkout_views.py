@@ -17,6 +17,15 @@ from ...use_cases import (
     CreateCheckoutSessionRequest,
     CreateCheckoutSessionUseCase,
 )
+from ..serializers.schemas import (
+    BillingPortalRequestSerializer,
+    BillingPortalResponseSerializer,
+    CancelSubscriptionRequestSerializer,
+    CancelSubscriptionResponseSerializer,
+    CheckoutSessionRequestSerializer,
+    CheckoutSessionResponseSerializer,
+    ErrorResponseSerializer,
+)
 
 
 class CreateCheckoutSessionAPIView(UseCaseAPIViewMixin):
@@ -36,47 +45,11 @@ class CreateCheckoutSessionAPIView(UseCaseAPIViewMixin):
     @extend_schema(
         tags=["Payments"],
         description="Create a checkout session for subscription",
-        request={
-            "type": "object",
-            "properties": {
-                "plan_id": {
-                    "type": "string",
-                    "description": "ID of the subscription plan",
-                },
-                "success_url": {
-                    "type": "string",
-                    "description": "URL to redirect on success",
-                },
-                "cancel_url": {
-                    "type": "string",
-                    "description": "URL to redirect on cancel",
-                },
-                "allow_promotion_codes": {
-                    "type": "boolean",
-                    "description": "Allow promotion codes",
-                },
-            },
-            "required": ["plan_id", "success_url", "cancel_url"],
-        },
+        request=CheckoutSessionRequestSerializer,
         responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "url": {"type": "string", "description": "Checkout session URL"},
-                    "session_id": {
-                        "type": "string",
-                        "description": "Checkout session ID",
-                    },
-                },
-            },
-            400: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
+            200: CheckoutSessionResponseSerializer,
+            400: ErrorResponseSerializer,
+            500: ErrorResponseSerializer,
         },
     )
     def post(self, request):
@@ -101,6 +74,13 @@ class CreateCheckoutSessionAPIView(UseCaseAPIViewMixin):
                 success_url=data.get("success_url"),
                 cancel_url=data.get("cancel_url"),
                 allow_promotion_codes=data.get("allow_promotion_codes", True),
+                email=data.get("email")
+                or getattr(getattr(request, "user", None), "email", None),
+                name=data.get("name")
+                or getattr(
+                    getattr(request, "user", None), "get_full_name", lambda: None
+                )()
+                or getattr(getattr(request, "user", None), "username", None),
             )
 
             # Usar el helper para ejecutar casos de uso
@@ -138,31 +118,11 @@ class CreateBillingPortalSessionAPIView(UseCaseAPIViewMixin):
     @extend_schema(
         tags=["Payments"],
         description="Create a billing portal session",
-        request={
-            "type": "object",
-            "properties": {
-                "return_url": {
-                    "type": "string",
-                    "description": "URL to return to after billing portal",
-                },
-            },
-            "required": ["return_url"],
-        },
+        request=BillingPortalRequestSerializer,
         responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "url": {"type": "string", "description": "Billing portal URL"},
-                },
-            },
-            400: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
+            200: BillingPortalResponseSerializer,
+            400: ErrorResponseSerializer,
+            500: ErrorResponseSerializer,
         },
     )
     def post(self, request):
@@ -222,34 +182,11 @@ class CancelSubscriptionAPIView(UseCaseAPIViewMixin):
     @extend_schema(
         tags=["Payments"],
         description="Cancel user subscription",
-        request={
-            "type": "object",
-            "properties": {
-                "subscription_id": {
-                    "type": "string",
-                    "description": "ID of the subscription to cancel",
-                },
-            },
-            "required": ["subscription_id"],
-        },
+        request=CancelSubscriptionRequestSerializer,
         responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "type": "string",
-                        "example": "Suscripción cancelada exitosamente",
-                    },
-                },
-            },
-            400: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
+            200: CancelSubscriptionResponseSerializer,
+            400: ErrorResponseSerializer,
+            500: ErrorResponseSerializer,
         },
     )
     def post(self, request):

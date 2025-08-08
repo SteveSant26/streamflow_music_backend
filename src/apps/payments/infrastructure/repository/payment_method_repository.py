@@ -19,16 +19,18 @@ class PaymentMethodRepository(
     def __init__(self):
         super().__init__(PaymentMethodModel, PaymentMethodEntityModelMapper())
 
-    async def get_by_user_id(self, user_id: str) -> List[PaymentMethodEntity]:
-        models = await sync_to_async(PaymentMethodModel.objects.filter)(user_id=user_id)
-        return self.mapper.models_to_entities(models)
+    async def get_by_user_id(self, user_profile_id: str) -> List[PaymentMethodEntity]:
+        models = await sync_to_async(PaymentMethodModel.objects.filter)(
+            user_profile_id=user_profile_id
+        )
+        return await sync_to_async(self.mapper.models_to_entities)(models)
 
     async def get_default_by_user_id(
-        self, user_id: str
+        self, user_profile_id: str
     ) -> Optional[PaymentMethodEntity]:
         try:
             model = await PaymentMethodModel.objects.aget(
-                user_id=user_id, is_default=True
+                user_profile_id=user_profile_id, is_default=True
             )
             return self.mapper.model_to_entity(model)
         except PaymentMethodModel.DoesNotExist:

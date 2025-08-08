@@ -4,7 +4,7 @@ from apps.payments.domain.entities import PaymentMethodEntity
 from common.serializers import BaseEntitySerializer
 
 from ..dtos import PaymentMethodResponseDTO
-from ..mappers import PaymentMethodEntityDTOMapper
+from ..mappers import PaymentMapper
 
 
 class PaymentMethodSerializer(BaseEntitySerializer):
@@ -14,7 +14,7 @@ class PaymentMethodSerializer(BaseEntitySerializer):
     """
 
     # Configuración para el serializer base
-    mapper_class = PaymentMethodEntityDTOMapper()  # type: ignore
+    mapper_class = PaymentMapper()
     entity_class = PaymentMethodEntity
     dto_class = PaymentMethodResponseDTO
 

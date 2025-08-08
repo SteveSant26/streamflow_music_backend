@@ -23,7 +23,7 @@ class SubscriptionPlanRepository(
         plans = await sync_to_async(SubscriptionPlanModel.objects.filter)(
             is_active=True
         )
-        return self.mapper.models_to_entities(plans)
+        return await sync_to_async(self.mapper.models_to_entities)(plans)
 
     async def get_by_stripe_price_id(
         self, stripe_price_id: str

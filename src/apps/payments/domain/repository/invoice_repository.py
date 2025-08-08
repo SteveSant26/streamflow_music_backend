@@ -10,7 +10,7 @@ class IInvoiceRepository(IBaseRepository[InvoiceEntity, Any]):
     """Interface para el repositorio de facturas"""
 
     @abstractmethod
-    async def get_by_user_id(self, user_id: str) -> List[InvoiceEntity]:
+    async def get_by_user_id(self, user_profile_id: str) -> List[InvoiceEntity]:
         """Obtiene las facturas de un usuario"""
 
     @abstractmethod

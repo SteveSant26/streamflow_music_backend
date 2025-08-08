@@ -1,8 +1,11 @@
 import json
+from datetime import timedelta
 
 from django.contrib import admin
 from django.db.models import Sum
+from django.db.models.functions import TruncDate
 from django.shortcuts import render
+from django.utils import timezone
 
 from apps.artists.infrastructure.models.artist_model import ArtistModel
 from apps.songs.infrastructure.models.song_model import SongModel
@@ -23,29 +26,29 @@ class StatisticsAdmin(admin.ModelAdmin):
         return False
 
     def changelist_view(self, request, extra_context=None):
-        """Vista personalizada para mostrar estadísticas con gráficos"""
+        """Vista personalizada para mostrar estadísticas con gráficos mejorados"""
 
-        # Obtener top 10 artistas más escuchados
+        # Top 10 artistas y canciones
         top_artists = (
             ArtistModel.objects.annotate(total_plays=Sum("songs__play_count"))
             .filter(total_plays__gt=0)
             .order_by("-total_plays")[:10]
         )
 
-        # Obtener top 10 canciones más reproducidas
         top_songs = (
             SongModel.objects.select_related("artist")
             .filter(play_count__gt=0)
             .order_by("-play_count")[:10]
         )
 
-        # Preparar datos para gráficos (truncar nombres largos)
         artists_data = {
             "labels": [
                 artist.name[:30] + "..." if len(artist.name) > 30 else artist.name
                 for artist in top_artists
             ],
-            "data": [artist.total_plays or 0 for artist in top_artists],
+            "data": [
+                artist.__dict__.get("total_plays", 0) or 0 for artist in top_artists
+            ],
         }
 
         songs_data = {
@@ -56,16 +59,56 @@ class StatisticsAdmin(admin.ModelAdmin):
             "data": [song.play_count for song in top_songs],
         }
 
-        # Estadísticas generales
+        # === Estadísticas generales ===
+        total_songs = SongModel.objects.count()
+        total_artists = ArtistModel.objects.count()
+        total_plays = SongModel.objects.aggregate(total=Sum("play_count"))["total"] or 0
+        avg_plays_per_song = round(
+            (total_plays or 0)
+            / max(SongModel.objects.filter(play_count__gt=0).count(), 1)
+        )
+
+        # === Sparkline y tendencia semanal ===
+        today = timezone.now().date()
+        days = 14  # 7 días actuales + 7 previos
+
+        # Agrupar reproducciones por día (últimos 14 días)
+        plays_by_day_qs = (
+            SongModel.objects.filter(
+                created_at__date__gte=today - timedelta(days=days - 1)
+            )
+            .annotate(day=TruncDate("created_at"))
+            .values("day")
+            .order_by("day")
+            .annotate(total=Sum("play_count"))
+        )
+        # Dict {fecha: total}
+        plays_by_day = {item["day"]: item["total"] for item in plays_by_day_qs}
+
+        # Completar días faltantes con 0
+        sparkline_labels = []
+        sparkline_data = []
+        for i in range(days):
+            day = today - timedelta(days=days - 1 - i)
+            sparkline_labels.append(day.strftime("%d-%b"))
+            sparkline_data.append(plays_by_day.get(day, 0))
+
+        # Suma semana actual y anterior
+        last_week_sum = sum(sparkline_data[7:14])
+        prev_week_sum = sum(sparkline_data[0:7])
+        if prev_week_sum > 0:
+            trend = round((last_week_sum - prev_week_sum) / prev_week_sum * 100, 1)
+        else:
+            trend = 0.0
+
         stats_summary = {
-            "total_songs": SongModel.objects.count(),
-            "total_artists": ArtistModel.objects.count(),
-            "total_plays": SongModel.objects.aggregate(total=Sum("play_count"))["total"]
-            or 0,
-            "avg_plays_per_song": round(
-                (SongModel.objects.aggregate(total=Sum("play_count"))["total"] or 0)
-                / max(SongModel.objects.filter(play_count__gt=0).count(), 1)
-            ),
+            "total_songs": total_songs,
+            "total_artists": total_artists,
+            "total_plays": total_plays,
+            "avg_plays_per_song": avg_plays_per_song,
+            "trend": trend,
+            "sparkline_data": sparkline_data,
+            "sparkline_labels": sparkline_labels,
         }
 
         extra_context = extra_context or {}
@@ -85,5 +128,4 @@ class StatisticsAdmin(admin.ModelAdmin):
         )
 
 
-# Registrar el modelo proxy con el admin personalizado
 admin.site.register(StatisticsModel, StatisticsAdmin)
