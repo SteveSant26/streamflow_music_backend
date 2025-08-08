@@ -20,10 +20,10 @@ from apps.user_profile.api.serializers import (
 )
 from apps.user_profile.infrastructure.filters import UserProfileFilter
 from apps.user_profile.infrastructure.models.user_profile import UserProfileModel
+from apps.user_profile.infrastructure.permissions import IsPlaylistOwner
 from common.factories import StorageServiceFactory
 from common.mixins import CRUDViewSetMixin
-from src.apps.user_profile.infrastructure.permissions import IsPlaylistOwner
-from src.common.utils.schema_decorators import paginated_list_endpoint
+from common.utils.schema_decorators import paginated_list_endpoint
 
 from ..api.dtos import UploadProfilePictureRequestDTO
 from ..infrastructure.repository import UserRepository

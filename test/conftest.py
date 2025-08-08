@@ -3,6 +3,7 @@
 ============================
 Configuración básica de pytest para tests simples
 """
+
 import pytest
 import sys
 from pathlib import Path

@@ -4,12 +4,12 @@ Valida el comportamiento de las excepciones personalizadas del módulo albums.
 """
 
 import pytest
-from src.apps.albums.domain.exceptions import (
+from apps.albums.domain.exceptions import (
     AlbumNotFoundException,
     AlbumCreationException,
     AlbumUpdateException
 )
-from src.common.exceptions import DomainException, NotFoundException
+from common.exceptions import DomainException, NotFoundException
 
 
 class TestAlbumNotFoundException:

@@ -4,13 +4,13 @@ Valida el comportamiento de las excepciones personalizadas del módulo songs.
 """
 
 import pytest
-from src.apps.songs.domain.exceptions import (
+from apps.songs.domain.exceptions import (
     SongNotFoundException,
     SongCreationException,
     SongUpdateException,
     SongPlayCountException
 )
-from src.common.exceptions import DomainException, NotFoundException
+from common.exceptions import DomainException, NotFoundException
 
 
 class TestSongNotFoundException:

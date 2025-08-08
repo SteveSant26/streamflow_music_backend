@@ -5,14 +5,14 @@ Tests para las entidades del dominio de payments
 import pytest
 from datetime import datetime, timezone
 from decimal import Decimal
-from src.apps.payments.domain.entities import (
+from apps.payments.domain.entities import (
     PaymentEntity,
     SubscriptionEntity,
     SubscriptionPlanEntity,
     PaymentMethodEntity,
     InvoiceEntity
 )
-from src.apps.payments.domain.enums import (
+from apps.payments.domain.enums import (
     PaymentStatus,
     SubscriptionStatus,
     InvoiceStatus

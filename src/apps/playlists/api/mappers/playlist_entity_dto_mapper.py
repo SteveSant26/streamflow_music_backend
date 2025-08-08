@@ -1,7 +1,7 @@
 from datetime import datetime
 
+from common.factories.storage_service_factory import StorageServiceFactory
 from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
-from src.common.factories.storage_service_factory import StorageServiceFactory
 
 from ...domain.entities import PlaylistEntity
 from ..dtos import PlaylistResponseDTO

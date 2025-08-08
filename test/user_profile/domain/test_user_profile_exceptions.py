@@ -1,5 +1,5 @@
 import pytest
-from src.apps.user_profile.domain.exceptions import (
+from apps.user_profile.domain.exceptions import (
     UserNotFoundException,
     UserProfilePictureUploadException
 )

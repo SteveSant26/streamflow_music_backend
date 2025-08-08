@@ -1,6 +1,6 @@
 import pytest
-from src.common.exceptions import NotFoundException, DomainException
-from src.apps.genres.domain.exceptions import (
+from common.exceptions import NotFoundException, DomainException
+from apps.genres.domain.exceptions import (
     GenreNotFoundException,
     GenreCreationException,
     GenreUpdateException,

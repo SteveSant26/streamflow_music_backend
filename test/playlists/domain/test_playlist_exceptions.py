@@ -3,7 +3,7 @@ Tests para las excepciones del dominio de playlists
 """
 
 import pytest
-from src.apps.playlists.domain.exceptions import (
+from apps.playlists.domain.exceptions import (
     PlaylistNotFoundException,
     PlaylistValidationException,
     PlaylistPermissionException,
@@ -11,7 +11,7 @@ from src.apps.playlists.domain.exceptions import (
     PlaylistSongAlreadyExistsException,
     PlaylistImageUploadException
 )
-from src.common.exceptions import DomainException, NotFoundException
+from common.exceptions import DomainException, NotFoundException
 
 
 """
@@ -19,7 +19,7 @@ Tests para las excepciones del dominio de playlists
 """
 
 import pytest
-from src.apps.playlists.domain.exceptions import (
+from apps.playlists.domain.exceptions import (
     PlaylistNotFoundException,
     PlaylistValidationException,
     PlaylistPermissionException,
@@ -27,7 +27,7 @@ from src.apps.playlists.domain.exceptions import (
     PlaylistSongAlreadyExistsException,
     PlaylistImageUploadException
 )
-from src.common.exceptions import DomainException, NotFoundException
+from common.exceptions import DomainException, NotFoundException
 
 
 class TestPlaylistExceptions:

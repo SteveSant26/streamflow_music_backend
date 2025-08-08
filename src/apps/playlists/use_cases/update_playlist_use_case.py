@@ -1,8 +1,8 @@
 from typing import Any, Dict
 
 from common.interfaces.ibase_use_case import BaseUseCase
+from common.interfaces.istorage_service import IStorageService
 from common.utils.logging_decorators import log_execution, log_performance
-from src.common.interfaces.istorage_service import IStorageService
 
 from ..api.dtos import UpdatePlaylistRequestDTO
 from ..domain.entities import PlaylistEntity

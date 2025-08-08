@@ -1,4 +1,4 @@
-from src.common.exceptions import DomainException, NotFoundException
+from common.exceptions import DomainException, NotFoundException
 
 
 class AlbumNotFoundException(NotFoundException):

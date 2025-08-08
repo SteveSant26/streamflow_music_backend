@@ -27,8 +27,8 @@ from apps.user_profile.infrastructure.permissions import (
     IsPlaylistOwner,
     IsPlaylistOwnerOrPublic,
 )
-from src.common.factories.storage_service_factory import StorageServiceFactory
-from src.common.mixins.crud_viewset_mixin import CRUDViewSetMixin
+from common.factories.storage_service_factory import StorageServiceFactory
+from common.mixins.crud_viewset_mixin import CRUDViewSetMixin
 
 from ..dtos import CreatePlaylistRequestDTO, UpdatePlaylistRequestDTO
 from ..mappers import PlaylistEntityDTOMapper

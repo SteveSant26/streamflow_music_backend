@@ -4,7 +4,7 @@ Tests para las entidades del dominio de playlists
 
 import pytest
 from datetime import datetime
-from src.apps.playlists.domain.entities import PlaylistEntity, PlaylistSongEntity
+from apps.playlists.domain.entities import PlaylistEntity, PlaylistSongEntity
 
 
 class TestPlaylistEntity:

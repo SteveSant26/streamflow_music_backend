@@ -3,7 +3,7 @@ Tests para las excepciones del dominio de payments
 """
 
 import pytest
-from src.apps.payments.domain.exceptions import (
+from apps.payments.domain.exceptions import (
     PaymentError,
     StripeServiceError,
     CustomerCreationError,

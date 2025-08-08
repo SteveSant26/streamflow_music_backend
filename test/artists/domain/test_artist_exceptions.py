@@ -4,12 +4,12 @@ Valida el comportamiento de las excepciones personalizadas del módulo artists.
 """
 
 import pytest
-from src.apps.artists.domain.exceptions import (
+from apps.artists.domain.exceptions import (
     ArtistNotFoundException,
     ArtistCreationException,
     ArtistUpdateException
 )
-from src.common.exceptions import DomainException, NotFoundException
+from common.exceptions import DomainException, NotFoundException
 
 
 class TestArtistNotFoundException:

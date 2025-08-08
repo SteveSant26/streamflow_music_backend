@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from src.apps.genres.domain.entities import GenreEntity
+from apps.genres.domain.entities import GenreEntity
 
 
 class TestGenreEntity:

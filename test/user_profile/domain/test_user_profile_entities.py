@@ -1,5 +1,5 @@
 import pytest
-from src.apps.user_profile.domain.entities import UserProfileEntity
+from apps.user_profile.domain.entities import UserProfileEntity
 
 
 class TestUserProfileEntity:
