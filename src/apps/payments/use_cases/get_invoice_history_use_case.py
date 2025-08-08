@@ -20,6 +20,6 @@ class GetInvoiceHistoryUseCase(BaseUseCase[tuple, List[InvoiceEntity]]):
 
     @log_execution(include_args=True, include_result=False, log_level="DEBUG")
     @log_performance(threshold_seconds=2.0)
-    async def execute(self, user_id: str, limit: int = 10) -> List[InvoiceEntity]:
+    async def execute(self, user_id: str) -> List[InvoiceEntity]:
         """Obtiene el historial de facturas del usuario"""
-        return await self.invoice_repository.get_by_user_id(user_id, limit)
+        return await self.invoice_repository.get_by_user_id(user_id)

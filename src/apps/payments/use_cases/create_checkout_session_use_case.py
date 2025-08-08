@@ -68,7 +68,7 @@ class CreateCheckoutSessionUseCase(
         customer_id = f"customer_for_user_{request.user_id}"  # Placeholder
 
         # Crear sesión de checkout
-        session = await self.stripe_service.create_checkout_session(
+        session = self.stripe_service.create_checkout_session(
             customer_id=customer_id,
             price_id=plan.stripe_price_id,
             success_url=request.success_url,

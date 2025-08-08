@@ -34,7 +34,7 @@ class GetUpcomingInvoiceUseCase(BaseUseCase[str, Optional[Dict[str, Any]]]):
 
         # Obtener próxima factura de Stripe
         try:
-            invoice = await self.stripe_service.get_upcoming_invoice(
+            invoice = self.stripe_service.get_upcoming_invoice(
                 subscription.stripe_customer_id
             )
             return invoice

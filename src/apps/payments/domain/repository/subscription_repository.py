@@ -10,7 +10,9 @@ class ISubscriptionRepository(IBaseRepository[SubscriptionEntity, Any]):
     """Interface para el repositorio de suscripciones"""
 
     @abstractmethod
-    async def get_by_user_id(self, user_id: str) -> Optional[SubscriptionEntity]:
+    async def get_by_user_id(
+        self, user_profile_id: str
+    ) -> Optional[SubscriptionEntity]:
         """Obtiene la suscripción activa de un usuario"""
 
     @abstractmethod
