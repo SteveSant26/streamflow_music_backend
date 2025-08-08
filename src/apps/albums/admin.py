@@ -1,4 +1,7 @@
+
 from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
 
 from .infrastructure.models import AlbumModel
 
@@ -15,9 +18,15 @@ class AlbumModelAdmin(admin.ModelAdmin):
     )
     list_per_page = 20
 
+    from django.utils.html import format_html
+    from django.urls import reverse
+
     def get_artist(self, obj):
-        # Suponiendo que hay un campo artist o banda relacionado
-        return getattr(obj, "artist", None) or getattr(obj, "banda", None) or "-"
+        artist = getattr(obj, "artist", None) or getattr(obj, "banda", None)
+        if artist:
+            url = reverse("admin:artists_artistmodel_change", args=[artist.id])
+            return format_html('<a href="{}">{}</a>', url, artist)
+        return "-"
     get_artist.short_description = "Artista/Banda"
     search_fields = ("title",)
     list_filter = ("release_date",)

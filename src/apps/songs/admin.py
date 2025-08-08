@@ -1,4 +1,7 @@
+
 from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
 
 from .infrastructure.models import SongModel
 
@@ -18,12 +21,21 @@ class SongModelAdmin(admin.ModelAdmin):
     )
     list_per_page = 20
 
+    from django.utils.html import format_html
+    from django.urls import reverse
+
     def get_artist(self, obj):
-        return obj.artist if obj.artist else "-"
+        if obj.artist:
+            url = reverse("admin:artists_artistmodel_change", args=[obj.artist.id])
+            return format_html('<a href="{}">{}</a>', url, obj.artist)
+        return "-"
     get_artist.short_description = "Artista/Banda"
 
     def get_album(self, obj):
-        return obj.album if obj.album else "-"
+        if obj.album:
+            url = reverse("admin:albums_albummodel_change", args=[obj.album.id])
+            return format_html('<a href="{}">{}</a>', url, obj.album)
+        return "-"
     get_album.short_description = "Álbum"
     search_fields = (
         "title",
