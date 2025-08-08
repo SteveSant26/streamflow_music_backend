@@ -1,10 +1,11 @@
 from django.db import models
+import uuid
 
 
 class ArtistModel(models.Model):
     """Modelo Django para Artista"""
 
-    id = models.UUIDField(primary_key=True, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, verbose_name="Nombre del artista")
     biography = models.TextField(blank=True, null=True, verbose_name="Biografía")
 

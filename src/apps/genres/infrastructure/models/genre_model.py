@@ -1,10 +1,11 @@
 from django.db import models
+import uuid
 
 
 class GenreModel(models.Model):
     """Modelo Django para Género Musical"""
 
-    id = models.UUIDField(primary_key=True, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(
         max_length=100, unique=True, verbose_name="Nombre del género"
     )
