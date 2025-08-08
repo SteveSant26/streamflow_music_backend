@@ -10,7 +10,13 @@ from django.utils import timezone
 from apps.artists.infrastructure.models.artist_model import ArtistModel
 from apps.songs.infrastructure.models.song_model import SongModel
 
-from .models import StatisticsModel
+from .models import (
+    StatisticsModel,
+    UserPlayHistoryModel,
+    UserFavoriteArtistModel,
+    UserFavoriteSongModel,
+    UserListeningSessionModel
+)
 
 
 class StatisticsAdmin(admin.ModelAdmin):
@@ -126,6 +132,61 @@ class StatisticsAdmin(admin.ModelAdmin):
         return render(
             request, "admin/statistics/statistics_dashboard.html", extra_context
         )
+
+
+@admin.register(UserPlayHistoryModel)
+class UserPlayHistoryAdmin(admin.ModelAdmin):
+    """Admin para historial de reproducciones"""
+    list_display = ('user', 'song', 'played_at', 'duration_played', 'completed', 'source')
+    list_filter = ('played_at', 'completed', 'source', 'device_type')
+    search_fields = ('user__user__username', 'song__title', 'song__artist__name')
+    date_hierarchy = 'played_at'
+    ordering = ('-played_at',)
+    readonly_fields = ('id', 'played_at')
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'song', 'song__artist')
+
+
+@admin.register(UserFavoriteArtistModel)
+class UserFavoriteArtistAdmin(admin.ModelAdmin):
+    """Admin para artistas favoritos"""
+    list_display = ('user', 'artist', 'added_at')
+    list_filter = ('added_at',)
+    search_fields = ('user__user__username', 'artist__name')
+    date_hierarchy = 'added_at'
+    ordering = ('-added_at',)
+    readonly_fields = ('id', 'added_at')
+
+
+@admin.register(UserFavoriteSongModel)
+class UserFavoriteSongAdmin(admin.ModelAdmin):
+    """Admin para canciones favoritas"""
+    list_display = ('user', 'song', 'added_at')
+    list_filter = ('added_at',)
+    search_fields = ('user__user__username', 'song__title', 'song__artist__name')
+    date_hierarchy = 'added_at'
+    ordering = ('-added_at',)
+    readonly_fields = ('id', 'added_at')
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'song', 'song__artist')
+
+
+@admin.register(UserListeningSessionModel)
+class UserListeningSessionAdmin(admin.ModelAdmin):
+    """Admin para sesiones de escucha"""
+    list_display = ('user', 'started_at', 'ended_at', 'songs_played', 'duration_hours', 'device_type')
+    list_filter = ('started_at', 'device_type')
+    search_fields = ('user__user__username',)
+    date_hierarchy = 'started_at'
+    ordering = ('-started_at',)
+    readonly_fields = ('id', 'started_at', 'duration_hours')
+    
+    def duration_hours(self, obj):
+        """Muestra duración en horas"""
+        return f"{obj.duration_hours:.2f}h"
+    duration_hours.short_description = "Duración (horas)"
 
 
 admin.site.register(StatisticsModel, StatisticsAdmin)
