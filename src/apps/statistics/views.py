@@ -16,7 +16,7 @@ from .serializers import (
 
 class UserStatisticsView(APIView):
     """Vista para obtener estadísticas del usuario autenticado"""
-    # permission_classes = [IsAuthenticated]  # Comentado temporalmente para testing
+    permission_classes = [IsAuthenticated]
     
     @extend_schema(
         summary="Obtener estadísticas del usuario",
@@ -24,8 +24,8 @@ class UserStatisticsView(APIView):
         responses={200: UserStatisticsSerializer}
     )
     def get(self, request):
-        # Para testing usamos un user_id fijo
-        user_id = "7449a6c2-11af-4166-9e73-87619b3418cf"  # str(request.user.id)
+        # Obtener el ID del usuario autenticado
+        user_id = str(request.user.id)
         stats = StatisticsService.get_user_statistics(user_id)
         serializer = UserStatisticsSerializer(stats)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -33,7 +33,7 @@ class UserStatisticsView(APIView):
 
 class UserTopContentView(APIView):
     """Vista para obtener el contenido más escuchado por el usuario"""
-    # permission_classes = [IsAuthenticated]  # Comentado temporalmente para testing
+    permission_classes = [IsAuthenticated]
     
     @extend_schema(
         summary="Obtener contenido top del usuario",
@@ -50,7 +50,7 @@ class UserTopContentView(APIView):
         responses={200: UserTopContentSerializer}
     )
     def get(self, request):
-        user_id = "7449a6c2-11af-4166-9e73-87619b3418cf"  # str(request.user.id) - Usando ID fijo para testing
+        user_id = str(request.user.id)
         limit = int(request.query_params.get('limit', 10))
         
         top_content = StatisticsService.get_user_top_content(user_id, limit)
@@ -144,7 +144,7 @@ class TopSongsView(APIView):
 
 class RecordPlayView(APIView):
     """Vista para registrar una reproducción"""
-    # permission_classes = [IsAuthenticated]  # Comentado temporalmente para testing
+    permission_classes = [IsAuthenticated]
     
     @extend_schema(
         summary="Registrar reproducción",
@@ -173,7 +173,7 @@ class RecordPlayView(APIView):
         responses={201: {'description': 'Reproducción registrada'}}
     )
     def post(self, request):
-        user_id = "7449a6c2-11af-4166-9e73-87619b3418cf"  # str(request.user.id) - Para testing
+        user_id = str(request.user.id)
         song_id = request.data.get('song_id')
         duration_played = request.data.get('duration_played')
         completed = request.data.get('completed', False)
@@ -203,7 +203,7 @@ class RecordPlayView(APIView):
 
 class ToggleFavoriteArtistView(APIView):
     """Vista para agregar/quitar artistas de favoritos"""
-    # permission_classes = [IsAuthenticated]  # Comentado temporalmente para testing
+    permission_classes = [IsAuthenticated]
     
     @extend_schema(
         summary="Toggle artista favorito",
@@ -220,7 +220,7 @@ class ToggleFavoriteArtistView(APIView):
         responses={200: {'description': 'Estado de favorito actualizado'}}
     )
     def post(self, request):
-        user_id = "7449a6c2-11af-4166-9e73-87619b3418cf"  # UUID hardcodeado para testing
+        user_id = str(request.user.id)
         artist_id = request.data.get('artist_id')
         
         if not artist_id:
@@ -241,7 +241,7 @@ class ToggleFavoriteArtistView(APIView):
 
 class ToggleFavoriteSongView(APIView):
     """Vista para agregar/quitar canciones de favoritos"""
-    # permission_classes = [IsAuthenticated]  # Comentado temporalmente para testing
+    permission_classes = [IsAuthenticated]
     
     @extend_schema(
         summary="Toggle canción favorita",
@@ -258,7 +258,7 @@ class ToggleFavoriteSongView(APIView):
         responses={200: {'description': 'Estado de favorito actualizado'}}
     )
     def post(self, request):
-        user_id = "7449a6c2-11af-4166-9e73-87619b3418cf"  # UUID hardcodeado para testing
+        user_id = str(request.user.id)
         song_id = request.data.get('song_id')
         
         if not song_id:
