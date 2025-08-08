@@ -1,0 +1,68 @@
+# ============================================================================
+# 🔧 CONFIGURACIÓN SONARQUBE/SONARCLOUD - STREAMFLOW MUSIC BACKEND
+# ============================================================================
+
+# Información del proyecto
+sonar.projectKey=SteveSant26_streamflow_music_backend
+sonar.organization=stevesant26
+sonar.projectName=StreamFlow Music Backend
+sonar.projectVersion=1.0
+
+# ============================================================================
+# 📂 CONFIGURACIÓN DE DIRECTORIOS
+# ============================================================================
+
+# Directorios de código fuente (para análisis de código)
+sonar.sources=src
+sonar.sourceEncoding=UTF-8
+
+# Directorios de tests (para métricas de calidad de tests)
+sonar.tests=test
+sonar.test.inclusions=test/**/*.py
+sonar.test.exclusions=test/**/__pycache__/**,test/**/conftest.py
+
+# ============================================================================
+# 📊 CONFIGURACIÓN DE COVERAGE PYTHON
+# ============================================================================
+
+# Archivos de coverage XML (CRÍTICO para mostrar coverage)
+# SonarQube buscará estos archivos en orden:
+sonar.python.coverage.reportPaths=coverage.xml
+
+# Reportes de tests unitarios XML (para detección de tests)
+sonar.python.xunit.reportPath=test-reports/pytest-results.xml
+
+# ============================================================================
+# 🚫 EXCLUSIONES DE ANÁLISIS
+# ============================================================================
+
+# Excluir archivos generados automáticamente
+sonar.exclusions=**/migrations/**,**/__pycache__/**,**/node_modules/**,**/venv/**,**/.venv/**
+
+# Excluir de coverage (archivos que no necesitan coverage)
+sonar.coverage.exclusions=**/migrations/**,**/tests/**,**/test_**,**/__init__.py,**/conftest.py,**/settings/**,**/manage.py
+
+# ============================================================================
+# 🎯 CONFIGURACIÓN DE QUALITY GATES
+# ============================================================================
+
+# Configuración de cobertura mínima
+sonar.coverage.minimum=80.0
+
+# ============================================================================
+# 🐍 CONFIGURACIÓN ESPECÍFICA DE PYTHON
+# ============================================================================
+
+# Versión de Python
+sonar.python.version=3.8,3.9,3.10,3.11,3.12,3.13
+
+# Activar análisis de imports
+sonar.python.importModulePolicy=ALL
+
+# ============================================================================
+# 📝 LOGGING Y DEBUG
+# ============================================================================
+
+# Activar logs detallados (descomenta para debug)
+# sonar.verbose=true
+# sonar.log.level=DEBUG
