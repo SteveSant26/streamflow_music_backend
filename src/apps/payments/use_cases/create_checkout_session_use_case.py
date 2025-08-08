@@ -3,7 +3,7 @@ Use case for creating checkout session
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
@@ -19,6 +19,9 @@ class CreateCheckoutSessionRequest:
     success_url: str
     cancel_url: str
     allow_promotion_codes: bool = True
+    # Extra info to create a Stripe customer when the user has no subscription yet
+    email: Optional[str] = None
+    name: Optional[str] = None
 
 
 class CreateCheckoutSessionUseCase(
@@ -57,15 +60,25 @@ class CreateCheckoutSessionUseCase(
                 "subscription": existing_subscription.stripe_subscription_id,
                 "items": [{"price": plan.stripe_price_id, "quantity": 1}],
             }
+            # Reutilizar el customer existente
+            customer_id = existing_subscription.stripe_customer_id
         else:
             # Nueva suscripción
             mode = "subscription"
             subscription_data = {
                 "items": [{"price": plan.stripe_price_id, "quantity": 1}]
             }
-
-        # Obtener o crear customer ID de Stripe (esto debería venir del usuario)
-        customer_id = f"customer_for_user_{request.user_id}"  # Placeholder
+            # Crear un cliente real en Stripe si no existe
+            # Nota: la persistencia del customer_id se espera vía webhooks
+            if not request.email:
+                raise ValueError(
+                    "El usuario no tiene email configurado para crear el cliente en Stripe"
+                )
+            customer_id = self.stripe_service.create_customer(
+                user_profile_id=request.user_id,
+                email=request.email,
+                name=request.name or "",
+            )
 
         # Crear sesión de checkout
         session = self.stripe_service.create_checkout_session(

@@ -55,9 +55,6 @@ class StripeService(IStripeService):
                 "customer_update": {"address": "auto", "name": "auto"},
             }
 
-            if "subscription" in kwargs:
-                session_params["subscription_data"] = {"items": kwargs.get("items", [])}
-
             if kwargs.get("trial_period_days"):
                 session_params["subscription_data"] = {
                     "trial_period_days": kwargs["trial_period_days"]

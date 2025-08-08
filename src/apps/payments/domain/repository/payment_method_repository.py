@@ -10,11 +10,11 @@ class IPaymentMethodRepository(IBaseRepository[PaymentMethodEntity, Any]):
     """Interface para el repositorio de métodos de pago"""
 
     @abstractmethod
-    async def get_by_user_id(self, user_id: str) -> List[PaymentMethodEntity]:
+    async def get_by_user_id(self, user_profile_id: str) -> List[PaymentMethodEntity]:
         """Obtiene todos los métodos de pago de un usuario"""
 
     @abstractmethod
     async def get_default_by_user_id(
-        self, user_id: str
+        self, user_profile_id: str
     ) -> Optional[PaymentMethodEntity]:
         """Obtiene el método de pago por defecto de un usuario"""

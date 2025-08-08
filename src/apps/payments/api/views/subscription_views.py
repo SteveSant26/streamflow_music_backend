@@ -10,6 +10,11 @@ from ...infrastructure.repository import (
     SubscriptionRepository,
 )
 from ...use_cases import GetSubscriptionPlansUseCase, GetUserSubscriptionUseCase
+from ..serializers.schemas import (
+    ErrorResponseSerializer,
+    SubscriptionPlansResponseSerializer,
+    UserSubscriptionWrapperSerializer,
+)
 
 
 class GetSubscriptionPlansAPIView(UseCaseAPIViewMixin):
@@ -26,36 +31,8 @@ class GetSubscriptionPlansAPIView(UseCaseAPIViewMixin):
         tags=["Payments"],
         description="Get all available subscription plans",
         responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "plans": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {"type": "string"},
-                                "name": {"type": "string"},
-                                "description": {"type": "string"},
-                                "price": {"type": "integer"},
-                                "currency": {"type": "string"},
-                                "interval": {"type": "string"},
-                                "interval_count": {"type": "integer"},
-                                "features": {
-                                    "type": "array",
-                                    "items": {"type": "string"},
-                                },
-                                "stripe_price_id": {"type": "string"},
-                                "is_active": {"type": "boolean"},
-                            },
-                        },
-                    }
-                },
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
+            200: SubscriptionPlansResponseSerializer,
+            500: ErrorResponseSerializer,
         },
     )
     def get(self, request):
@@ -109,54 +86,8 @@ class GetUserSubscriptionAPIView(UseCaseAPIViewMixin):
         tags=["Payments"],
         description="Get user subscription details",
         responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "subscription": {
-                        "anyOf": [
-                            {
-                                "type": "object",
-                                "properties": {
-                                    "id": {"type": "string"},
-                                    "user_id": {"type": "string"},
-                                    "plan_id": {"type": "string"},
-                                    "stripe_subscription_id": {"type": "string"},
-                                    "stripe_customer_id": {"type": "string"},
-                                    "status": {"type": "string"},
-                                    "current_period_start": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                    },
-                                    "current_period_end": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                    },
-                                    "trial_start": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                    },
-                                    "trial_end": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                    },
-                                    "canceled_at": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                    },
-                                    "is_active": {"type": "boolean"},
-                                    "is_on_trial": {"type": "boolean"},
-                                },
-                            },
-                            {"type": "null"},
-                        ],
-                        "description": "User subscription details or null if none",
-                    }
-                },
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
+            200: UserSubscriptionWrapperSerializer,
+            500: ErrorResponseSerializer,
         },
     )
     def get(self, request):

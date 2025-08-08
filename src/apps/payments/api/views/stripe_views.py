@@ -18,6 +18,10 @@ from ...infrastructure.repository import (
 )
 from ...infrastructure.services.stripe_service import StripeService
 from ...use_cases import ProcessStripeWebhookUseCase
+from ..serializers.schemas import (
+    ErrorResponseSerializer,
+    StripePublicKeyResponseSerializer,
+)
 
 
 class GetStripePublicKeyAPIView(UseCaseAPIViewMixin):
@@ -29,19 +33,8 @@ class GetStripePublicKeyAPIView(UseCaseAPIViewMixin):
         tags=["Payments"],
         description="Get Stripe public key for client-side integration",
         responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "publishable_key": {
-                        "type": "string",
-                        "description": "Stripe publishable key",
-                    },
-                },
-            },
-            403: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
+            200: StripePublicKeyResponseSerializer,
+            403: ErrorResponseSerializer,
         },
     )
     def get(self, request):

@@ -9,6 +9,11 @@ from ...infrastructure.repository import InvoiceRepository, SubscriptionReposito
 from ...infrastructure.services.stripe_service import StripeService
 from ...use_cases import GetInvoiceHistoryUseCase, GetUpcomingInvoiceUseCase
 from ..serializers import InvoiceSerializer
+from ..serializers.schemas import (
+    ErrorResponseSerializer,
+    PaginatedInvoiceResponseSerializer,
+    UpcomingInvoiceWrapperSerializer,
+)
 
 
 class GetUpcomingInvoiceAPIView(UseCaseAPIViewMixin):
@@ -27,24 +32,7 @@ class GetUpcomingInvoiceAPIView(UseCaseAPIViewMixin):
     @extend_schema(
         tags=["Payments"],
         description="Get upcoming invoice for the authenticated user",
-        responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "invoice": {
-                        "anyOf": [
-                            {"type": "object"},
-                            {"type": "null"},
-                        ],
-                        "description": "Upcoming invoice details or null if none",
-                    }
-                },
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
-        },
+        responses={200: UpcomingInvoiceWrapperSerializer, 500: ErrorResponseSerializer},
     )
     def get(self, request):
         """Obtiene la próxima factura del usuario"""
@@ -94,38 +82,9 @@ class GetInvoiceHistoryAPIView(UseCaseAPIViewMixin):
         description="Get invoice history for the authenticated user with pagination",
         parameters=UseCaseAPIViewMixin.get_pagination_parameters(),
         responses={
-            200: {
-                "type": "object",
-                "properties": {
-                    "count": {"type": "integer"},
-                    "next": {"type": "string", "nullable": True},
-                    "previous": {"type": "string", "nullable": True},
-                    "results": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {"type": "string"},
-                                "stripe_invoice_id": {"type": "string"},
-                                "amount": {"type": "integer"},
-                                "currency": {"type": "string"},
-                                "status": {"type": "string"},
-                                "due_date": {"type": "string", "format": "date-time"},
-                                "paid_at": {"type": "string", "format": "date-time"},
-                                "created_at": {"type": "string", "format": "date-time"},
-                            },
-                        },
-                    },
-                },
-            },
-            400: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
-            500: {
-                "type": "object",
-                "properties": {"error": {"type": "string"}},
-            },
+            200: PaginatedInvoiceResponseSerializer,
+            400: ErrorResponseSerializer,
+            500: ErrorResponseSerializer,
         },
     )
     def get(self, request):
