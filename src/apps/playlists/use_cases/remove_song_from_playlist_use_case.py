@@ -1,8 +1,8 @@
 from typing import Any, Dict
 
+from apps.playlists.api.dtos.playlist_dtos import RemoveSongFromPlaylistRequestDTO
 from common.interfaces.ibase_use_case import BaseUseCase
 from common.utils.logging_decorators import log_execution, log_performance
-from src.apps.playlists.api.dtos.playlist_dtos import RemoveSongFromPlaylistRequestDTO
 
 from ..domain.exceptions import PlaylistValidationException
 from ..domain.repository.iplaylist_repository import IPlaylistRepository

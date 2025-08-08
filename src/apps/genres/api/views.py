@@ -10,7 +10,7 @@ from apps.genres.api.serializers import GenreSerializer
 from apps.genres.infrastructure.filters import GenreModelFilter
 from apps.genres.infrastructure.models import GenreModel
 from common.mixins import FilteredViewSetMixin
-from src.common.utils.schema_decorators import paginated_list_endpoint
+from common.utils.schema_decorators import paginated_list_endpoint
 
 from ..api.mappers import GenreMapper
 from ..infrastructure.repository import GenreRepository

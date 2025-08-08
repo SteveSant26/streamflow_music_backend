@@ -3,7 +3,7 @@ from typing import Generic, Iterable, TypeVar
 
 from pyparsing import ABC
 
-from src.common.utils.logging_config import get_logger
+from common.utils.logging_config import get_logger
 
 EntityType = TypeVar("EntityType")
 DTOType = TypeVar("DTOType")

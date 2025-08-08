@@ -1,1 +1,0 @@
-# Tests Domain de Artists

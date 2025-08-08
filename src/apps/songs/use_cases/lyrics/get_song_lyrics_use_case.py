@@ -1,10 +1,10 @@
 import traceback
 from typing import Optional
 
+from apps.songs.domain.exceptions import SongNotFoundException
 from apps.songs.domain.repository.Isong_repository import ISongRepository
 from common.mixins.logging_mixin import LoggingMixin
 from common.services.lyrics_manager import LyricsManager
-from src.apps.songs.domain.exceptions import SongNotFoundException
 
 
 class GetSongLyricsUseCase(LoggingMixin):

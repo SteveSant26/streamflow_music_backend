@@ -63,6 +63,18 @@ repos:
             |^src/apps/.*/migrations/
           )
 
+  # Ejecuta tests unitarios con pytest
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        args: [test/, --tb=short, --quiet, --no-header]
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
   # Verifica que los mensajes de commit sigan el estándar de Conventional Commits
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
@@ -75,9 +87,9 @@ repos:
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        exclude: '(^test/|test_.*\.py$)'
+        exclude: '(^test/|test_.*\.py$|^test-reports/)'
       - id: end-of-file-fixer
-        exclude: '(^test/|test_.*\.py$)'
+        exclude: '(^test/|test_.*\.py$|^test-reports/)'
       - id: check-yaml
       - id: check-added-large-files
       - id: check-json

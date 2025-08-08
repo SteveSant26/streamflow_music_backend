@@ -1,7 +1,7 @@
 from typing import Optional
 
-from src.common.adapters.lyrics.lyrics_service import LyricsService
-from src.common.utils.lyrics_validators import validate_lyrics
+from common.adapters.lyrics.lyrics_service import LyricsService
+from common.utils.lyrics_validators import validate_lyrics
 
 
 class LyricsManager:

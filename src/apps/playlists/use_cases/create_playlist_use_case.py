@@ -3,8 +3,8 @@ import uuid
 from django.utils import timezone
 
 from common.interfaces.ibase_use_case import BaseUseCase
+from common.interfaces.istorage_service import IStorageService
 from common.utils.logging_decorators import log_execution, log_performance
-from src.common.interfaces.istorage_service import IStorageService
 
 from ..api.dtos import CreatePlaylistRequestDTO
 from ..domain.entities import PlaylistEntity

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic
 
-from src.common.utils.logging_config import get_logger
+from common.utils.logging_config import get_logger
 
 from ..types import EntityType, InputType, ModelType, ReturnType
 from ..utils.logging_decorators import log_execution, log_performance

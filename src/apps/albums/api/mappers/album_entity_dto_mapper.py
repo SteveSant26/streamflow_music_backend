@@ -1,7 +1,5 @@
 from apps.albums.domain.entities import AlbumEntity
-from src.common.interfaces.imapper.abstract_entity_dto_mapper import (
-    AbstractEntityDtoMapper,
-)
+from common.interfaces.imapper.abstract_entity_dto_mapper import AbstractEntityDtoMapper
 
 from ..dtos import AlbumResponseDTO
 

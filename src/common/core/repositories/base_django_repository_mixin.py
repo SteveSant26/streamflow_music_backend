@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Generic, Type, TypeVar
 
 from common.interfaces.imapper import AbstractEntityModelMapper
-from src.common.utils.logging_config import get_logger
+from common.utils.logging_config import get_logger
 
 EntityType = TypeVar("EntityType")
 ModelType = TypeVar("ModelType")

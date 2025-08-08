@@ -12,8 +12,8 @@ from apps.songs.infrastructure.filters import SongModelFilter
 from apps.songs.infrastructure.models import SongModel
 from apps.songs.infrastructure.repository.song_repository import SongRepository
 from apps.songs.use_cases import SearchSongsUseCase
-from src.common.factories.unified_music_service_factory import get_music_service
-from src.common.mixins import LoggingMixin
+from common.factories.unified_music_service_factory import get_music_service
+from common.mixins import LoggingMixin
 
 
 @extend_schema_view(
