@@ -44,14 +44,14 @@ htmlcov/
 .coverage.*
 .cache
 nosetests.xml
-coverage.xml
+# coverage.xml - Keep for SonarQube
 *.cover
 *.py.cover
 .hypothesis/
 pytest.xml
-pytest-results.xml
-test-reports/pytest-results.xml
-test-reports/coverage.xml
+# pytest-results.xml - Keep for SonarQube
+# test-reports/pytest-results.xml - Keep for SonarQube
+# test-reports/coverage.xml - Keep for SonarQube
 test-reports/htmlcov/
 .pytest_cache/
 cover/
